@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"],
+      "project": ["scripts/**/*.ts"]
+    },
+    "packages/*": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    },
+    "apps/*": {
+      "entry": ["src/main.ts", "src/main.tsx", "src/index.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    }
+  },
+  "ignore": ["**/generated/**", "**/dist/**"]
+}

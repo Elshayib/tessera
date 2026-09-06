@@ -1,0 +1,13 @@
+---
+description: TypeScript and package conventions for Tessera
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+- Named exports only. `import type` for types. ESM. kebab-case file names. One concept per file.
+- Tests colocated: `foo.ts` → `foo.test.ts`.
+- Public API: TSDoc + `@example` when non-trivial. Re-export explicitly from `src/index.ts`.
+- Errors in packages: `Result` from `@tessera/std`. `invariant()` for programmer errors.
+- Vendor SDKs stay in the packages listed in `docs/02-architecture.md` §5.
+- AbortSignal on any API that can run > 100 ms.
+- Feature flags live in `apps/web/src/flags.ts`; packages receive flags via factories.

@@ -1,0 +1,28 @@
+# Normalize line endings
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets
+*.glb binary
+*.gltf text
+*.bin binary
+*.hdr binary
+*.exr binary
+*.ktx2 binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.wasm binary
+*.woff binary
+*.woff2 binary
+*.blend binary
+*.fbx binary
+
+# Generated files: collapse in diffs
+pnpm-lock.yaml linguist-generated=true -diff
+**/generated/** linguist-generated=true

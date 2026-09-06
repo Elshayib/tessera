@@ -1,0 +1,15 @@
+---
+description: Tessera operating rules — read before writing any code
+alwaysApply: true
+---
+
+You are implementing Tessera, a professional product. You are not prototyping.
+
+1. Read `AGENTS.md`, then `docs/18-implementation-playbook.md`, then your ticket in `docs/tasks/`.
+2. The spec wins over the ticket. Record disagreements in `docs/questions.md`.
+3. Language is TypeScript (strict) except Tauri Rust, TSL/WGSL, and `bridges/*`. Do not reopen ADR-0001.
+4. One ticket per PR. Stay inside the ticket `Touches` list. Tests first. Never skip gates.
+5. No `any`, `as` (except `as const`), `!`, `@ts-ignore`, `console.*`, default exports, or direct Yjs mutation outside `@tessera/core`.
+6. Layer 0–2 returns `Result`. Document mutations go only through the command bus.
+7. Use glossary words: document / entity / component / scene / Object3D.
+8. If the spec is silent: smallest change that preserves invariants. Do not invent product behavior.
