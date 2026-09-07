@@ -189,3 +189,52 @@ Options: (a) invent placeholder links (b) keep `in-progress` until a human opens
 Conservative choice implemented: (b) tickets stay `in-progress`. Do not git-tag `m0-foundations`.
 Answer: —
 
+### Q-0026 — `ProjectStore.create` templates `studio` and `outdoor`
+Raised by: T-0100 · Spec: `08` §2 · Status: open
+Question: `create(meta, template?: 'empty' | 'studio' | 'outdoor')` has no specified entity/asset contents for `studio` and `outdoor`.
+Options: (a) invent studio/outdoor starter scenes (b) implement `empty` only; other templates return `UNSUPPORTED` until a later ticket
+Conservative choice implemented: (b) recorded for T-0101. Do not invent starter-scene contents.
+Answer: —
+
+### Q-0027 — `ProjectStore.gc` timing
+Raised by: T-0100 · Spec: `08` §5 · Status: open
+Question: `gc` deletes unreferenced blobs older than 24 h, never automatically, and is exposed in Settings. T-0101/T-0102 are already size L without a Settings UI.
+Options: (a) implement `gc` on Memory/IndexedDB in T-0101/T-0102 (b) defer `gc` until the Settings ticket
+Conservative choice implemented: (b) T-0101/T-0102 Non-goals include `gc`. The interface may omit it until that ticket, or return `UNSUPPORTED`.
+Answer: —
+
+### Q-0028 — `GltfExportOptions.deterministic`
+Raised by: T-0100 · Spec: `09` §3.1 vs §3.4 · Status: open
+Question: §3.4 says `exportedAt` is omitted when `options.deterministic = true`, but the `GltfExportOptions` TypeScript snippet in §3.1 does not list `deterministic`.
+Options: (a) add `deterministic?: boolean` to the options type in T-0110 (b) use a test-only exporter flag
+Conservative choice implemented: (a) T-0110 adds `deterministic` to options; default false.
+Answer: —
+
+### Q-0029 — T-0119 visual is empty viewport, not R1
+Raised by: T-0100 · Spec: `01` §8, T-0119 title · Status: open
+Question: T-0119 is titled “visual baseline R1-empty”. R1 is a 1000-entity loaded scene (`01` §8). An empty-project screenshot is a different baseline.
+Options: (a) T-0119 captures empty viewport only (b) T-0119 also captures R1
+Conservative choice implemented: (a) empty viewport Chromium screenshot. R1 visual remains a later ticket if this PR would exceed size.
+Answer: —
+
+### Q-0030 — `EditorContext.assets` before T-0109
+Raised by: T-0100 · Spec: `02` §7 · Status: open
+Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
+Options: (a) T-0115 depends T-0109 (b) T-0115 injects a façade whose import methods return `UNSUPPORTED`
+Conservative choice implemented: (b) T-0115 depends T-0108 (primitive factory) and may stub import until T-0109.
+Answer: —
+
+### Q-0031 — Keyboard nudge Shift multiplier
+Raised by: T-0100 · Spec: `01` a11y, `05` §7 · Status: open
+Question: Arrow-key nudge is required; the Shift multiplier is not specified.
+Options: (a) Shift ×10 of the snap increment (b) Shift uses a different documented increment
+Conservative choice implemented: (a) ×10 for T-0116.
+Answer: —
+
+### Q-0032 — Archive entry allow-list vs `blobs/index.json`
+Raised by: T-0100 · Spec: `03` §10 vs `14` SEC-08 · Status: open
+Question: `03` §10 includes `blobs/index.json` in the project/archive layout. SEC-08 allow-list names `blobs/<hash>`, `project.tessera.json`, `manifest.json` only.
+Options: (a) allow `blobs/index.json` as in `03` (b) omit the index file and derive listing from zip entries
+Conservative choice implemented: (a) T-0101 allows `blobs/index.json` in addition to the SEC-08 names so `03` §10 is implementable.
+Answer: —
+
