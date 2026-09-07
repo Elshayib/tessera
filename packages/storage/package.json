@@ -1,7 +1,7 @@
 {
   "name": "@tessera/storage",
   "version": "0.0.0",
-  "description": "BlobStore and ProjectStore: memory implementations and .tessera archive codec.",
+  "description": "BlobStore and ProjectStore: memory, IndexedDB, OPFS, and .tessera archives.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -27,9 +27,11 @@
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
     "fflate": "0.8.3",
+    "y-indexeddb": "9.0.12",
     "yjs": "13.6.32"
   },
   "devDependencies": {
+    "fake-indexeddb": "6.2.5",
     "typescript": "5.9.2",
     "vitest": "3.2.4"
   }

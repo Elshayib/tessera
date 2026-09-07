@@ -62,6 +62,13 @@ module.exports = {
       to: { path: "node_modules/yjs" },
     },
     {
+      name: "y-indexeddb-isolation",
+      comment: "y-indexeddb is allowed only in @tessera/storage (T-0102).",
+      severity: "error",
+      from: { pathNot: "^packages/storage/" },
+      to: { path: "node_modules/y-indexeddb" },
+    },
+    {
       name: "react-isolation",
       severity: "error",
       from: { pathNot: "^(packages/ui/|apps/web/|apps/desktop/|apps/docs/)" },

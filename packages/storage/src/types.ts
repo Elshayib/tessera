@@ -22,6 +22,15 @@ export interface BlobStore {
 }
 
 /**
+ * Browser blob store that reports whether OPFS or IndexedDB is in use (`08` §2).
+ *
+ * @public
+ */
+export interface BrowserBlobStore extends BlobStore {
+  readonly backend: "opfs" | "indexeddb";
+}
+
+/**
  * Listing row for {@link ProjectStore.list}.
  *
  * @public

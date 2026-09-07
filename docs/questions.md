@@ -245,3 +245,17 @@ Options: (a) storage imports core anyway (b) keep a canonical `Document` snapsho
 Conservative choice implemented: (b) snapshot JSON is the source of truth in MemoryProjectStore.
 Answer: —
 
+### Q-0034 — T-0102 browser-mode tests vs Node `fake-indexeddb`
+Raised by: T-0102 · Spec: `13` §2, T-0102 Notes · Status: open
+Question: Ticket notes say browser-mode Vitest + Playwright. `13` §2 lists browser-mode for engine/ui, not storage. OPFS is unavailable in Node.
+Options: (a) Playwright Chromium for `*.browser.test.ts` (b) Node + `fake-indexeddb`; OPFS fallback path is the Node-tested path
+Conservative choice implemented: (b) `fake-indexeddb` 6.2.5 (dev). A fake OPFS directory handle covers the OPFS backend in-process. True browser OPFS waits for engine browser-mode (T-0104). Tests use an inline `TestClock` (same `Clock` surface as testing’s `FakeClock`) because storage must not depend on `@tessera/testing`.
+Answer: —
+
+### Q-0035 — Debounced snapshot cannot `fromYDoc`
+Raised by: T-0102 · Spec: `08` §4 vs `02` §4 storage deps · Status: open
+Question: `08` §4 writes a 5 s canonical snapshot to `snapshots/<projectId>.json`. T-0102 Non-goals exclude snapshot files. Storage cannot import `@tessera/core` to map Yjs → `Document`.
+Options: (a) import core from storage (b) update `updatedAt` on the JSON snapshot already stored in `tessera-projects`
+Conservative choice implemented: (b) `ydoc.on("update")` records `dirtyAt`; `list`/`snapshot`/`close` flush when `clock.now() - dirtyAt >= SNAPSHOT_DEBOUNCE_MS` (5000). Yjs updates still persist via `y-indexeddb`. Hosts that need a full canonical document after edits apply `fromYDoc` themselves.
+Answer: —
+
