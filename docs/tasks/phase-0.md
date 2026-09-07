@@ -281,7 +281,7 @@ Inspector `.meta()` completeness (`INV-DOC-09`) — that is **T-0004**. Command/
 | Package | `@tessera/schema` |
 | Size | L |
 | Depends on | T-0003 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

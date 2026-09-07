@@ -243,3 +243,24 @@ test("validate walks asset, texture, behavior, and procedural refs", () => {
   expect(report.ok).toBe(false);
   expect(report.issues.length).toBeGreaterThan(0);
 });
+
+test("INV-DOC-01 behavior map key and id mismatch", () => {
+  const doc = emptyDocument();
+  const host = entity("e_aaaaaaaaaa", "Host");
+  const behavior = {
+    id: "b_bbbbbbbbbb",
+    name: "Spin",
+    target: "e_aaaaaaaaaa",
+    script: "a_aaaaaaaaaa",
+    params: {},
+    enabled: true,
+  };
+  const report = validateDocument({
+    ...withEntities(doc, { e_aaaaaaaaaa: host }),
+    behaviors: {
+      b_aaaaaaaaaa: behavior,
+      b_bbbbbbbbbb: behavior,
+    },
+  });
+  expect(report.issues.some((item) => item.invariant === "INV-DOC-01")).toBe(true);
+});

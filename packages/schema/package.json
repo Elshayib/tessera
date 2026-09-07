@@ -1,7 +1,7 @@
 {
   "name": "@tessera/schema",
   "version": "0.0.0",
-  "description": "Zod 4 document schema, validation, canonicalize, and primitive bounds for Tessera.",
+  "description": "Zod 4 document schema, command/query catalogs, inspector metadata, and JSON Schema emit for Tessera.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -11,6 +11,12 @@
       "development": "./src/index.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./json-schema": {
+      "types": "./dist/json-schema.d.ts",
+      "development": "./src/json-schema.ts",
+      "import": "./dist/json-schema.js",
+      "default": "./dist/json-schema.js"
     }
   },
   "main": "./dist/index.js",
@@ -21,7 +27,8 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b",
-    "test": "vitest run"
+    "test": "vitest run",
+    "emit-json-schema": "tsx ../../scripts/emit-json-schema.ts"
   },
   "dependencies": {
     "@tessera/std": "workspace:*",

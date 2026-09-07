@@ -9,6 +9,11 @@ export type { TextureAsset } from "./assets/texture.js";
 export type { Aabb } from "./bounds-primitives.js";
 export { primitiveBounds } from "./bounds-primitives.js";
 export { canonicalize } from "./canonicalize.js";
+export type { CommandName, EngineQueryName, QueryName } from "./catalog.js";
+export { COMMAND_CATALOG, ENGINE_QUERY_NAMES, QUERY_CATALOG } from "./catalog.js";
+export type { CommandSchema, QuerySchema } from "./command-schema.js";
+export type { ComponentType, EntityRef } from "./commands/common.js";
+export { COMPONENT_TYPES, ComponentTypeSchema, EntityRefSchema } from "./commands/common.js";
 export type { Camera } from "./components/camera.js";
 export { CameraSchema } from "./components/camera.js";
 export type { Collider } from "./components/collider.js";
@@ -42,6 +47,10 @@ export {
   EntityIdSchema,
   ProjectIdSchema,
 } from "./ids.js";
+export type { InspectorAssetKind, InspectorFieldMeta, InspectorWidget } from "./inspector-meta.js";
+export { INSPECTOR_WIDGETS } from "./inspector-meta.js";
+export type { EmittedJsonSchema } from "./json-schema.js";
+export { emitJsonSchema } from "./json-schema.js";
 export { migrate } from "./migrations/index.js";
 export type { JsonObject, JsonValue, Vec2, Vec3 } from "./primitives.js";
 export { HexColorSchema, NameSchema, Vec2Schema, Vec3Schema } from "./primitives.js";

@@ -35,4 +35,11 @@ test("Emitter unsubscribe; listener throw isolation", () => {
   expect(() => {
     silent.emit("ping", 1);
   }).not.toThrow();
+
+  const loggedNonError = new Emitter<{ ping: number }>({ logger });
+  loggedNonError.on("ping", () => {
+    throw "not-an-error";
+  });
+  loggedNonError.emit("ping", 3);
+  expect(sink.entries.some((entry) => entry.fields?.["name"] === "unknown")).toBe(true);
 });

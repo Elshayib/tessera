@@ -1,5 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignore": ["**/generated/**", "**/dist/**", "docs/templates/**"],
-  "ignoreDependencies": ["lefthook", "tsx"]
+  "ignoreDependencies": ["lefthook"],
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"],
+      "project": ["scripts/**/*.ts"]
+    }
+  }
 }
