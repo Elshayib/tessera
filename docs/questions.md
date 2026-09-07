@@ -76,3 +76,10 @@ Question: D1 requires 10_000 entities and 2_000 assets with an implicit seed `42
 Options: (a) invent a richer D1 scene graph (b) smallest valid layout that meets counts; duplicate BlobStore in testing until T-0101
 Conservative choice implemented: (b) 100 root groups × 99 children = 10_000 entities; 2_000 primitive geometry assets cycling box/sphere/cylinder/cone/plane/torus/capsule with mulberry32(42) sizes; `BlobStore` + `MemoryBlobStore` live in `@tessera/testing` until T-0101. ProjectStore and TranscriptStore wait for later tickets.
 Answer: —
+
+### Q-0010 — Tags component in the Yjs mapping
+Raised by: T-0006 · Spec: `03` §9 · Status: open
+Question: `components.<type>` is a `Y.Map` of fields, but `tags` is an array rather than an object of fields.
+Options: (a) wrap tags in a synthetic field (b) store the array as an atomic JSON leaf on the components map
+Conservative choice implemented: (b) array/non-object component values are stored atomically on `components.tags`; object components remain field-level `Y.Map`s.
+Answer: —

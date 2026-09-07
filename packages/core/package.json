@@ -1,0 +1,36 @@
+{
+  "name": "@tessera/core",
+  "version": "0.0.0",
+  "description": "Yjs-backed Tessera document, reader, and (later) command bus.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "yjs": "13.6.32"
+  },
+  "devDependencies": {
+    "@tessera/testing": "workspace:*",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

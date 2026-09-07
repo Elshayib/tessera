@@ -380,7 +380,7 @@ R1–R3 with GPU. FakeLlmClient (phase 2). `expectScene` (phase 2). `runCommands
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0005 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
