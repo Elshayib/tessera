@@ -31,7 +31,7 @@ export interface ViewportStats {
 }
 
 /**
- * Viewport camera pose (Q-0039). Look-at form until camera-controls lands.
+ * Viewport camera pose (Q-0039). Look-at form; `camera-controls` stores the same pair.
  *
  * @public
  */

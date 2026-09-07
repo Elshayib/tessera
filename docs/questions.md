@@ -329,3 +329,24 @@ Options: (a) pass degrees through (incorrect cone) (b) convert degrees → radia
 Conservative choice implemented: (b) same as transform Euler mapping in `05` §4.1.
 Answer: —
 
+### Q-0046 — viewport camera localStorage
+Raised by: T-0106 · Spec: `05` §8 · Status: open
+Question: Spec persists last viewport pose per project in localStorage. `@tessera/engine` has no project id and must not depend on `apps/web`.
+Options: (a) persist inside engine with an injected key (b) persist in the web app (T-0115/T-0116)
+Conservative choice implemented: (b) engine holds the live pose only. Web owns localStorage.
+Answer: —
+
+### Q-0047 — multi-selection gizmo pivot
+Raised by: T-0106 · Spec: `05` §7 · Status: open
+Question: Multi-selection manipulates a temporary pivot group. T-0106 tests attach a single entity group.
+Options: (a) implement pivot parenting now (b) attach the first selected Object3D until T-0116 multi-select
+Conservative choice implemented: (b) first selected Object3D. Pivot can land with viewport multi-select.
+Answer: —
+
+### Q-0048 — EngineHandle.pick waits for a hosted scene
+Raised by: T-0106 · Spec: `05` §12 vs T-0106 Touches · Status: open
+Question: `EngineHandle.pick` needs a scene the host does not yet own (sync is a separate `createRendererSync` scene). Touches list `picking.ts` / `gizmos.ts` / `viewport-camera.ts`, not `host.ts`.
+Options: (a) add a scene to the host now (b) export module APIs now; wire `EngineHandle` in T-0116 when the viewport owns sync
+Conservative choice implemented: (b) `pick` / `createGizmoController` / `createViewportCamera` are the T-0106 surface. Host stubs remain until the viewport composes them.
+Answer: —
+

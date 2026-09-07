@@ -37,6 +37,20 @@ module.exports = {
       to: { path: "node_modules/three" },
     },
     {
+      name: "three-mesh-bvh-isolation",
+      comment: "three-mesh-bvh is allowed only in @tessera/engine (02 §5).",
+      severity: "error",
+      from: { pathNot: "^packages/engine/" },
+      to: { path: "node_modules/three-mesh-bvh" },
+    },
+    {
+      name: "camera-controls-isolation",
+      comment: "camera-controls is allowed only in @tessera/engine (02 §5).",
+      severity: "error",
+      from: { pathNot: "^packages/engine/" },
+      to: { path: "node_modules/camera-controls" },
+    },
+    {
       name: "INV-ARCH-06-cli-headless",
       comment: "apps/cli must not load three (INV-ARCH-06).",
       severity: "error",
