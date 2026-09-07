@@ -181,3 +181,11 @@ Question: The ticket says the CLI “prints a ValidationReport” but does not s
 Options: (a) JSON of `ValidationReport` on stdout (b) human-formatted table
 Conservative choice implemented: (a) `JSON.stringify(report, null, 2)` on stdout. Exit `0` when `report.ok`, `2` when level 1–3 errors, `1` on I/O or usage. Only `validate` is implemented; other argv is usage (exit 1).
 Answer: —
+
+### Q-0025 — Ticket `done` requires PR links
+Raised by: T-0010 · Spec: `docs/templates/task-template.md`, T-0010 AC5 · Status: open
+Question: T-0010 requires T-0001–T-0009 `done` with PR links. Work is stacked locally and has not been pushed or opened as PRs.
+Options: (a) invent placeholder links (b) keep `in-progress` until a human opens PRs
+Conservative choice implemented: (b) tickets stay `in-progress`. Do not git-tag `m0-foundations`.
+Answer: —
+

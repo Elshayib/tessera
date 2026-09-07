@@ -594,7 +594,7 @@ packages/schema/fixtures/documents/0.1.0/campfire.json
 | Package | `repo` |
 | Size | S |
 | Depends on | T-0009 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

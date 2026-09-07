@@ -36,7 +36,7 @@ undo.undo({ kind: "author", authorId: "u1" });
 
 ## Testing notes
 
-Colocated Vitest tests plus `command-bus.bench.ts` (CI budgets 2 ms primitive / 40 ms 100-command txn). Coverage ≥ 90%. Tests use `@tessera/testing` builders.
+Colocated Vitest tests plus `command-bus.bench.ts` (CI budgets 2 ms primitive / 40 ms 100-command txn) and `command-property.test.ts` (T-0010 seeded create/translate/rename/delete/undo). Coverage ≥ 90%. Tests use `@tessera/testing` builders.
 
 ## New dependencies
 

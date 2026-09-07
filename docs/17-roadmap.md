@@ -37,3 +37,5 @@ A user with no 3D background produces a game-ready level in Godot from a convers
           ↘ 5 (needs 2)      6 (needs 2; benefits from 3)      7 (needs 1–3)      8 (needs 5–7)
 ```
 Phases 3, 4 and 5 can proceed in parallel by different agents once phase 2 is stable; phase 6 and 7 can overlap after 3.
+
+Phase 0 implementation for the `m0-foundations` exit list is on the stacked local branches through T-0009. The git tag `m0-foundations` is reserved and is not applied until a human cuts it (T-0010). Tickets T-0001–T-0009 stay `in-progress` until PRs exist (Q-0025).
