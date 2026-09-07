@@ -111,6 +111,28 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.3.1)(jiti@2.7.0)(tsx@4.20.5)
 
+  packages/storage:
+    dependencies:
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../std
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
+      yjs:
+        specifier: 13.6.32
+        version: 13.6.32
+    devDependencies:
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(jiti@2.7.0)(tsx@4.20.5)
+
   packages/testing:
     dependencies:
       '@tessera/schema':
@@ -119,6 +141,9 @@ importers:
       '@tessera/std':
         specifier: workspace:*
         version: link:../std
+      '@tessera/storage':
+        specifier: workspace:*
+        version: link:../storage
     devDependencies:
       '@types/node':
         specifier: 24.3.1
@@ -1154,6 +1179,9 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
 
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
@@ -2840,6 +2868,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
       picomatch: 4.0.7
+
+  fflate@0.8.3: {}
 
   fill-range@7.1.1:
     dependencies:

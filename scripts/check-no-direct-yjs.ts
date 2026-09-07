@@ -2,7 +2,8 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ALLOWLIST_PREFIXES = ["packages/core/"];
+const YJS_IMPORT_ALLOW = ["packages/core/", "packages/storage/"];
+const TRANSACT_ALLOW = ["packages/core/"];
 
 const YJS_IMPORT = /from\s+["']yjs(?:\/[^"']*)?["']/;
 const TRANSACT = /\.transact\s*\(/;
@@ -19,7 +20,13 @@ export function findForbiddenYjsUsages(files: readonly SourceFile[]): readonly s
   const hits: string[] = [];
   for (const file of files) {
     const normalized = file.path.replaceAll("\\", "/");
-    if (ALLOWLIST_PREFIXES.some((prefix) => normalized.includes(prefix))) {
+    if (YJS_IMPORT_ALLOW.some((prefix) => normalized.includes(prefix))) {
+      if (
+        TRANSACT.test(file.text) &&
+        !TRANSACT_ALLOW.some((prefix) => normalized.includes(prefix))
+      ) {
+        hits.push(normalized);
+      }
       continue;
     }
     if (YJS_IMPORT.test(file.text) || TRANSACT.test(file.text)) {

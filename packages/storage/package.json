@@ -1,7 +1,7 @@
 {
-  "name": "@tessera/testing",
+  "name": "@tessera/storage",
   "version": "0.0.0",
-  "description": "Test fixtures, document builder, FakeClock, MemoryBlobStore, and runCommands for Tessera.",
+  "description": "BlobStore and ProjectStore: memory implementations and .tessera archive codec.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,10 +26,10 @@
   "dependencies": {
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
-    "@tessera/storage": "workspace:*"
+    "fflate": "0.8.3",
+    "yjs": "13.6.32"
   },
   "devDependencies": {
-    "@types/node": "24.3.1",
     "typescript": "5.9.2",
     "vitest": "3.2.4"
   }

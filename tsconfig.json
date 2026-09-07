@@ -5,6 +5,7 @@
     { "path": "packages/schema" },
     { "path": "packages/testing" },
     { "path": "packages/core" },
+    { "path": "packages/storage" },
     { "path": "apps/cli" }
   ]
 }

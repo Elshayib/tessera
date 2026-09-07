@@ -238,3 +238,10 @@ Options: (a) allow `blobs/index.json` as in `03` (b) omit the index file and der
 Conservative choice implemented: (a) T-0101 allows `blobs/index.json` in addition to the SEC-08 names so `03` §10 is implementable.
 Answer: —
 
+### Q-0033 — MemoryProjectStore does not hydrate Y.Doc
+Raised by: T-0101 · Spec: `08` §2 vs `02` §4 storage deps · Status: open
+Question: `OpenProject.ydoc` is a live Yjs document, but `@tessera/storage` must not import `@tessera/core` (mapping lives in core; INV-ARCH-01). How does Memory populate the Y.Doc?
+Options: (a) storage imports core anyway (b) keep a canonical `Document` snapshot and return an empty `Y.Doc` for the host to hydrate with `toYDoc`
+Conservative choice implemented: (b) snapshot JSON is the source of truth in MemoryProjectStore.
+Answer: —
+

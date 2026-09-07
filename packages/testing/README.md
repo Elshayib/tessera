@@ -9,12 +9,12 @@ Fixtures, document builder, `FakeClock`, `MemoryBlobStore`, and `runCommands` fo
 | `docBuilder()` | Fluent builder: `.entity(name, { parent, transform, mesh, material })`, `.geometry()`, `.material()`, `.build()`. |
 | `fixtures.D1()` | Deterministic 10_000-entity / 2_000-asset document (seed `42`, primitives only). |
 | `FakeClock` | Injectable `Clock`. Starts at `1_700_000_000_000`; time moves only via `advance(ms)`. |
-| `MemoryBlobStore` | In-memory `BlobStore` (`docs/08` §2): hash, dedupe, abort. |
+| `MemoryBlobStore` | Re-export of `@tessera/storage` `MemoryBlobStore` (Q-0009 / T-0101). |
 | `runCommands(bus, commands, options)` | Runs commands in order on a duck-typed bus (no `@tessera/core` import; Q-0019). |
 
 ## Dependency rules
 
-Layer 2, test-only. May import `@tessera/schema` and `@tessera/std` only (T-0005). Production `src` must not import this package (`docs/02-architecture.md` §5).
+Layer 2, test-only. May import `@tessera/schema`, `@tessera/std`, and `@tessera/storage` (`MemoryBlobStore` is re-exported from storage). Production `src` must not import this package (`docs/02-architecture.md` §5).
 
 ## Usage example
 

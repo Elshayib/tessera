@@ -6,7 +6,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
 | T-0100 | Freeze phase-1 tickets (fill AC/Tests for T-0101+) | `docs/tasks` | T-0010 | `in-progress` |
-| T-0101 | `@tessera/storage`: BlobStore + Memory + archive codec `.tessera` | storage | T-0010 | `todo` |
+| T-0101 | `@tessera/storage`: BlobStore + Memory + archive codec `.tessera` | storage | T-0010 | `in-progress` |
 | T-0102 | `@tessera/storage`: IndexedDB + OPFS project store | storage | T-0101 | `todo` |
 | T-0103 | `@tessera/spatial`: AABB, world bounds, overlap, primitive bounds | spatial | T-0010 | `todo` |
 | T-0104 | `@tessera/engine`: WebGPURenderer host, fallback, viewport loop | engine | T-0103 | `todo` |
@@ -98,7 +98,7 @@ T-0010 remains `in-progress` until PRs exist (Q-0025). This freeze still proceed
 | Package | `@tessera/storage` |
 | Size | L |
 | Depends on | T-0010 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
