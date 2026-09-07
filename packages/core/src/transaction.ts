@@ -29,3 +29,19 @@ export function serializeAuthor(author: Author): string {
   }
   return `${author.kind}:${author.id}:run:${author.runId}`;
 }
+
+/**
+ * Merges `ExecuteOptions.runId` onto the author so Yjs origins isolate agent runs (Q-0022).
+ *
+ * @internal
+ */
+export function withRunId(author: Author, runId: string | undefined): Author {
+  const resolved = author.runId ?? runId;
+  if (resolved === undefined) {
+    return author;
+  }
+  if (author.runId === resolved) {
+    return author;
+  }
+  return { kind: author.kind, id: author.id, runId: resolved };
+}

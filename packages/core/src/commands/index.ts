@@ -19,7 +19,7 @@ import { tagsAdd, tagsRemove } from "./tags.js";
 import { transformRotate, transformScale, transformSet, transformTranslate } from "./transform.js";
 
 /**
- * Primitive catalog handlers except `asset.import` (jobs / T-0008).
+ * Primitive catalog handlers except `asset.import` (import pipeline is later).
  *
  * @internal
  */

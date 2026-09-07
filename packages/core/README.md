@@ -1,18 +1,22 @@
 # `@tessera/core`
 
-Yjs-backed live document, snapshot mapping (`03` §9), `DocumentReader`, and the command bus (`04` §3–§8). `DocumentWriter` is internal. Direct `yjs` imports stay inside this package (`INV-ARCH-01`).
+Yjs-backed live document, snapshot mapping (`03` §9), `DocumentReader`, command bus, undo, headless queries, and an in-memory job queue (`04`). `DocumentWriter` is internal. Direct `yjs` imports stay inside this package (`INV-ARCH-01`).
 
 ## Public API
 
 | Export | Description |
 | --- | --- |
 | `createDocument(opts?)` | Live handle `{ doc, reader }` from an optional snapshot. |
-| `createCommandBus(handle, opts?)` | Validates and executes catalog commands inside transactions. |
+| `createCommandBus(handle, opts?)` | Validates and executes catalog commands inside transactions. Pass `undo: capture` so UndoManager tracks origins. |
+| `createUndoService(handle)` | Per-author / per-run Yjs undo (`INV-CMD-04`, `INV-CMD-09`). |
+| `createQueryHost(handle, { history })` | Headless `QUERY_CATALOG` (engine names are `UNSUPPORTED`). |
+| `createJobQueue(bus, { logger })` | In-memory jobs; `commit` is the only document write. Max 2 running per kind. |
+| `describeScene(reader, input?)` | Compact LLM scene text (`04` §11). |
 | `toYDoc` / `fromYDoc` | Snapshot ↔ Y.Doc mapping. |
 | `DocumentReader` | `getEntity`, `getAsset`, `getBehavior`, `children`, `parentChain`, `resolvePath`, `pathOf`, `entities`, `assets`, `snapshot`, `subscribe`. |
 | `deriveChangeSet` / `summarizeChangeSet` | Snapshot-diff change sets (Q-0013). |
 
-`asset.import` is not registered (job / T-0008).
+`asset.import` is not registered (import pipeline is later).
 
 ## Dependency rules
 
@@ -21,11 +25,13 @@ Layer 1. May import `@tessera/std`, `@tessera/schema`, `yjs`, and `fractional-in
 ## Usage example
 
 ```ts
-import { createCommandBus, createDocument } from "@tessera/core";
+import { createCommandBus, createDocument, createUndoService } from "@tessera/core";
 
 const { doc } = createDocument();
-const bus = createCommandBus(doc);
+const undo = createUndoService(doc);
+const bus = createCommandBus(doc, { undo: undo.capture });
 bus.execute("entity.create", { name: "oak" }, { author: { kind: "user", id: "u1" } });
+undo.undo({ kind: "author", authorId: "u1" });
 ```
 
 ## Testing notes
@@ -44,4 +50,4 @@ Colocated Vitest tests plus `command-bus.bench.ts` (CI budgets 2 ms primitive / 
 - `docs/03-domain-model.md` §4.3, §9–§10
 - `docs/04-command-bus.md`
 - ADR-0003, ADR-0004
-- Tickets T-0006, T-0007
+- Tickets T-0006, T-0007, T-0008

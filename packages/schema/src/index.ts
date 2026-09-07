@@ -91,5 +91,14 @@ export { emitJsonSchema } from "./json-schema.js";
 export { migrate } from "./migrations/index.js";
 export type { JsonObject, JsonValue, Vec2, Vec3 } from "./primitives.js";
 export { HexColorSchema, NameSchema, Vec2Schema, Vec3Schema } from "./primitives.js";
+export { assetGetQuery, assetListQuery } from "./queries/asset.js";
+export { entityChildrenQuery, entityGetQuery } from "./queries/entity.js";
+export { historyListQuery } from "./queries/history.js";
+export {
+  sceneDescribeQuery,
+  sceneFindQuery,
+  sceneMeasureQuery,
+  sceneStatsQuery,
+} from "./queries/scene.js";
 export type { DocumentInvariant, ValidationIssue, ValidationReport } from "./validate.js";
 export { validateDocument } from "./validate.js";

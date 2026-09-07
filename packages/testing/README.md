@@ -1,6 +1,6 @@
 # `@tessera/testing`
 
-Fixtures, document builder, `FakeClock`, and `MemoryBlobStore` for Tessera tests. Later tickets add `runCommands`, scene assertions, and LLM fakes.
+Fixtures, document builder, `FakeClock`, `MemoryBlobStore`, and `runCommands` for Tessera tests.
 
 ## Public API
 
@@ -10,6 +10,7 @@ Fixtures, document builder, `FakeClock`, and `MemoryBlobStore` for Tessera tests
 | `fixtures.D1()` | Deterministic 10_000-entity / 2_000-asset document (seed `42`, primitives only). |
 | `FakeClock` | Injectable `Clock`. Starts at `1_700_000_000_000`; time moves only via `advance(ms)`. |
 | `MemoryBlobStore` | In-memory `BlobStore` (`docs/08` §2): hash, dedupe, abort. |
+| `runCommands(bus, commands, options)` | Runs commands in order on a duck-typed bus (no `@tessera/core` import; Q-0019). |
 
 ## Dependency rules
 
@@ -19,7 +20,7 @@ Layer 2, test-only. May import `@tessera/schema` and `@tessera/std` only (T-0005
 
 ```ts
 import { validateDocument } from "@tessera/schema";
-import { docBuilder, FakeClock, fixtures, MemoryBlobStore } from "@tessera/testing";
+import { docBuilder, FakeClock, fixtures, MemoryBlobStore, runCommands } from "@tessera/testing";
 
 const doc = docBuilder().entity("oak_01", { mesh: "oak" }).material("bark", { baseColor: "#8b5a2b" }).build();
 const report = validateDocument(doc);
@@ -30,6 +31,7 @@ const d1 = fixtures.D1();
 void report;
 void blobs;
 void d1;
+void runCommands;
 ```
 
 ## Testing notes

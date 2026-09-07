@@ -22,7 +22,8 @@ import { createDocumentReader } from "./document-reader.js";
 import type { DocumentHandle } from "./document-types.js";
 import { createDocumentWriter } from "./internal/document-writer.js";
 import { summarizeChangeSet } from "./summarize-change-set.js";
-import { isTransactionAbort, serializeAuthor, TransactionAbort } from "./transaction.js";
+import { isTransactionAbort, serializeAuthor, TransactionAbort, withRunId } from "./transaction.js";
+import type { UndoCapture } from "./undo-service.js";
 import { fromYDoc, restoreSnapshot } from "./yjs-mapping.js";
 
 export type {
@@ -48,6 +49,7 @@ export type {
  */
 export interface CreateCommandBusOptions {
   readonly blobs?: BlobPresence;
+  readonly undo?: UndoCapture;
 }
 
 class Registry implements CommandRegistry {
@@ -206,14 +208,17 @@ export function createCommandBus(
 
     const startedAtMs = handle.clock.now();
     const startedAt = handle.clock.nowIso();
+    const author = withRunId(optionsIn.author, optionsIn.runId);
     const session: ActiveTransaction = {
       id: newId("t"),
-      author: optionsIn.author,
+      author,
       commands: [],
       label: optionsIn.label,
       changeSet: undefined,
     };
-    const origin = serializeAuthor(optionsIn.author);
+    const origin = serializeAuthor(author);
+    options.undo?.track(origin);
+    const stackBefore = options.undo?.stackSize(origin) ?? 0;
     const before = fromYDoc(handle.ydoc);
     let stored: { readonly value: T } | undefined;
     active = true;
@@ -257,6 +262,7 @@ export function createCommandBus(
       active = false;
       nestedJoin = undefined;
       if (isTransactionAbort(caught)) {
+        options.undo?.trimStack(origin, stackBefore);
         restoreSnapshot(handle.ydoc, before);
         events.emit("transaction.rejected", {
           name: session.commands[0]?.name ?? optionsIn.label ?? "transaction",
@@ -274,8 +280,10 @@ export function createCommandBus(
     invariant(changeSet !== undefined, "transaction produced a change set");
     const record = makeRecord(session, optionsIn, startedAt, handle.clock.now() - startedAtMs);
     if (isChangeSetEmpty(changeSet)) {
+      options.undo?.trimStack(origin, stackBefore);
       return ok({ value: stored.value, transaction: record });
     }
+    options.undo?.record(record, origin);
     events.emit("transaction.committed", { transaction: record });
     events.emit("document.changed", { changeSet, origin: optionsIn.author });
     return ok({ value: stored.value, transaction: record });
@@ -329,7 +337,7 @@ function makeRecord(
   };
   const base = {
     id: session.id,
-    author: optionsIn.author,
+    author: session.author,
     label: session.label ?? optionsIn.label ?? "transaction",
     startedAt,
     durationMs,

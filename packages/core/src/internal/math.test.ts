@@ -6,6 +6,7 @@ import {
   invertMat4,
   keepWorldLocal,
   multiplyMat4,
+  transformPoint,
 } from "./math.js";
 
 test("identity invert and compose/decompose round-trip", () => {
@@ -25,6 +26,10 @@ test("identity invert and compose/decompose round-trip", () => {
     expect(Math.abs(left - right)).toBeLessThan(1e-10);
   }
   const composed = composeTrs([1, 2, 3], [0, 0, 0], [1, 1, 1]);
+  const moved = transformPoint(composed, [0, 0, 0]);
+  expect(moved[0]).toBeCloseTo(1);
+  expect(moved[1]).toBeCloseTo(2);
+  expect(moved[2]).toBeCloseTo(3);
   const decomposed = decomposeTrs(composed);
   expect(decomposed.position[0]).toBeCloseTo(1);
   expect(decomposed.position[1]).toBeCloseTo(2);

@@ -265,6 +265,19 @@ export function transformDir(m: Mat4, v: readonly [number, number, number]): Vec
 }
 
 /**
+ * Transform a point (w=1) by a matrix.
+ *
+ * @internal
+ */
+export function transformPoint(m: Mat4, v: readonly [number, number, number]): Vec3 {
+  return [
+    mAt(m, 0, 0) * v[0] + mAt(m, 1, 0) * v[1] + mAt(m, 2, 0) * v[2] + mAt(m, 3, 0),
+    mAt(m, 0, 1) * v[0] + mAt(m, 1, 1) * v[1] + mAt(m, 2, 1) * v[2] + mAt(m, 3, 1),
+    mAt(m, 0, 2) * v[0] + mAt(m, 1, 2) * v[1] + mAt(m, 2, 2) * v[2] + mAt(m, 3, 2),
+  ];
+}
+
+/**
  * Recompute local TRS so world stays the same under a new parent world matrix.
  *
  * @internal

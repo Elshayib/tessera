@@ -123,7 +123,7 @@ Answer: —
 Raised by: T-0007 · Spec: `04` §8.3, INV-CMD-10 · Status: open
 Question: INV-CMD-10 wants every catalog command registered; T-0007 non-goals exclude jobs, so `asset.import` has no handler.
 Options: (a) register a stub that returns UNSUPPORTED (b) omit it until T-0008
-Conservative choice implemented: (b) not registered; `execute("asset.import")` returns `NOT_FOUND`.
+Conservative choice implemented: (b) not registered; T-0008 adds `JobQueue` but not the import pipeline, so `execute("asset.import")` still returns `NOT_FOUND`.
 Answer: —
 
 ### Q-0017 — Command-bus bench thresholds on Windows CI
@@ -138,4 +138,39 @@ Raised by: T-0007 · Spec: `01` §7, INV-TST-03 · Status: open
 Question: T-0001 set a single root Vitest threshold of 95% because only `std`/`schema` existed. `01` §7 requires 95% for those packages and **90% for `core`**. A merged 95% bar would reject a spec-compliant core package.
 Options: (a) keep a global 95% and over-test core (b) per-package glob thresholds matching `01` §7
 Conservative choice implemented: (b) root `vitest.config.ts` uses a 95% lines/statements/functions floor, a 90% branch floor (schema branches are 93.6% from T-0004 inspector/validate tails; this ticket does not add schema tests), plus a `packages/core/**` glob at 90% per `01` §7. Benches are excluded. Package configs keep their own bars.
+Answer: —
+
+### Q-0019 — `runCommands` must not import `@tessera/core`
+Raised by: T-0008 · Spec: `13` §3, T-0008 Touches · Status: open
+Question: T-0008 puts `runCommands` in `@tessera/testing`. Production `@tessera/core` already has a test-only dependency on `@tessera/testing`. A production testing→core dependency would be a package cycle.
+Options: (a) testing depends on core (b) duck-typed `CommandRunner` in testing
+Conservative choice implemented: (b) `runCommands` accepts any object with `execute` returning a `Result`.
+Answer: —
+
+### Q-0020 — Default `scene.describe` detail
+Raised by: T-0008 · Spec: `04` §10–§11 · Status: open
+Question: `detail` is optional; the spec example matches outline, and D1 must stay ≤ 8 KB at "default detail".
+Options: (a) `outline` (b) `summary`
+Conservative choice implemented: (a) `DEFAULT_DESCRIBE_DETAIL = "outline"` with `maxChars` 8000 and `maxDepth` 4.
+Answer: —
+
+### Q-0021 — `scene.measure` without `@tessera/spatial`
+Raised by: T-0008 · Spec: `04` §10 · Status: open
+Question: Measure "uses spatial bounds" but `@tessera/spatial` does not exist yet.
+Options: (a) wait for spatial (b) core world AABB from geometry `bounds` + TRS
+Conservative choice implemented: (b) `entityWorldAabb` from asset bounds (or origin point) and `internal/math` transforms. Distance is origin-to-origin; bounds is AABB diagonal; gap is AABB separation.
+Answer: —
+
+### Q-0022 — Yjs origin includes `ExecuteOptions.runId`
+Raised by: T-0008 · Spec: `04` §4.4, §6, INV-CMD-09 · Status: open
+Question: Pipeline origin is `serializeAuthor(author)`, but `runId` also lives on `ExecuteOptions` separately from `author.runId`.
+Options: (a) require `author.runId` (b) merge `options.runId` onto the author before serializing
+Conservative choice implemented: (b) `withRunId(author, options.runId)` so agent runs isolate even when `runId` is only on execute options.
+Answer: —
+
+### Q-0023 — Primitive triangle totals in `scene.stats`
+Raised by: T-0008 · Spec: `04` §10, Q-0007 · Status: open
+Question: Stats "triangle totals (from asset stats)". Primitive assets already store `stats.triangles` when created through schema/testing.
+Options: (a) sum geometry `stats` (b) recompute from primitive tessellation
+Conservative choice implemented: (a) sum `geometry.stats.triangles` / `vertices`; missing kinds contribute 0.
 Answer: —

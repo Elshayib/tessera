@@ -1,7 +1,7 @@
 {
   "name": "@tessera/core",
   "version": "0.0.0",
-  "description": "Yjs-backed Tessera document, command bus, and transactions.",
+  "description": "Yjs-backed Tessera document, command bus, undo, queries, and jobs.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

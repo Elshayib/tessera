@@ -492,7 +492,7 @@ Undo (T-0008). Queries (T-0008). Macros. Jobs. UI.
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0007 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

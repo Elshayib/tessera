@@ -1,7 +1,7 @@
 {
   "name": "@tessera/testing",
   "version": "0.0.0",
-  "description": "Test fixtures, document builder, FakeClock, and MemoryBlobStore for Tessera.",
+  "description": "Test fixtures, document builder, FakeClock, MemoryBlobStore, and runCommands for Tessera.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
