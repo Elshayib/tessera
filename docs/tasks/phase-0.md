@@ -335,7 +335,7 @@ Handlers. Macros (`layout.*`, `camera.fit`). Jobs.
 | Package | `@tessera/testing` |
 | Size | M |
 | Depends on | T-0004 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

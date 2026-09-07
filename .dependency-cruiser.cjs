@@ -69,7 +69,10 @@ module.exports = {
     {
       name: "testing-not-in-prod",
       severity: "error",
-      from: { path: "^packages/.+/src/", pathNot: "\\.(test|bench|int|browser\\.test)\\.ts$" },
+      from: {
+        path: "^packages/.+/src/",
+        pathNot: ["\\.(test|bench|int|browser\\.test)\\.ts$", "^packages/testing/"],
+      },
       to: { path: "^packages/testing/" },
     },
     {
