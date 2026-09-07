@@ -280,3 +280,17 @@ Options: (a) snap helpers (b) boolean `onGroundPlane(aabb, epsilon = 1e-6)` when
 Conservative choice implemented: (b) Y-up document coordinates; layout snapping stays phase 2.
 Answer: —
 
+### Q-0039 — viewport `CameraPose` shape
+Raised by: T-0104 · Spec: `05` §8 / §12 · Status: open
+Question: `getViewportCamera` / `setViewportCamera` use `CameraPose`, but the type is unnamed in schema and `05`.
+Options: (a) full lens pose (fov, near, far, quaternion) (b) look-at `{ position, target }` until camera-controls (T-0106)
+Conservative choice implemented: (b) look-at form. T-0106 can extend when `camera-controls` lands.
+Answer: —
+
+### Q-0040 — engine browser-mode without Playwright
+Raised by: T-0104 · Spec: `13` §2, T-0104 Tests · Status: open
+Question: Ticket lists `*.browser.test.ts` (Vitest browser-mode + Playwright). True WebGPU/WebGL is unavailable in Node, and Playwright browser-mode is not wired until `apps/web` (T-0119).
+Options: (a) add Vitest Playwright browser provider now (b) happy-dom + injectable `GpuRenderer`; defer real GPU to T-0119 / a later engine browser job
+Conservative choice implemented: (b) `happy-dom` 18.0.1 (dev) and `createRenderer` injection. Production still uses `three/webgpu` `WebGPURenderer` with `navigator.gpu` / `init()` fallback (`05` §2–§3).
+Answer: —
+

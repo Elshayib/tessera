@@ -98,6 +98,13 @@ module.exports = {
       to: { dependencyTypes: ["core"], path: "^node:" },
     },
     {
+      name: "INV-ARCH-02-engine-no-command-bus",
+      comment: "Engine never imports CommandBus (INV-ARCH-02 / INV-RND-03).",
+      severity: "error",
+      from: { path: "^packages/engine/" },
+      to: { path: "packages/core/.+/command-bus" },
+    },
+    {
       name: "no-deep-imports",
       severity: "error",
       from: {},
