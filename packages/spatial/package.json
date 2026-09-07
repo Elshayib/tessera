@@ -1,0 +1,36 @@
+{
+  "name": "@tessera/spatial",
+  "version": "0.0.0",
+  "description": "Node-safe AABB, overlap, hierarchy sort, and camera framing math for Tessera.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*"
+  },
+  "devDependencies": {
+    "@tessera/core": "workspace:*",
+    "@tessera/testing": "workspace:*",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

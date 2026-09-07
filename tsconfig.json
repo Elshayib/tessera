@@ -6,6 +6,7 @@
     { "path": "packages/testing" },
     { "path": "packages/core" },
     { "path": "packages/storage" },
+    { "path": "packages/spatial" },
     { "path": "apps/cli" }
   ]
 }

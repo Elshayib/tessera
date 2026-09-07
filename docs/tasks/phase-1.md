@@ -8,7 +8,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0100 | Freeze phase-1 tickets (fill AC/Tests for T-0101+) | `docs/tasks` | T-0010 | `in-progress` |
 | T-0101 | `@tessera/storage`: BlobStore + Memory + archive codec `.tessera` | storage | T-0010 | `in-progress` |
 | T-0102 | `@tessera/storage`: IndexedDB + OPFS project store | storage | T-0101 | `in-progress` |
-| T-0103 | `@tessera/spatial`: AABB, world bounds, overlap, primitive bounds | spatial | T-0010 | `todo` |
+| T-0103 | `@tessera/spatial`: AABB, world bounds, overlap, primitive bounds | spatial | T-0010 | `in-progress` |
 | T-0104 | `@tessera/engine`: WebGPURenderer host, fallback, viewport loop | engine | T-0103 | `todo` |
 | T-0105 | `@tessera/engine`: RendererSync + transform/mesh/light/camera handlers | engine | T-0104, T-0108 | `todo` |
 | T-0106 | `@tessera/engine`: picking (BVH), transform gizmos, camera-controls | engine | T-0105 | `todo` |
@@ -215,7 +215,7 @@ Browser-mode Vitest + Playwright provider (`13` §2). Tests must not depend on w
 | Package | `@tessera/spatial` |
 | Size | M |
 | Depends on | T-0010 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

@@ -259,3 +259,24 @@ Options: (a) import core from storage (b) update `updatedAt` on the JSON snapsho
 Conservative choice implemented: (b) `ydoc.on("update")` records `dirtyAt`; `list`/`snapshot`/`close` flush when `clock.now() - dirtyAt >= SNAPSHOT_DEBOUNCE_MS` (5000). Yjs updates still persist via `y-indexeddb`. Hosts that need a full canonical document after edits apply `fromYDoc` themselves.
 Answer: —
 
+### Q-0036 — `frameBounds` return shape
+Raised by: T-0103 · Spec: `05` §8 · Status: open
+Question: Engine `frame` uses `spatial.frameBounds`, but `CameraPose` is unnamed in schema and `padding` units are unspecified.
+Options: (a) invent a full viewport `CameraPose` (fov, near, far) (b) return look-at center, padded AABB, radius, isometric position, and distance
+Conservative choice implemented: (b) `FrameBounds` with `padding` as extra meters per side (clamped ≥ 0). Camera sits on the (1,1,1) isometric axis at `distance = 2 * radius`. Engine T-0104/T-0106 can map this onto `camera-controls`.
+Answer: —
+
+### Q-0037 — spatial does not import `three`
+Raised by: T-0103 · Spec: `02` §4 vs T-0103 AC2 · Status: open
+Question: Spatial may import `three` math modules. AC2 only constrains *if* three is imported.
+Options: (a) add `three` and import `three/src/math/*` (b) implement AABB/TRS math in-package with no `three`
+Conservative choice implemented: (b) no `three` dependency. `SpatialReader` is a structural subset of `DocumentReader` so spatial does not import `@tessera/core` either (avoids a production core→spatial cycle later and unused-dep knip).
+Answer: —
+
+### Q-0038 — ground-plane test
+Raised by: T-0103 · Spec: T-0103 Goal vs silent `05`/`03` · Status: open
+Question: Goal lists a ground-plane test; no API or epsilon is specified.
+Options: (a) snap helpers (b) boolean `onGroundPlane(aabb, epsilon = 1e-6)` when `|min.y| ≤ epsilon`
+Conservative choice implemented: (b) Y-up document coordinates; layout snapping stays phase 2.
+Answer: —
+
