@@ -1,7 +1,7 @@
 {
   "name": "@tessera/std",
   "version": "0.0.0",
-  "description": "Shared primitives for Tessera. T-0001 placeholder export only.",
+  "description": "Shared primitives for Tessera: Result, errors, invariant, ids, Logger, Emitter, Clock, abort, redact.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

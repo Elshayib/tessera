@@ -7,6 +7,12 @@ const config = defineConfig({
       include: ["packages/*/src/**/*.ts"],
       exclude: ["**/*.test.ts", "docs/**", "**/*.cjs"],
       provider: "v8",
+      thresholds: {
+        lines: 95,
+        branches: 95,
+        functions: 95,
+        statements: 95,
+      },
     },
   },
 });

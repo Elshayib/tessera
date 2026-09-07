@@ -87,7 +87,7 @@ Implementing Result, ids, or any real std API. Creating other packages. Enabling
 | Package | `@tessera/std` |
 | Size | L |
 | Depends on | T-0001 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
