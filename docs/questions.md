@@ -294,3 +294,17 @@ Options: (a) add Vitest Playwright browser provider now (b) happy-dom + injectab
 Conservative choice implemented: (b) `happy-dom` 18.0.1 (dev) and `createRenderer` injection. Production still uses `three/webgpu` `WebGPURenderer` with `navigator.gpu` / `init()` fallback (`05` §2–§3).
 Answer: —
 
+### Q-0041 — capsule `height` vs analytic bounds
+Raised by: T-0108 · Spec: `03` primitive field vs `primitiveBounds` · Status: open
+Question: Geometry schema describes capsule `height` as “cylinder height excluding caps”, but `primitiveBounds` uses `±height/2` on Y (total AABB height).
+Options: (a) generate excluding caps and exceed `primitiveBounds` (b) treat `height` as total AABB height so mesh bounds match `primitiveBounds` within 1e-5
+Conservative choice implemented: (b) AC requires bounds match; cylinder length is `max(0, height − 2×radius)`.
+Answer: —
+
+### Q-0042 — primitive factory does not write blobs
+Raised by: T-0108 · Spec: T-0108 AC3 · Status: open
+Question: AC3 says “pure + blob writes only when asked”. No encoding for a primitive mesh blob is specified until glTF import/export.
+Options: (a) invent a custom binary blob now (b) return in-memory `PrimitiveMesh` only
+Conservative choice implemented: (b) no `BlobStore` writes in T-0108. Engine/exporters consume arrays directly; T-0109/T-0110 own blob formats.
+Answer: —
+

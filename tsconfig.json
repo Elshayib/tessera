@@ -8,6 +8,7 @@
     { "path": "packages/storage" },
     { "path": "packages/spatial" },
     { "path": "packages/engine" },
+    { "path": "packages/assets" },
     { "path": "apps/cli" }
   ]
 }

@@ -13,7 +13,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0105 | `@tessera/engine`: RendererSync + transform/mesh/light/camera handlers | engine | T-0104, T-0108 | `todo` |
 | T-0106 | `@tessera/engine`: picking (BVH), transform gizmos, camera-controls | engine | T-0105 | `todo` |
 | T-0107 | `@tessera/engine`: screenshots + viewport stats | engine | T-0105 | `todo` |
-| T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `todo` |
+| T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `in-progress` |
 | T-0109 | `@tessera/assets`: glTF import worker (gltf-transform normalize) | assets | T-0108 | `todo` |
 | T-0110 | `@tessera/exporters`: glTF + sidecar from document (not from scene) | exporters | T-0101, T-0108, T-0109 | `todo` |
 | T-0111 | `@tessera/exporters`: Three.js code export | exporters | T-0110 | `todo` |
@@ -469,7 +469,7 @@ Vision critic, JPEG quality tuning UI, R1 leak test of 100 cycles (can be a late
 | Package | `@tessera/assets` |
 | Size | M |
 | Depends on | T-0101 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
