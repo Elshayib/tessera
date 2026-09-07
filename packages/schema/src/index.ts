@@ -4,6 +4,7 @@ export type { GeometryAsset, Primitive } from "./assets/geometry.js";
 export type { Asset } from "./assets/index.js";
 export { AssetSchema } from "./assets/index.js";
 export type { MaterialAsset, TextureSlot } from "./assets/material.js";
+export { MaterialAssetSchema } from "./assets/material.js";
 export type { ScriptAsset } from "./assets/script.js";
 export type { TextureAsset } from "./assets/texture.js";
 export type { Aabb } from "./bounds-primitives.js";
@@ -12,8 +13,44 @@ export { canonicalize } from "./canonicalize.js";
 export type { CommandName, EngineQueryName, QueryName } from "./catalog.js";
 export { COMMAND_CATALOG, ENGINE_QUERY_NAMES, QUERY_CATALOG } from "./catalog.js";
 export type { CommandSchema, QuerySchema } from "./command-schema.js";
+export {
+  assetCreateCommand,
+  assetDeleteCommand,
+  assetImportCommand,
+  assetUpdateCommand,
+} from "./commands/asset.js";
+export { cameraSetMainCommand } from "./commands/camera.js";
 export type { ComponentType, EntityRef } from "./commands/common.js";
 export { COMPONENT_TYPES, ComponentTypeSchema, EntityRefSchema } from "./commands/common.js";
+export {
+  componentAddCommand,
+  componentRemoveCommand,
+  componentSetCommand,
+} from "./commands/component.js";
+export {
+  entityCreateCommand,
+  entityDeleteCommand,
+  entityDuplicateCommand,
+  entityRenameCommand,
+  entityReorderCommand,
+  entitySetEnabledCommand,
+  entitySetParentCommand,
+} from "./commands/entity.js";
+export { environmentSetCommand } from "./commands/environment.js";
+export {
+  materialAssignCommand,
+  materialCreateCommand,
+  materialSetCommand,
+} from "./commands/material.js";
+export { metadataSetCommand } from "./commands/metadata.js";
+export { settingsSetCommand } from "./commands/settings.js";
+export { tagsAddCommand, tagsRemoveCommand } from "./commands/tags.js";
+export {
+  transformRotateCommand,
+  transformScaleCommand,
+  transformSetCommand,
+  transformTranslateCommand,
+} from "./commands/transform.js";
 export type { Camera } from "./components/camera.js";
 export { CameraSchema } from "./components/camera.js";
 export type { Collider } from "./components/collider.js";

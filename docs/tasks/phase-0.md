@@ -431,7 +431,7 @@ Command bus. Undo. Persistence adapters (IndexedDB).
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0006 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

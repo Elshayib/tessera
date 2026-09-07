@@ -1,32 +1,46 @@
-import type { Asset, Entity } from "@tessera/schema";
+import type { Asset, Behavior, DocumentMeta, Entity, Environment, Settings } from "@tessera/schema";
 import type { Result, TesseraError } from "@tessera/std";
-import { err, ok, tesseraError } from "@tessera/std";
+import { err, invariant, ok, tesseraError } from "@tessera/std";
 import * as Y from "yjs";
 import type { DocumentHandle } from "../document-types.js";
-import { assetsMap, entitiesMap, fromYDoc, writeAssetMap, writeEntityMap } from "../yjs-mapping.js";
+import {
+  assetsMap,
+  behaviorsMap,
+  entitiesMap,
+  fromYDoc,
+  rootMap,
+  writeAssetMap,
+  writeBehaviorMap,
+  writeEntityMap,
+  writeNamedMap,
+} from "../yjs-mapping.js";
 
 /**
- * Internal writer for entity and asset maps. Not exported from the package index.
+ * The only object that mutates Yjs maps (`docs/04-command-bus.md` §3).
  *
  * @internal
  */
-interface DocumentWriter {
+export interface DocumentWriter {
   createEntity(entity: Entity): Result<void, TesseraError>;
   updateEntity(entity: Entity): Result<void, TesseraError>;
   deleteEntity(id: string): Result<void, TesseraError>;
+  removeEntityUnchecked(id: string): Result<void, TesseraError>;
   createAsset(asset: Asset): Result<void, TesseraError>;
   updateAsset(asset: Asset): Result<void, TesseraError>;
   deleteAsset(id: string): Result<void, TesseraError>;
+  upsertBehavior(behavior: Behavior): Result<void, TesseraError>;
+  deleteBehavior(id: string): Result<void, TesseraError>;
+  setEnvironment(environment: Environment): Result<void, TesseraError>;
+  setSettings(settings: Settings): Result<void, TesseraError>;
+  setMeta(meta: DocumentMeta): Result<void, TesseraError>;
 }
 
 /**
- * Test-only writer for a live document handle.
+ * Writer that does not open Yjs transactions. The command bus wraps mutations.
  *
  * @internal
  */
-export function createTestWriter(doc: DocumentHandle): DocumentWriter {
-  const ydoc = doc.ydoc;
-
+export function createDocumentWriter(ydoc: Y.Doc): DocumentWriter {
   const createEntity = (entity: Entity): Result<void, TesseraError> => {
     const entities = entitiesMap(ydoc);
     if (entities.has(entity.id)) {
@@ -36,11 +50,9 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
     if (parentError !== undefined) {
       return err(parentError);
     }
-    ydoc.transact(() => {
-      const entry = new Y.Map<unknown>();
-      entities.set(entity.id, entry);
-      writeEntityMap(entry, entity);
-    });
+    const entry = new Y.Map<unknown>();
+    entities.set(entity.id, entry);
+    writeEntityMap(entry, entity);
     return ok(undefined);
   };
 
@@ -55,14 +67,12 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
       if (parentError !== undefined) {
         return err(parentError);
       }
-      ydoc.transact(() => {
-        const existing = entities.get(entity.id);
-        const entry = existing instanceof Y.Map ? existing : new Y.Map<unknown>();
-        if (!(existing instanceof Y.Map)) {
-          entities.set(entity.id, entry);
-        }
-        writeEntityMap(entry, entity);
-      });
+      const existing = entities.get(entity.id);
+      const entry = existing instanceof Y.Map ? existing : new Y.Map<unknown>();
+      if (!(existing instanceof Y.Map)) {
+        entities.set(entity.id, entry);
+      }
+      writeEntityMap(entry, entity);
       return ok(undefined);
     },
     deleteEntity(id) {
@@ -76,9 +86,15 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
           return err(tesseraError("CONFLICT", "entity has children", { id }));
         }
       }
-      ydoc.transact(() => {
-        entities.delete(id);
-      });
+      entities.delete(id);
+      return ok(undefined);
+    },
+    removeEntityUnchecked(id) {
+      const entities = entitiesMap(ydoc);
+      if (!entities.has(id)) {
+        return err(tesseraError("NOT_FOUND", "entity missing", { id }));
+      }
+      entities.delete(id);
       return ok(undefined);
     },
     createAsset(asset) {
@@ -86,11 +102,9 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
       if (assets.has(asset.id)) {
         return err(tesseraError("CONFLICT", "asset already exists", { id: asset.id }));
       }
-      ydoc.transact(() => {
-        const entry = new Y.Map<unknown>();
-        assets.set(asset.id, entry);
-        writeAssetMap(entry, asset);
-      });
+      const entry = new Y.Map<unknown>();
+      assets.set(asset.id, entry);
+      writeAssetMap(entry, asset);
       return ok(undefined);
     },
     updateAsset(asset) {
@@ -98,14 +112,12 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
       if (!assets.has(asset.id)) {
         return err(tesseraError("NOT_FOUND", "asset missing", { id: asset.id }));
       }
-      ydoc.transact(() => {
-        const existing = assets.get(asset.id);
-        const entry = existing instanceof Y.Map ? existing : new Y.Map<unknown>();
-        if (!(existing instanceof Y.Map)) {
-          assets.set(asset.id, entry);
-        }
-        writeAssetMap(entry, asset);
-      });
+      const existing = assets.get(asset.id);
+      const entry = existing instanceof Y.Map ? existing : new Y.Map<unknown>();
+      if (!(existing instanceof Y.Map)) {
+        assets.set(asset.id, entry);
+      }
+      writeAssetMap(entry, asset);
       return ok(undefined);
     },
     deleteAsset(id) {
@@ -113,11 +125,74 @@ export function createTestWriter(doc: DocumentHandle): DocumentWriter {
       if (!assets.has(id)) {
         return err(tesseraError("NOT_FOUND", "asset missing", { id }));
       }
-      ydoc.transact(() => {
-        assets.delete(id);
-      });
+      assets.delete(id);
       return ok(undefined);
     },
+    upsertBehavior(behavior) {
+      const behaviors = behaviorsMap(ydoc);
+      const existing = behaviors.get(behavior.id);
+      const entry = existing instanceof Y.Map ? existing : new Y.Map<unknown>();
+      if (!(existing instanceof Y.Map)) {
+        behaviors.set(behavior.id, entry);
+      }
+      writeBehaviorMap(entry, behavior);
+      return ok(undefined);
+    },
+    deleteBehavior(id) {
+      const behaviors = behaviorsMap(ydoc);
+      if (!behaviors.has(id)) {
+        return err(tesseraError("NOT_FOUND", "behavior missing", { id }));
+      }
+      behaviors.delete(id);
+      return ok(undefined);
+    },
+    setEnvironment(environment) {
+      writeNamedMap(rootMap(ydoc), "environment", environment);
+      return ok(undefined);
+    },
+    setSettings(settings) {
+      writeNamedMap(rootMap(ydoc), "settings", settings);
+      return ok(undefined);
+    },
+    setMeta(meta) {
+      writeNamedMap(rootMap(ydoc), "meta", meta);
+      return ok(undefined);
+    },
+  };
+}
+
+/**
+ * Test-only writer that opens a transaction per call.
+ *
+ * @internal
+ */
+export function createTestWriter(doc: DocumentHandle): DocumentWriter {
+  const inner = createDocumentWriter(doc.ydoc);
+  const wrap = <A extends readonly unknown[]>(
+    fn: (...args: A) => Result<void, TesseraError>,
+  ): ((...args: A) => Result<void, TesseraError>) => {
+    return (...args: A): Result<void, TesseraError> => {
+      let result: Result<void, TesseraError> | undefined;
+      doc.ydoc.transact(() => {
+        result = fn(...args);
+      });
+      invariant(result !== undefined, "writer transact ran");
+      return result;
+    };
+  };
+  return {
+    createEntity: wrap(inner.createEntity.bind(inner)),
+    updateEntity: wrap(inner.updateEntity.bind(inner)),
+    deleteEntity: wrap(inner.deleteEntity.bind(inner)),
+    removeEntityUnchecked: wrap(inner.removeEntityUnchecked.bind(inner)),
+    createAsset: wrap(inner.createAsset.bind(inner)),
+    updateAsset: wrap(inner.updateAsset.bind(inner)),
+    deleteAsset: wrap(inner.deleteAsset.bind(inner)),
+    upsertBehavior: wrap(inner.upsertBehavior.bind(inner)),
+    deleteBehavior: wrap(inner.deleteBehavior.bind(inner)),
+    setEnvironment: wrap(inner.setEnvironment.bind(inner)),
+    setSettings: wrap(inner.setSettings.bind(inner)),
+    setMeta: wrap(inner.setMeta.bind(inner)),
   };
 }
 

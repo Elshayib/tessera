@@ -17,6 +17,15 @@ export function toYDoc(snapshot: Document): Y.Doc {
 }
 
 /**
+ * Overwrites a live Y.Doc from a snapshot. Used to abort failed transactions.
+ *
+ * @internal
+ */
+export function restoreSnapshot(ydoc: Y.Doc, snapshot: Document): void {
+  writeSnapshot(ydoc, snapshot);
+}
+
+/**
  * Reads a document snapshot from a Y.Doc using `03` §9.
  *
  * @public
@@ -70,6 +79,7 @@ export function writeEntityMap(target: Y.Map<unknown>, entity: Entity): void {
 }
 
 export function writeAssetMap(target: Y.Map<unknown>, asset: Asset): void {
+  target.clear();
   setRecord(target, objectRecord(asset));
 }
 
@@ -85,9 +95,22 @@ export function assetsMap(ydoc: Y.Doc): Y.Map<unknown> {
   return mapOf(rootMap(ydoc), "assets");
 }
 
-function setNamedMap(parent: Y.Map<unknown>, key: string, value: object): void {
+export function behaviorsMap(ydoc: Y.Doc): Y.Map<unknown> {
+  return mapOf(rootMap(ydoc), "behaviors");
+}
+
+export function writeBehaviorMap(target: Y.Map<unknown>, behavior: object): void {
+  target.clear();
+  setRecord(target, objectRecord(behavior));
+}
+
+export function writeNamedMap(parent: Y.Map<unknown>, key: string, value: object): void {
   const map = setEmptyMap(parent, key);
   setRecord(map, objectRecord(value));
+}
+
+function setNamedMap(parent: Y.Map<unknown>, key: string, value: object): void {
+  writeNamedMap(parent, key, value);
 }
 
 function setEmptyMap(parent: Y.Map<unknown>, key: string): Y.Map<unknown> {

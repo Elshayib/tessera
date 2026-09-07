@@ -1,7 +1,7 @@
 {
   "name": "@tessera/core",
   "version": "0.0.0",
-  "description": "Yjs-backed Tessera document, reader, and (later) command bus.",
+  "description": "Yjs-backed Tessera document, command bus, and transactions.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -26,7 +26,8 @@
   "dependencies": {
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
-    "yjs": "13.6.32"
+    "yjs": "13.6.32",
+    "fractional-indexing": "4.0.0"
   },
   "devDependencies": {
     "@tessera/testing": "workspace:*",

@@ -73,4 +73,35 @@ test("INV-DOC-02/03 writer rejects missing parent and cycles", () => {
   expect(isOk(writer.deleteAsset(asset.id))).toBe(true);
   expect(isErr(writer.deleteAsset(asset.id))).toBe(true);
   expect(isErr(writer.updateAsset(asset))).toBe(true);
+
+  const script = {
+    id: "a_script0000",
+    kind: "script" as const,
+    name: "spin",
+    license: "unknown",
+    provenance: { source: "derived", importedAt: emptyDocument().meta.createdAt },
+    createdAt: emptyDocument().meta.createdAt,
+    language: "ts" as const,
+    apiVersion: "1",
+  };
+  expect(isOk(writer.createAsset(script))).toBe(true);
+  const behavior = {
+    id: "b_0000000000",
+    name: "spin",
+    target: "e_0000000000",
+    script: script.id,
+    params: {},
+    enabled: true,
+  };
+  expect(isOk(writer.upsertBehavior(behavior))).toBe(true);
+  expect(isOk(writer.upsertBehavior({ ...behavior, enabled: false }))).toBe(true);
+  expect(reader.getBehavior(behavior.id)?.enabled).toBe(false);
+  expect(isOk(writer.deleteBehavior(behavior.id))).toBe(true);
+  expect(isErr(writer.deleteBehavior(behavior.id))).toBe(true);
+  expect(isOk(writer.setEnvironment({ ...reader.snapshot().environment, exposure: 2 }))).toBe(true);
+  expect(
+    isOk(writer.setSettings({ ...reader.snapshot().settings, physics: { gravity: [0, 0, 0] } })),
+  ).toBe(true);
+  expect(isOk(writer.setMeta({ ...reader.snapshot().meta, name: "Renamed" }))).toBe(true);
+  expect(isErr(writer.removeEntityUnchecked("e_missing000"))).toBe(true);
 });

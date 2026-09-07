@@ -3,8 +3,10 @@ import { emptyDocument } from "@tessera/schema";
 import { isOk } from "@tessera/std";
 import { FakeClock } from "@tessera/testing";
 import { expect, test } from "vitest";
+import * as Y from "yjs";
 import { createDocument } from "./index.js";
 import { createTestWriter } from "./internal/document-writer.js";
+import { entitiesMap } from "./yjs-mapping.js";
 
 function entity(partial: Pick<Entity, "id" | "name" | "parent" | "order">): Entity {
   return {
@@ -65,4 +67,12 @@ test("path resolve and children order (fractional index)", () => {
   ).toBe(true);
   expect(notifications).toBeGreaterThan(0);
   stop();
+
+  const childMap = entitiesMap(doc.ydoc).get("e_0000000001");
+  const rootMap = entitiesMap(doc.ydoc).get("e_0000000000");
+  expect(childMap instanceof Y.Map && rootMap instanceof Y.Map).toBe(true);
+  if (childMap instanceof Y.Map && rootMap instanceof Y.Map) {
+    rootMap.set("parent", "e_0000000001");
+  }
+  expect(reader.parentChain("e_0000000001").length).toBeGreaterThan(0);
 });
