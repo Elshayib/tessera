@@ -1,4 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "packages/std" }]
+  "references": [{ "path": "packages/std" }, { "path": "packages/schema" }]
 }

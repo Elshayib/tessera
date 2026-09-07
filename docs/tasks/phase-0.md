@@ -204,7 +204,7 @@ Zod. Yjs. UI. A console sink that uses `console.*` in production code — the de
 | Package | `@tessera/schema` |
 | Size | L |
 | Depends on | T-0002 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

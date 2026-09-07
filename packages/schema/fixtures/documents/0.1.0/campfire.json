@@ -1,0 +1,139 @@
+{
+  "version": "0.1.0",
+  "meta": {
+    "id": "p_campfire01",
+    "name": "Campfire",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "generator": "tessera@0.0.0"
+  },
+  "settings": {
+    "units": "m",
+    "up": "Y",
+    "handedness": "right",
+    "mainCamera": "e_camera0001",
+    "physics": {
+      "gravity": [0, -9.81, 0]
+    }
+  },
+  "entities": {
+    "e_ground0001": {
+      "id": "e_ground0001",
+      "name": "Ground",
+      "parent": null,
+      "order": "a0",
+      "enabled": true,
+      "components": {
+        "transform": { "position": [0, 0, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+        "meshRenderer": {
+          "geometry": "a_plane00001",
+          "materials": ["a_mat0000001"],
+          "castShadow": true,
+          "receiveShadow": true,
+          "visible": true
+        }
+      }
+    },
+    "e_log0000001": {
+      "id": "e_log0000001",
+      "name": "Log",
+      "parent": null,
+      "order": "a1",
+      "enabled": true,
+      "components": {
+        "transform": { "position": [0, 0.15, 0], "rotation": [0, 20, 0], "scale": [1, 1, 1] },
+        "meshRenderer": {
+          "geometry": "a_box0000001",
+          "materials": ["a_mat0000001"],
+          "castShadow": true,
+          "receiveShadow": true,
+          "visible": true
+        }
+      }
+    },
+    "e_fire000000": {
+      "id": "e_fire000000",
+      "name": "Fire",
+      "parent": null,
+      "order": "a2",
+      "enabled": true,
+      "components": {
+        "transform": { "position": [0, 0.4, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] },
+        "light": {
+          "type": "point",
+          "color": "#ff8844",
+          "intensity": 80,
+          "range": 8,
+          "castShadow": false
+        }
+      }
+    },
+    "e_camera0001": {
+      "id": "e_camera0001",
+      "name": "Camera",
+      "parent": null,
+      "order": "a3",
+      "enabled": true,
+      "components": {
+        "transform": { "position": [4, 3, 6], "rotation": [-20, 30, 0], "scale": [1, 1, 1] },
+        "camera": {
+          "type": "perspective",
+          "fov": 50,
+          "near": 0.1,
+          "far": 1000,
+          "orthoSize": 5
+        }
+      }
+    }
+  },
+  "assets": {
+    "a_plane00001": {
+      "id": "a_plane00001",
+      "kind": "geometry",
+      "name": "GroundPlane",
+      "license": "CC0-1.0",
+      "provenance": { "source": "primitive", "importedAt": "2026-01-01T00:00:00.000Z" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "source": { "kind": "primitive", "primitive": { "type": "plane", "size": [10, 10] } },
+      "bounds": { "min": [-5, 0, -5], "max": [5, 0, 5] },
+      "stats": { "triangles": 2, "vertices": 4, "primitiveGroups": 1 }
+    },
+    "a_box0000001": {
+      "id": "a_box0000001",
+      "kind": "geometry",
+      "name": "LogBox",
+      "license": "CC0-1.0",
+      "provenance": { "source": "primitive", "importedAt": "2026-01-01T00:00:00.000Z" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "source": { "kind": "primitive", "primitive": { "type": "box", "size": [0.3, 0.3, 1] } },
+      "bounds": { "min": [-0.15, -0.15, -0.5], "max": [0.15, 0.15, 0.5] },
+      "stats": { "triangles": 12, "vertices": 8, "primitiveGroups": 1 }
+    },
+    "a_mat0000001": {
+      "id": "a_mat0000001",
+      "kind": "material",
+      "name": "Bark",
+      "license": "CC0-1.0",
+      "provenance": { "source": "primitive", "importedAt": "2026-01-01T00:00:00.000Z" },
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "model": "pbr",
+      "baseColor": "#6b4f2a",
+      "metallic": 0,
+      "roughness": 0.8,
+      "emissive": "#000000",
+      "emissiveStrength": 1,
+      "opacity": 1,
+      "alphaMode": "opaque",
+      "alphaCutoff": 0.5,
+      "doubleSided": false
+    }
+  },
+  "environment": {
+    "sky": { "kind": "color", "color": "#101018" },
+    "exposure": 1,
+    "toneMapping": "neutral",
+    "fog": { "kind": "none" },
+    "ambient": { "color": "#ffffff", "intensity": 0.2 }
+  },
+  "behaviors": {}
+}
