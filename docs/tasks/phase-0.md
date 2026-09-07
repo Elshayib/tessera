@@ -547,7 +547,7 @@ y-indexeddb. Engine queries. UI history panel.
 | Package | `apps/cli` |
 | Size | S |
 | Depends on | T-0008 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

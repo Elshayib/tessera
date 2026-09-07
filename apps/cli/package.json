@@ -1,0 +1,36 @@
+{
+  "name": "@tessera/cli",
+  "version": "0.0.0",
+  "description": "Headless Tessera CLI: tessera validate.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/validate.d.ts",
+      "development": "./src/validate.ts",
+      "import": "./dist/validate.js",
+      "default": "./dist/validate.js"
+    }
+  },
+  "bin": {
+    "tessera": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "tessera": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@tessera/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.1",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

@@ -15,6 +15,7 @@
     "depcruise": "depcruise --config .dependency-cruiser.cjs packages apps",
     "knip": "knip",
     "check:yjs": "tsx scripts/check-no-direct-yjs.ts",
+    "tessera": "pnpm --filter @tessera/cli tessera",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "test:e2e": "pnpm --filter @tessera/web test:e2e",

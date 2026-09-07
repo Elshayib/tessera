@@ -174,3 +174,10 @@ Question: Stats "triangle totals (from asset stats)". Primitive assets already s
 Options: (a) sum geometry `stats` (b) recompute from primitive tessellation
 Conservative choice implemented: (a) sum `geometry.stats.triangles` / `vertices`; missing kinds contribute 0.
 Answer: —
+
+### Q-0024 — `tessera validate` report format
+Raised by: T-0009 · Spec: `03` §12 · Status: open
+Question: The ticket says the CLI “prints a ValidationReport” but does not specify text vs JSON.
+Options: (a) JSON of `ValidationReport` on stdout (b) human-formatted table
+Conservative choice implemented: (a) `JSON.stringify(report, null, 2)` on stdout. Exit `0` when `report.ok`, `2` when level 1–3 errors, `1` on I/O or usage. Only `validate` is implemented; other argv is usage (exit 1).
+Answer: —

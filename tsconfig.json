@@ -4,6 +4,7 @@
     { "path": "packages/std" },
     { "path": "packages/schema" },
     { "path": "packages/testing" },
-    { "path": "packages/core" }
+    { "path": "packages/core" },
+    { "path": "apps/cli" }
   ]
 }

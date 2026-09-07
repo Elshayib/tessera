@@ -37,6 +37,13 @@ module.exports = {
       to: { path: "node_modules/three" },
     },
     {
+      name: "INV-ARCH-06-cli-headless",
+      comment: "apps/cli must not load three (INV-ARCH-06).",
+      severity: "error",
+      from: { path: "^apps/cli/" },
+      to: { path: "node_modules/three" },
+    },
+    {
       name: "ai-sdk-isolation",
       severity: "error",
       from: { pathNot: "^packages/providers-llm/" },
