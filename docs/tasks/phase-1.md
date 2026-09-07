@@ -12,7 +12,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0104 | `@tessera/engine`: WebGPURenderer host, fallback, viewport loop | engine | T-0103 | `in-progress` |
 | T-0105 | `@tessera/engine`: RendererSync + transform/mesh/light/camera handlers | engine | T-0104, T-0108 | `in-progress` |
 | T-0106 | `@tessera/engine`: picking (BVH), transform gizmos, camera-controls | engine | T-0105 | `in-progress` |
-| T-0107 | `@tessera/engine`: screenshots + viewport stats | engine | T-0105 | `todo` |
+| T-0107 | `@tessera/engine`: screenshots + viewport stats | engine | T-0105 | `in-progress` |
 | T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `in-progress` |
 | T-0109 | `@tessera/assets`: glTF import worker (gltf-transform normalize) | assets | T-0108 | `todo` |
 | T-0110 | `@tessera/exporters`: glTF + sidecar from document (not from scene) | exporters | T-0101, T-0108, T-0109 | `todo` |
@@ -421,7 +421,7 @@ Keyboard nudge wiring in apps/web (T-0116). Outline pass (phase 2). Screenshot A
 | Package | `@tessera/engine` |
 | Size | M |
 | Depends on | T-0105 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

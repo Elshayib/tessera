@@ -11,6 +11,8 @@ three.js WebGPU renderer host, on-demand viewport loop, and document→scene syn
 | `createGizmoController` | TransformControls drag protocol: one `transform.set` intent on release (`INV-RND-04`). |
 | `pick` / `raycast` | BVH picking; layers 1–2 ignored unless requested (`05` §6). |
 | `createViewportCamera` | `camera-controls` orbit pose; UI state only (`INV-ARCH-04`). |
+| `captureScreenshot` | Offscreen capture; helpers hidden unless requested (`INV-RND-07`). |
+| `viewportStats` | Samples fps / drawCalls / memory counters after a frame (`05` §9). |
 | `structuralHash` | Canonical hash of entity Object3Ds (`INV-RND-01` / `INV-RND-02`). |
 | `createThreeRenderer` | Default `WebGPURenderer` factory (`three/webgpu`). |
 | `EngineHandle` | Viewport host (`05` §12). T-0104 implements mount/loop/dispose; later methods are no-ops or `UNSUPPORTED`. |
@@ -51,6 +53,6 @@ Colocated Vitest tests. Coverage ≥ 70% (`01` §7). `*.browser.test.ts` runs in
 
 ## Related specs
 
-- `docs/05-rendering.md` §2–§8, §11–§13
+- `docs/05-rendering.md` §2–§10, §11–§13
 - `docs/adr/ADR-0005-threejs-webgpu-tsl.md`
-- Tickets T-0104, T-0105, T-0106
+- Tickets T-0104, T-0105, T-0106, T-0107

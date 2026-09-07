@@ -350,3 +350,10 @@ Options: (a) add a scene to the host now (b) export module APIs now; wire `Engin
 Conservative choice implemented: (b) `pick` / `createGizmoController` / `createViewportCamera` are the T-0106 surface. Host stubs remain until the viewport composes them.
 Answer: —
 
+### Q-0049 — EngineHandle.screenshot stays a stub in T-0107
+Raised by: T-0107 · Spec: `05` §12 vs T-0107 Touches · Status: open
+Question: Host screenshot still returns `UNSUPPORTED` (T-0104). Touches are `screenshot.ts` / `stats.ts`, not `host.ts`, and happy-dom has no GPU render target.
+Options: (a) extend `GpuRenderer` and wire the host now (b) injectable `render` callback; host wiring in T-0116
+Conservative choice implemented: (b) `captureScreenshot` + `viewportStats` are the T-0107 surface.
+Answer: —
+
