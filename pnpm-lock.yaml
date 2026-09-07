@@ -104,9 +104,15 @@ importers:
 
   packages/engine:
     dependencies:
+      '@tessera/assets':
+        specifier: workspace:*
+        version: link:../assets
       '@tessera/schema':
         specifier: workspace:*
         version: link:../schema
+      '@tessera/spatial':
+        specifier: workspace:*
+        version: link:../spatial
       '@tessera/std':
         specifier: workspace:*
         version: link:../std
@@ -114,6 +120,12 @@ importers:
         specifier: 0.183.2
         version: 0.183.2
     devDependencies:
+      '@tessera/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tessera/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@types/three':
         specifier: 0.183.1
         version: 0.183.1

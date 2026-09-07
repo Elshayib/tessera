@@ -1,12 +1,14 @@
 # `@tessera/engine`
 
-three.js WebGPU renderer host, on-demand viewport loop, and (later) document→scene sync (`05`). This ticket lands the host, WebGL2 fallback, and dispose. Sync, picking, gizmos, and screenshots are later tickets.
+three.js WebGPU renderer host, on-demand viewport loop, and document→scene sync (`05`).
 
 ## Public API
 
 | Export | Description |
 | --- | --- |
 | `createEngine` | Creates `EngineHandle`: WebGPU with WebGL2 fallback, mount/unmount, on-demand loop. |
+| `createRendererSync` | Incremental change-set mirror into a three.js `Scene` (`05` §4). |
+| `structuralHash` | Canonical hash of entity Object3Ds (`INV-RND-01` / `INV-RND-02`). |
 | `createThreeRenderer` | Default `WebGPURenderer` factory (`three/webgpu`). |
 | `EngineHandle` | Viewport host (`05` §12). T-0104 implements mount/loop/dispose; later methods are no-ops or `UNSUPPORTED`. |
 | `EngineCapabilities` | `backend`, `compute`, light/texture limits (`05` §3). |
@@ -16,7 +18,7 @@ three.js WebGPU renderer host, on-demand viewport loop, and (later) document→s
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std`, `@tessera/schema`, and `three` / `three/webgpu`. Must not import `CommandBus` or mutate the document (`INV-ARCH-02`, `INV-RND-03`). Must not import React. Does not import `@tessera/core` in T-0104.
+Layer 2. May import `@tessera/std`, `@tessera/schema`, `@tessera/spatial`, `@tessera/assets`, and `three` / `three/webgpu`. Must not import `CommandBus` or mutate the document (`INV-ARCH-02`, `INV-RND-03`). Must not import React. Does not import `@tessera/core` in production (tests may). Architecture table omits `assets`; T-0105 AC4 requires it (Q-0043).
 
 ## Usage example
 
@@ -44,6 +46,6 @@ Colocated Vitest tests. Coverage ≥ 70% (`01` §7). `*.browser.test.ts` runs in
 
 ## Related specs
 
-- `docs/05-rendering.md` §2–§3, §11–§12
+- `docs/05-rendering.md` §2–§5, §11–§13
 - `docs/adr/ADR-0005-threejs-webgpu-tsl.md`
-- Ticket T-0104
+- Tickets T-0104, T-0105

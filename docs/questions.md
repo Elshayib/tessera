@@ -308,3 +308,24 @@ Options: (a) invent a custom binary blob now (b) return in-memory `PrimitiveMesh
 Conservative choice implemented: (b) no `BlobStore` writes in T-0108. Engine/exporters consume arrays directly; T-0109/T-0110 own blob formats.
 Answer: —
 
+### Q-0043 — engine may import `@tessera/assets`
+Raised by: T-0105 · Spec: `02` §4 vs T-0105 AC4 / `09` §3.2 · Status: open
+Question: Architecture lists engine imports as std, schema, core, spatial, storage, three — not `assets`. T-0105 AC4 requires primitive meshes from `@tessera/assets`.
+Options: (a) duplicate the generator in engine (b) import `@tessera/assets` (same generator as exporters)
+Conservative choice implemented: (b) same generator (`09` §3.2). Update the architecture table in a later docs ticket.
+Answer: —
+
+### Q-0044 — geometry cache grace period
+Raised by: T-0105 · Spec: `05` §4.4 · Status: open
+Question: GPU resources dispose when refcount is zero **and** 5 s have passed. Tests cannot use wall clock.
+Options: (a) inject Clock and a real timer (b) dispose immediately at refcount zero for T-0105
+Conservative choice implemented: (b) immediate dispose. Grace period can land with T-0107 leak tests.
+Answer: —
+
+### Q-0045 — light angles in the runtime scene
+Raised by: T-0105 · Spec: `05` §5 vs three.js · Status: open
+Question: §5 says no conversions in the engine. three.js `SpotLight.angle` is radians; the document stores degrees.
+Options: (a) pass degrees through (incorrect cone) (b) convert degrees → radians at the Object3D boundary like Euler
+Conservative choice implemented: (b) same as transform Euler mapping in `05` §4.1.
+Answer: —
+

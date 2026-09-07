@@ -24,11 +24,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tessera/assets": "workspace:*",
     "@tessera/schema": "workspace:*",
+    "@tessera/spatial": "workspace:*",
     "@tessera/std": "workspace:*",
     "three": "0.183.2"
   },
   "devDependencies": {
+    "@tessera/core": "workspace:*",
+    "@tessera/testing": "workspace:*",
     "@types/three": "0.183.1",
     "happy-dom": "18.0.1",
     "typescript": "5.9.2",

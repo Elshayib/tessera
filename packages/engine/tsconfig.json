@@ -7,5 +7,10 @@
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [{ "path": "../std" }, { "path": "../schema" }]
+  "references": [
+    { "path": "../std" },
+    { "path": "../schema" },
+    { "path": "../spatial" },
+    { "path": "../assets" }
+  ]
 }
