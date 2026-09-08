@@ -20,7 +20,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0112 | `@tessera/ui`: design tokens, shell, resizable panels, i18n en.ts | ui | T-0010 | `in-progress` |
 | T-0113 | `@tessera/ui`: outliner (tree, reparent, search, tags) | ui | T-0112, T-0008 | `in-progress` |
 | T-0114 | `@tessera/ui`: inspector generated from schema `.meta()` | ui | T-0112, T-0004 | `in-progress` |
-| T-0115 | `apps/web`: bootstrap EditorContext, flags, Vite, empty project | web | T-0105, T-0112, T-0102, T-0108 | `todo` |
+| T-0115 | `apps/web`: bootstrap EditorContext, flags, Vite, empty project | web | T-0105, T-0112, T-0102, T-0108 | `in-progress` |
 | T-0116 | `apps/web`: viewport + gizmos + keyboard nudge | web | T-0115, T-0106 | `todo` |
 | T-0117 | `apps/web`: create primitives, lights, cameras via commands | web | T-0116, T-0108 | `todo` |
 | T-0118 | `apps/web`: save/load IndexedDB + `.tessera` download/open | web | T-0115, T-0102 | `todo` |
@@ -816,7 +816,7 @@ Asset picker modal (can be a stub). Script/behavior editor (phase 7).
 | Package | `apps/web` |
 | Size | L |
 | Depends on | T-0105, T-0112, T-0102, T-0108 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

@@ -4,13 +4,18 @@
     "**/generated/**",
     "**/dist/**",
     "docs/templates/**",
-    "packages/exporters/fixtures/**"
+    "packages/exporters/fixtures/**",
+    "apps/web/src/engine-entry.ts"
   ],
   "ignoreDependencies": ["lefthook"],
   "workspaces": {
     ".": {
       "entry": ["scripts/*.ts"],
       "project": ["scripts/**/*.ts"]
+    },
+    "apps/web": {
+      "entry": ["src/main.tsx", "src/flags.ts", "src/bootstrap.ts"],
+      "project": ["src/**"]
     }
   }
 }

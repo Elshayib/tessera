@@ -455,5 +455,19 @@ Options: (a) literals in inspector (b) add `en.inspector.*` in `i18n/en.ts`
 Conservative choice implemented: (b) catalog keys; export `Inspector` from `packages/ui/src/index.ts` so the panel is usable.
 Answer: —
 
+### Q-0064 — `EditorContext.queries` type
+Raised by: T-0115 · Spec: `02` §7 · Status: open
+Question: The spec types `queries` as `QueryRegistry`. `@tessera/core` exposes `QueryHost` (`registry` + `query()`).
+Options: (a) put `QueryHost` on the context (b) store only `QueryRegistry`
+Conservative choice implemented: (b) `queries` is `QueryRegistry` from `createQueryHost(...).registry`.
+Answer: —
+
+### Q-0065 — `ComponentRegistry` before plugins
+Raised by: T-0115 · Spec: `02` §7 · Status: open
+Question: `EditorContext.components` is required. `@tessera/core` has no public `ComponentRegistry` type yet.
+Options: (a) invent a plugin registry now (b) empty `{ names: [] }` placeholder
+Conservative choice implemented: (b) `ComponentRegistry` in `apps/web` with `names: []`.
+Answer: —
+
 
 
