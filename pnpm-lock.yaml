@@ -47,9 +47,15 @@ importers:
 
   apps/cli:
     dependencies:
+      '@tessera/exporters':
+        specifier: workspace:*
+        version: link:../../packages/exporters
       '@tessera/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      '@tessera/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
     devDependencies:
       '@types/node':
         specifier: 24.3.1

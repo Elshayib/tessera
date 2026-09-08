@@ -1,7 +1,7 @@
 {
   "name": "@tessera/cli",
   "version": "0.0.0",
-  "description": "Headless Tessera CLI: tessera validate.",
+  "description": "Headless Tessera CLI: tessera validate and tessera export gltf.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -25,7 +25,9 @@
     "tessera": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@tessera/schema": "workspace:*"
+    "@tessera/exporters": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/storage": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "24.3.1",

@@ -1,12 +1,13 @@
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { validateDocument } from "@tessera/schema";
+import { runExport } from "./export.js";
 
 const PROJECT_FILE = "project.tessera.json";
-const USAGE = "usage: tessera validate <path>\n";
+const USAGE = "usage: tessera validate <path>\n       tessera export gltf <path> --out <dir>\n";
 
 /**
- * Process-free CLI result for `tessera` (T-0009).
+ * Process-free CLI result for `tessera` (T-0009, T-0121).
  *
  * @public
  */
@@ -21,12 +22,15 @@ export interface CliResult {
  *
  * @example
  * ```ts
- * const result = runCli(["validate", "project.tessera.json"]);
+ * const result = await runCli(["validate", "project.tessera.json"]);
  * ```
  *
  * @public
  */
-export function runCli(argv: readonly string[]): CliResult {
+export async function runCli(argv: readonly string[]): Promise<CliResult> {
+  if (argv[0] === "export") {
+    return runExport(argv.slice(1));
+  }
   if (argv[0] !== "validate") {
     return { exitCode: 1, stdout: "", stderr: USAGE };
   }

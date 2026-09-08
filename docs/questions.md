@@ -285,6 +285,20 @@ Options: (a) leave `pnpm test` red (b) exclude `e2e/**` from `apps/web` Vitest
 Conservative choice implemented: (b).
 Answer: —
 
+### Q-0088 — export dispatcher lives in validate.ts
+Raised by: T-0121 · Spec: ticket Touches `cli.ts` vs tests · Status: open
+Question: `cli.ts` is the process entry (`process.exitCode`); tests import `runCli` without running that file. `export.ts` cannot import `validate.ts` if `runCli` imports `runExport` (cycle).
+Options: (a) move `runCli` into `cli.ts` (tests would execute the bin) (b) keep `runCli` in `validate.ts` and duplicate snapshot I/O in `export.ts`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0089 — CLI export dependencies
+Raised by: T-0121 · Spec: `02` apps/cli vs Touches · Status: open
+Question: Export needs `@tessera/exporters` and a `BlobStore`. Touches omit `package.json`.
+Options: (a) invent a CLI-local encoder (b) add `@tessera/exporters` and `@tessera/storage` (`MemoryBlobStore`)
+Conservative choice implemented: (b). Empty memory blobs: campfire uses primitive geometry, not blob meshes.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
