@@ -53,6 +53,19 @@ export const en = {
     download: "Download",
     open: "Open",
   },
+  assetPanel: {
+    label: "Assets",
+    search: "Search",
+    kind: "Kind",
+    apply: "Apply",
+    nextPage: "Next page",
+    page: "Page",
+    kinds: {
+      hdri: "HDRI",
+      model: "Model",
+      texture: "Texture",
+    },
+  },
   errors: {
     INVALID_INPUT: "That input is not valid. Check the field and try again.",
     NOT_FOUND: "The requested item was not found.",

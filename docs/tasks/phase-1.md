@@ -25,7 +25,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0117 | `apps/web`: create primitives, lights, cameras via commands | web | T-0116, T-0108 | `in-progress` |
 | T-0118 | `apps/web`: save/load IndexedDB + `.tessera` download/open | web | T-0115, T-0102 | `in-progress` |
 | T-0119 | `apps/web`: Playwright smoke + visual baseline R1-empty | web | T-0117 | `in-progress` |
-| T-0120 | Poly Haven source (HDRI, models, textures) behind flag | assets, web | T-0117, T-0109 | `todo` |
+| T-0120 | Poly Haven source (HDRI, models, textures) behind flag | assets, web | T-0117, T-0109 | `in-progress` |
 | T-0121 | CLI `tessera export gltf` | cli | T-0110 | `todo` |
 | T-0122 | Phase 1 exit: open export in Godot 4 and Blender 5 (manual + recorded) | docs | T-0110, T-0119 | `todo` |
 
@@ -1046,7 +1046,7 @@ R1 1000-mesh visual. Godot/Blender (T-0122).
 | Package | `@tessera/assets`, `apps/web` |
 | Size | L |
 | Depends on | T-0117, T-0109 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

@@ -8,7 +8,7 @@ test("bootstrap empty document validates", () => {
   const ctx = bootstrap({ storage: new MemoryProjectStore() });
   const report = validateDocument(fromYDoc(ctx.document.ydoc));
   expect(report.ok).toBe(true);
-  expect(ctx.flags.polyhaven).toBe(false);
+  expect(ctx.flags.polyhaven).toBe(true);
   expect(ctx.engine).toBeUndefined();
   expect(ctx.queries.list().length).toBeGreaterThan(0);
 });

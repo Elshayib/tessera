@@ -11,6 +11,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` Â
 | `EditorProvider` / `useEditor` | React context for the composition root. |
 | `CreateMenu` | Command-bus create actions, gated by `flags.createMenu`. |
 | `ProjectIo` | Save / download `.tessera` / open archive via `ProjectStore`. |
+| `AssetPanel` | Poly Haven search/apply, gated by `flags.polyhaven` (on by default, T-0120). |
 
 ## Dependency rules
 

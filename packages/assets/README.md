@@ -1,6 +1,6 @@
 # `@tessera/assets`
 
-Canonical primitive mesh generator, default PBR material, and glTF import pipeline (`08` §7).
+Canonical primitive mesh generator, default PBR material, glTF import pipeline (`08` §7), and the Poly Haven `AssetSource` (`08` §6).
 
 ## Public API
 
@@ -11,6 +11,8 @@ Canonical primitive mesh generator, default PBR material, and glTF import pipeli
 | `importGltf` | Worker body: parse/normalize glTF, write blobs, return `ImportPlan` (`INV-AST-02`). |
 | `createAssetService` / `commitPlan` | Main thread: `asset.create` + `entity.create` in one `Import <fileName>` transaction. |
 | `HARD_BLOB_LIMIT_BYTES` | Reject files larger than 50 MiB (Q-0050). |
+| `createPolyHavenSource` | `AssetSource` id `polyhaven` (CC0-1.0). Tests inject a fixture transport; production uses `createFetchTransport`. |
+| `wrapUntrusted` | Wraps third-party text in `<untrusted>` (`06` §12). |
 
 No document mutation inside `importGltf`. `asset.import` stays unregistered (Q-0016); commit uses existing catalog handlers.
 

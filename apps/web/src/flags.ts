@@ -12,12 +12,12 @@ export interface Flags {
 const FLAG_NAMES = ["polyhaven", "agentVerifyLoop", "createMenu"] as const;
 
 /**
- * All flags off.
+ * Defaults: Poly Haven on (T-0120); unfinished flags off.
  *
  * @public
  */
 export function defaultFlags(): Flags {
-  return { polyhaven: false, agentVerifyLoop: false, createMenu: false };
+  return { polyhaven: true, agentVerifyLoop: false, createMenu: false };
 }
 
 function enableKnown(flags: Flags, name: string): Flags {

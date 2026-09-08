@@ -236,6 +236,55 @@ Options: (a) bundled `chromium` only (b) Google Chrome via Playwright `channel: 
 Conservative choice implemented: (b) Chromium-based Chrome channel for local and CI; snapshot names include OS suffix.
 Answer: —
 
+### Q-0081 — Poly Haven flag name
+Raised by: T-0120 · Spec: `01` §15 vs ticket AC6 · Status: open
+Question: The ticket says flag `polyHaven`; `flags.ts` already has `polyhaven`.
+Options: (a) rename to `polyHaven` (b) keep `polyhaven`
+Conservative choice implemented: (b) existing key; default **true**.
+Answer: —
+
+### Q-0082 — asset panel composition
+Raised by: T-0120 · Spec: ticket Touches vs `App` · Status: open
+Question: Touches list `asset-panel/**` and `flags.ts`; knip and the editor need a mount.
+Options: (a) unmounted panel (b) `App` renders `AssetPanel`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0083 — asset-panel English strings
+Raised by: T-0120 · Spec: `01` §9 vs Touches · Status: open
+Question: Search/apply controls are user-visible; Touches omit `i18n/en.ts`.
+Options: (a) hardcoded JSX (b) `en.assetPanel.*`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0084 — Poly Haven exports on `@tessera/assets`
+Raised by: T-0120 · Spec: ticket Touches vs package barrel · Status: open
+Question: Touches omit `packages/assets/src/index.ts`, but `apps/web` must import the source without deep paths.
+Options: (a) deep import `sources/polyhaven.js` (b) re-export from the package barrel
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0085 — fetched blobs vs ProjectStore
+Raised by: T-0120 · Spec: `08` §2 vs T-0115 bootstrap · Status: open
+Question: `EditorContext` has `ProjectStore`, not a live `BlobStore`. `fetch` still needs a store.
+Options: (a) add BlobStore to EditorContext (out of Touches) (b) module-level `MemoryBlobStore` like project-io
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0086 — texture apply
+Raised by: T-0120 · Spec: `08` §6 vs AC4–5 · Status: open
+Question: AC covers applying HDRI and importing models. Texture document assignment is unspecified.
+Options: (a) invent material/texture wiring (b) search/fetch textures only
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0087 — Vitest picked up Playwright specs
+Raised by: T-0120 · Spec: T-0119 e2e vs `pnpm test` · Status: open
+Question: `apps/web/e2e/**` is Playwright. Knip lists it as an app entry; Vitest then loads those files and fails.
+Options: (a) leave `pnpm test` red (b) exclude `e2e/**` from `apps/web` Vitest
+Conservative choice implemented: (b).
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
