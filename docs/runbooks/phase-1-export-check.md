@@ -43,15 +43,15 @@ Open **only** `campfire.glb` (sidecar is Tessera extras; Godot/Blender glTF impo
 
 Attach to the PR that claims the phase-1 milestone (or a follow-up evidence PR). Files live **outside** git unless you opt in; see `docs/recordings/README.md`.
 
-- [ ] Godot 4.x version string (Help → About)
-- [ ] Blender 5.x version string (Help → About)
-- [ ] Screenshot: Godot scene tree with campfire node names
-- [ ] Screenshot: Blender outliner with campfire object names
+- [ ] Godot 4.x version string (Help → About) — 4.7.2 is in the editor window title, not a dedicated About dialog still
+- [ ] Blender 5.x version string (Help → About) — 5.2 is in the window title bar, not a dedicated About dialog still
+- [x] Screenshot: Godot scene tree with campfire node names — `docs/recordings/phase-1-godot-scene-tree.png`
+- [x] Screenshot: Blender outliner with campfire object names — `docs/recordings/phase-1-blender-outliner.png`
 - [ ] Optional: short screen recording of import in each app
-- [ ] Confirm no git tag `m1-composition-editor` was pushed without this evidence
+- [x] Confirm no git tag `m1-composition-editor` was pushed without this evidence — tag still not created (Q-0025, Q-0091)
 
 ## Evidence status
 
-**GUI checklist: not filled.** Phase 1 remains incomplete until a human attaches screenshots or recordings (Q-0025, Q-0091, T-0122). Do not treat the headless log as the milestone exit.
+**GUI stills are in `docs/recordings/`.** They show Ground, Log, Camera (and Fire) after opening the campfire glb in Godot 4.7.2 and Blender 5.2. Capture was automated on this machine, not a signed-off PR. Do **not** git-tag `m1-composition-editor` and do **not** mark the roadmap phase 1 row complete until a human opens PRs (Q-0025) and accepts this evidence.
 
-**Headless import (supplementary):** `docs/recordings/phase-1-export-check-headless.txt` — Godot 4.7.2 `GLTFDocument.append_from_file` and Blender 5.2.0 `import_scene.gltf` on the campfire glb. Node names **Ground**, **Log**, **Camera** (and **Fire**) present; Ground dimensions 10×10×0 m; Log 0.3×1.0×0.3 m. This is not a Godot CI job.
+**Headless import (supplementary):** `docs/recordings/phase-1-export-check-headless.txt` — names and meter-scale dimensions. This is not a Godot CI job.
