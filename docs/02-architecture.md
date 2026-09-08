@@ -1,6 +1,6 @@
 # 02 — Architecture
 
-Status: Accepted · Last updated: 2026-09-06
+Status: Accepted · Last updated: 2026-09-07
 
 ## 1. One-paragraph architecture
 
@@ -37,6 +37,8 @@ Tessera is a local-first application whose center is a **document** (a Yjs CRDT 
 | **Headless** (phase 1+) | Node (`apps/cli`, tests, evals) | none | No engine; `core`, `spatial`, `exporters`, `agent` run fully in Node. |
 
 ## 4. Packages
+
+npm scope: `@tessera/*`, verified by T-0001 (`GET https://registry.npmjs.org/@tessera/core` → 404). See `docs/questions.md` Q-0001.
 
 | Package | Layer | Purpose | May import | Phase |
 | --- | --- | --- | --- | --- |

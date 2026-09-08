@@ -13,7 +13,7 @@ Start at **T-0001**. Do not skip ahead.
 | Package | `repo` |
 | Size | M |
 | Depends on | — |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
