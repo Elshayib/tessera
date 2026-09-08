@@ -43,8 +43,8 @@ Open **only** `campfire.glb` (sidecar is Tessera extras; Godot/Blender glTF impo
 
 Attach to the PR that claims the phase-1 milestone (or a follow-up evidence PR). Files live **outside** git unless you opt in; see `docs/recordings/README.md`.
 
-- [ ] Godot 4.x version string (Help → About) — 4.7.2 is in the editor window title, not a dedicated About dialog still
-- [ ] Blender 5.x version string (Help → About) — 5.2 is in the window title bar, not a dedicated About dialog still
+- [ ] Godot 4.x version string (Help → About) — 4.7.2 confirmed from engine stdout; About dialog still not captured
+- [x] Blender 5.x version string (Help → About) — splash: `docs/recordings/phase-1-blender-about.png` (5.2.0 LTS)
 - [x] Screenshot: Godot scene tree with campfire node names — `docs/recordings/phase-1-godot-scene-tree.png`
 - [x] Screenshot: Blender outliner with campfire object names — `docs/recordings/phase-1-blender-outliner.png`
 - [ ] Optional: short screen recording of import in each app
