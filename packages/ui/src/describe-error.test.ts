@@ -31,4 +31,8 @@ test("describeError uses i18n key", () => {
     expect(mapped.key).toBe(`errors.${code}`);
     expect(mapped.text).toBe(en.errors[code]);
   }
+  expect(en.createMenu.label).toBe("Create");
+  expect(en.createMenu.camera).toBe("Camera");
+  expect(en.createMenu.primitives.box).toBe("Box");
+  expect(en.createMenu.lights.point).toBe("Point light");
 });

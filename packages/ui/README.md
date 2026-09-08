@@ -27,4 +27,4 @@ Colocated Vitest + happy-dom for `*.browser.test.ts`. Coverage ≥ 70%.
 
 - `docs/01-engineering-standards.md` §5–§6, §9
 - `docs/02-architecture.md` INV-ARCH-04
-- Ticket T-0112, T-0113, T-0114, T-0116
+- Ticket T-0112, T-0113, T-0114, T-0116, T-0117

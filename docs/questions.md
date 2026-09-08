@@ -483,6 +483,28 @@ Options: (a) camera-relative right/up (b) world XZ: Right +X, Left −X, Up −Z
 Conservative choice implemented: (b) world XZ with snap `0.1 m` so unit tests do not need a GPU camera.
 Answer: —
 
+### Q-0068 — create menu composition
+Raised by: T-0117 · Spec: ticket Touches vs `App` · Status: open
+Question: T-0117 Touches `create-menu/**` and `flags.ts`, but the menu must mount in the editor tree.
+Options: (a) unmounted menu (b) render `CreateMenu` from `App.tsx`
+Conservative choice implemented: (b) `App` renders `CreateMenu` (hidden unless `flags.createMenu`).
+Answer: —
+
+### Q-0069 — create-menu English strings
+Raised by: T-0117 · Spec: `01` §9 vs Touches · Status: open
+Question: Create controls are user-visible; Touches omit `i18n/en.ts`.
+Options: (a) hardcoded JSX (b) `en.createMenu.*`
+Conservative choice implemented: (b) catalog keys in `packages/ui/src/i18n/en.ts`.
+Answer: —
+
+### Q-0070 — create-menu command names
+Raised by: T-0117 · Spec: `04` catalog vs ticket Goal · Status: open
+Question: The ticket lists `entity.create`, `component.add`, and `material.create`. T-0108 default materials are full `MaterialAsset` values; geometry uses `asset.create`.
+Options: (a) `material.create` + `component.add` (b) one transaction of `asset.create` (material + primitive geometry) + `entity.create` with components
+Conservative choice implemented: (b) so new meshes use `createDefaultMaterial` / `createPrimitiveMesh`.
+Answer: —
+
+
 
 
 

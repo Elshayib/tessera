@@ -29,6 +29,24 @@ export const en = {
     unknownWidget: "This field has no inspector widget",
     pickerStub: "Picker is not available yet",
   },
+  createMenu: {
+    label: "Create",
+    camera: "Camera",
+    primitives: {
+      box: "Box",
+      sphere: "Sphere",
+      cylinder: "Cylinder",
+      cone: "Cone",
+      plane: "Plane",
+      torus: "Torus",
+      capsule: "Capsule",
+    },
+    lights: {
+      directional: "Directional light",
+      point: "Point light",
+      spot: "Spot light",
+    },
+  },
   errors: {
     INVALID_INPUT: "That input is not valid. Check the field and try again.",
     NOT_FOUND: "The requested item was not found.",
