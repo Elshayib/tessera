@@ -469,5 +469,20 @@ Options: (a) invent a plugin registry now (b) empty `{ names: [] }` placeholder
 Conservative choice implemented: (b) `ComponentRegistry` in `apps/web` with `names: []`.
 Answer: —
 
+### Q-0066 — viewport mount vs T-0116 Touches
+Raised by: T-0116 · Spec: `05` §7 vs ticket Touches · Status: open
+Question: The viewport must host `EngineHandle`, but Touches list only `apps/web/src/viewport/**` and optional `packages/ui/src/viewport-host.tsx`. `App` / `Shell` are the only composition points.
+Options: (a) leave the host unmounted (b) slot `viewport` into `Shell` and wire `App`
+Conservative choice implemented: (b) `Shell` accepts `viewport?: ReactNode`; `App` passes `<Viewport />`.
+Answer: —
+
+### Q-0067 — arrow nudge axes
+Raised by: T-0116 · Spec: `05` §7 · Status: open
+Question: Keyboard nudge moves in the “viewport plane”; the exact world mapping is unspecified.
+Options: (a) camera-relative right/up (b) world XZ: Right +X, Left −X, Up −Z, Down +Z
+Conservative choice implemented: (b) world XZ with snap `0.1 m` so unit tests do not need a GPU camera.
+Answer: —
+
+
 
 

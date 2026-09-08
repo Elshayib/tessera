@@ -10,3 +10,4 @@ export type { SelectionState } from "./selection-store.js";
 export { useSelectionStore } from "./selection-store.js";
 export { Shell } from "./shell.js";
 export { TOKEN_ACCENT, TOKENS_CSS } from "./tokens.js";
+export { ViewportHost } from "./viewport-host.js";

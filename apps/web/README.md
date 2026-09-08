@@ -9,6 +9,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` �
 | `bootstrap` | Empty project + command bus, queries, undo, jobs, storage, assets. |
 | `parseFlags` / `defaultFlags` | Typed flags; `?flag=` only in development. |
 | `EditorProvider` / `useEditor` | React context for the composition root. |
+| `Viewport` | Engine host, gizmo intents, arrow-key nudge. |
 
 ## Dependency rules
 
@@ -22,4 +23,4 @@ Vitest Node for flags and bootstrap. `MemoryProjectStore` in tests. Coverage is 
 
 - `docs/02-architecture.md` §7
 - `docs/01-engineering-standards.md` §8 bundle
-- Ticket T-0115
+- Ticket T-0115, T-0116

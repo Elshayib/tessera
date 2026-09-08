@@ -2,6 +2,7 @@ import { Shell } from "@tessera/ui";
 import type { ReactElement } from "react";
 import type { EditorContext } from "./editor-context.js";
 import { EditorProvider } from "./editor-context.js";
+import { Viewport } from "./viewport/viewport.js";
 
 /**
  * Editor chrome around {@link EditorContext}.
@@ -11,7 +12,7 @@ import { EditorProvider } from "./editor-context.js";
 export function App(props: { readonly context: EditorContext }): ReactElement {
   return (
     <EditorProvider value={props.context}>
-      <Shell />
+      <Shell viewport={<Viewport />} />
     </EditorProvider>
   );
 }

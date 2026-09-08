@@ -1,19 +1,20 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { en } from "./i18n/en.js";
 import { useLayoutStore } from "./layout-store.js";
-import { TOKEN_ACCENT, TOKENS_CSS } from "./tokens.js";
+import { TOKENS_CSS } from "./tokens.js";
+import { ViewportHost } from "./viewport-host.js";
 
 /**
  * Editor chrome: resizable regions. Presentational only — no command bus (T-0112).
  *
  * @example
  * ```tsx
- * <Shell />
+ * <Shell viewport={<Viewport />} />
  * ```
  *
  * @public
  */
-export function Shell(): ReactElement {
+export function Shell(props: { readonly viewport?: ReactNode } = {}): ReactElement {
   const outlinerWidth = useLayoutStore((state) => state.outlinerWidth);
   const inspectorWidth = useLayoutStore((state) => state.inspectorWidth);
   const chatHeight = useLayoutStore((state) => state.chatHeight);
@@ -49,8 +50,7 @@ export function Shell(): ReactElement {
       <div style={{ display: "grid", gridTemplateRows: "minmax(0, 1fr)" }}>
         <section aria-label={en.shell.viewport}>
           <header>{en.shell.viewport}</header>
-          {/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: viewport canvas is aria-hidden (01 §9) */}
-          <canvas aria-hidden="true" data-accent={TOKEN_ACCENT} />
+          {props.viewport ?? <ViewportHost />}
         </section>
       </div>
       <section
