@@ -18,10 +18,10 @@ Layer 3 app. May import packages and React. Engine is a lazy chunk (`engine-entr
 
 ## Testing notes
 
-Vitest Node for flags and bootstrap. `MemoryProjectStore` in tests. Coverage is not thresholded at the app (root vitest covers `packages/*/src`).
+Vitest Node for flags and bootstrap. `MemoryProjectStore` in tests. Coverage is not thresholded at the app (root vitest covers `packages/*/src`). Playwright Chromium smoke and empty-viewport screenshot: `pnpm test:e2e` (T-0119, Q-0029).
 
 ## Related specs
 
 - `docs/02-architecture.md` §7
 - `docs/01-engineering-standards.md` §8 bundle
-- Ticket T-0115, T-0116, T-0117, T-0118
+- Ticket T-0115, T-0116, T-0117, T-0118, T-0119

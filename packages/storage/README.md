@@ -16,7 +16,7 @@ Blob and project persistence. Memory stores, `.tessera` ZIP archives (`03` §10)
 | `SNAPSHOT_DEBOUNCE_MS` | 5000 ms listing-snapshot debounce (`08` §4). |
 | `encodeTesseraArchive` / `decodeTesseraArchive` | ZIP codec with SEC-08 path and size limits. |
 | `DEFAULT_ARCHIVE_LIMITS` | 50 MiB per entry and total (`03` snapshot budget). |
-| `assertBlobStoreContract` | Shared `INV-AST-01` contract used by Memory and browser tests. |
+| `assertBlobStoreContract` | Shared `INV-AST-01` contract used by Memory and browser tests (`./contract.ts`, not the package barrel — Q-0080). |
 
 `MemoryProjectStore` keeps a canonical `Document` snapshot. `OpenProject.ydoc` is a new `Y.Doc` and is not hydrated here (`@tessera/core` owns the Yjs mapping). `IndexedDbProjectStore` attaches `y-indexeddb` on `open` and detaches on `close`. Listing snapshots live in the `tessera-projects` index (Q-0035), not `snapshots/*.json` files.
 

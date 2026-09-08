@@ -1,6 +1,5 @@
 export type { DecodedArchive } from "./archive.js";
 export { decodeTesseraArchive, encodeTesseraArchive } from "./archive.js";
-export { assertBlobStoreContract } from "./contract.js";
 export { createIndexedDbBlobStore, IndexedDbBlobStore } from "./indexeddb-blob-store.js";
 export {
   createIndexedDbProjectStore,

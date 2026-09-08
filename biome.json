@@ -41,7 +41,12 @@
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
     },
     {
-      "includes": ["vitest.workspace.ts", "**/vitest.config.ts", "**/vite.config.ts"],
+      "includes": [
+        "vitest.workspace.ts",
+        "**/vitest.config.ts",
+        "**/vite.config.ts",
+        "playwright.config.ts"
+      ],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
     }
   ]

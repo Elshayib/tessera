@@ -215,7 +215,27 @@ Raised by: T-0100 · Spec: `01` §8, T-0119 title · Status: open
 Question: T-0119 is titled “visual baseline R1-empty”. R1 is a 1000-entity loaded scene (`01` §8). An empty-project screenshot is a different baseline.
 Options: (a) T-0119 captures empty viewport only (b) T-0119 also captures R1
 Conservative choice implemented: (a) empty viewport Chromium screenshot. R1 visual remains a later ticket if this PR would exceed size.
+Answer: T-0119 captures the empty Viewport landmark at 1280×720 (`maxDiffPixelRatio` 0.002).
+
+### Q-0078 — e2e wiring beyond Touches
+Raised by: T-0119 · Spec: ticket Touches vs AC3 · Status: open
+Question: Touches list `e2e/**`, `playwright.config.ts`, and CI, but `pnpm test:e2e` needs `@playwright/test` and `apps/web` `test:e2e`. Knip/Biome need config entries for the Playwright default export.
+Options: (a) leave `test:e2e` unwired (b) extra `package.json`, `knip.json`, `biome.json`
+Conservative choice implemented: (b) extra `package.json`, `knip.json`, `biome.json`.
 Answer: —
+
+### Q-0080 — storage barrel pulled Vitest into the editor
+Raised by: T-0119 · Spec: `08` vs Vite graph · Status: open
+Question: `@tessera/storage` re-exported `assertBlobStoreContract`, which imports `vitest`. Vite then crashed the editor (`pageerror`) before the shell painted.
+Options: (a) stub vitest in Vite (b) keep the helper off the package barrel (tests import `./contract.js`)
+Conservative choice implemented: (b).
+Answer: —
+Raised by: T-0119 · Spec: `13` §6 Chromium · Status: open
+Question: Playwright's bundled Chromium unzip hung on this Windows agent; CI Ubuntu needs a browser with `--with-deps`.
+Options: (a) bundled `chromium` only (b) Google Chrome via Playwright `channel: "chrome"`
+Conservative choice implemented: (b) Chromium-based Chrome channel for local and CI; snapshot names include OS suffix.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
