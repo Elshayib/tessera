@@ -1,5 +1,7 @@
 export { describeError, errorMessageKey } from "./describe-error.js";
 export { en } from "./i18n/en.js";
+export type { InspectorProps } from "./inspector/inspector.js";
+export { Inspector } from "./inspector/inspector.js";
 export type { LayoutState } from "./layout-store.js";
 export { LAYOUT_STORAGE_KEY, useLayoutStore } from "./layout-store.js";
 export type { OutlinerProps } from "./outliner/outliner.js";

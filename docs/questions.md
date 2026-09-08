@@ -448,5 +448,12 @@ Options: (a) export glob from core (b) duplicate the `*` / `?` matcher in the ou
 Conservative choice implemented: (b) `outliner/name-glob.ts` copies the core `globMatch` implementation so T-0113 stays in Touches.
 Answer: —
 
+### Q-0063 — inspector strings outside Touches
+Raised by: T-0114 · Spec: `01` §9 vs ticket Touches · Status: open
+Question: T-0114 Touches only `packages/ui/src/inspector/**`, but `01` §9 forbids hardcoded JSX strings.
+Options: (a) literals in inspector (b) add `en.inspector.*` in `i18n/en.ts`
+Conservative choice implemented: (b) catalog keys; export `Inspector` from `packages/ui/src/index.ts` so the panel is usable.
+Answer: —
+
 
 
