@@ -311,6 +311,7 @@ Raised by: T-0122 · Spec: `17` m1 exit · Status: open
 Question: T-0122 can land the runbook without Godot/Blender screenshots on this machine.
 Options: (a) mark the roadmap phase 1 row complete (b) keep the row unchanged and document that the tag is reserved
 Conservative choice implemented: (b). No `m1-composition-editor` tag.
+Follow-up: a local headless Godot 4.7.2 + Blender 5.2 import of campfire.glb confirmed names and meter-scale dimensions (`docs/recordings/phase-1-export-check-headless.txt`). That does not fill the GUI screenshot checklist; the tag and roadmap row stay reserved.
 Answer: —
 
 

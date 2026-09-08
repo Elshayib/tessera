@@ -10,8 +10,8 @@ Use these product lines (patch versions may vary):
 
 | App | Version line | Notes |
 | --- | --- | --- |
-| Godot | **4.x** (4.3 or 4.4 is fine) | Built-in glTF importer. Meters, Y-up. |
-| Blender | **5.x** | glTF importer; Tessera document is Y-up meters (`09` §5). Confirm the importer does not silently rescale. |
+| Godot | **4.x** (4.3 or 4.4 is fine; 4.7.2 used in the headless log) | Built-in glTF importer. Meters, Y-up. |
+| Blender | **5.x** (5.2.0 LTS used in the headless log) | glTF importer; Tessera document is Y-up meters (`09` §5). Confirm the importer does not silently rescale. |
 
 ## Export command
 
@@ -52,4 +52,6 @@ Attach to the PR that claims the phase-1 milestone (or a follow-up evidence PR).
 
 ## Evidence status
 
-**Not attached in this repository.** Phase 1 remains incomplete until the checklist is filled by a human.
+**GUI checklist: not filled.** Phase 1 remains incomplete until a human attaches screenshots or recordings (Q-0025, Q-0091, T-0122). Do not treat the headless log as the milestone exit.
+
+**Headless import (supplementary):** `docs/recordings/phase-1-export-check-headless.txt` — Godot 4.7.2 `GLTFDocument.append_from_file` and Blender 5.2.0 `import_scene.gltf` on the campfire glb. Node names **Ground**, **Log**, **Camera** (and **Fire**) present; Ground dimensions 10×10×0 m; Log 0.3×1.0×0.3 m. This is not a Godot CI job.
