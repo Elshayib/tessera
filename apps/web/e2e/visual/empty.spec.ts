@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("visual empty viewport", async ({ page }) => {
   await page.goto("/");
+<<<<<<< Updated upstream
   const viewport = page.getByRole("region", { name: "Viewport" });
   await expect(viewport).toBeVisible();
   await page.locator('canvas[aria-hidden="true"]').waitFor();
@@ -33,5 +34,12 @@ test("visual empty viewport", async ({ page }) => {
     animations: "disabled",
     caret: "hide",
     mask: [viewport.locator("canvas")],
+=======
+  await expect(page.getByRole("region", { name: "Viewport" })).toBeVisible();
+  await expect(page).toHaveScreenshot("empty-viewport.png", {
+    animations: "disabled",
+    caret: "hide",
+    mask: [page.locator("canvas")],
+>>>>>>> Stashed changes
   });
 });
