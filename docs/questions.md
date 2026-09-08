@@ -427,4 +427,19 @@ Options: (a) emit only `scene.js` (b) compose `gltf` export + `scene.js`
 Conservative choice implemented: (b) `createCodeThreeExporter` calls the glTF exporter and adds `scene.js`. Options reuse `GltfExportOptionsSchema`. Generated JS uses single-quoted `three` imports so exporter sources do not contain `from "three"` (`INV-EXP-01` source scan). Snapshot `scene.js` is excluded from Biome and knip because it is printer output, not package source.
 Answer: —
 
+### Q-0060 — documented `--t-…` token set
+Raised by: T-0112 · Spec: `01` §5 · Status: open
+Question: The spec names `--t-color-accent` as the example and does not list the rest of the token set.
+Options: (a) invent a full design system (b) smallest chrome set
+Conservative choice implemented: (b) `--t-color-accent|bg|fg|muted|border`, `--t-space-1|2`, `--t-font-sans`, `--t-radius`, `--t-focus` in `TOKENS_CSS`.
+Answer: —
+
+### Q-0061 — English catalog path
+Raised by: T-0112 · Spec: `01` §9 vs ticket Touches · Status: open
+Question: Spec `01` §9 says `packages/ui/src/messages/en.ts`; T-0112 Touches `packages/ui/src/i18n/en.ts`.
+Options: (a) spec path (b) ticket path
+Conservative choice implemented: (b) `i18n/en.ts` to stay inside Touches; strings still live in one catalog with no JSX literals.
+Answer: —
+
+
 

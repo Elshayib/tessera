@@ -10,6 +10,7 @@
     { "path": "packages/engine" },
     { "path": "packages/assets" },
     { "path": "packages/exporters" },
+    { "path": "packages/ui" },
     { "path": "apps/cli" }
   ]
 }

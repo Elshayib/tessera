@@ -12,7 +12,8 @@ module.exports = {
       severity: "warn",
       from: {
         orphan: true,
-        pathNot: "\\.(test|bench|int)\\.ts$|vitest\\.config\\.ts$|vite\\.config\\.ts$",
+        pathNot:
+          "\\.(test|bench|int)\\.tsx?$|vitest\\.config\\.ts$|vite\\.config\\.ts$|test-setup\\.ts$",
       },
       to: {},
     },
