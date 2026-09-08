@@ -1,0 +1,10 @@
+{
+  "data": [
+    {
+      "id": "openai/gpt-test",
+      "name": "GPT Test",
+      "context_length": 128000,
+      "pricing": { "prompt": "0.000001", "completion": "0.000002" }
+    }
+  ]
+}

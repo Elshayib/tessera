@@ -461,6 +461,13 @@ Options: (a) over-test llm to hold a 90% global mix (b) add a `packages/llm/**` 
 Conservative choice implemented: (b) `vitest.config.ts` glob for `packages/llm/src/**/*.ts` at 85%. Engine and ui stay on their 70% package bars (`01` §7) and are omitted from the root 90% branch mix so adding `llm` does not fail the global floor.
 Answer: —
 
+### Q-0134 — `@tessera/providers-llm` coverage and generate fixtures
+Raised by: T-0202 · Spec: `01` §7, `07` §4, Q-0116 · Status: open
+Question: `01` §7 has no row for `providers-llm`. Generate HTTP bodies are SDK-private; list-model JSON is fixture-friendly.
+Options: (a) invent a 90% global mix (b) 85% like `llm`, plus `LlmClientDeps.languageModel` for generate/stream mocks
+Conservative choice implemented: (b) package Vitest 85% lines/functions/statements and 75% branches. Root `coverage.include` omits `packages/providers-llm` so the AI SDK bridge does not pull the 90% global branch mix below the T-0007 floor (same pattern as engine/ui in Q-0133). List endpoints use `fixtures/`. Generate/stream use `ai/test` mocks via `languageModel`. No live network.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

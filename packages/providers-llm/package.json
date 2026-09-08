@@ -1,0 +1,45 @@
+{
+  "name": "@tessera/providers-llm",
+  "version": "0.0.0",
+  "description": "AI SDK implementations of @tessera/llm for built-in and OpenAI-compatible providers.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "4.0.50",
+    "@ai-sdk/deepseek": "3.0.40",
+    "@ai-sdk/google": "4.0.65",
+    "@ai-sdk/openai": "4.0.62",
+    "@ai-sdk/openai-compatible": "3.0.45",
+    "@ai-sdk/provider": "4.0.11",
+    "@ai-sdk/xai": "4.0.55",
+    "@openrouter/ai-sdk-provider": "3.0.0",
+    "@tessera/llm": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "ai": "7.0.94",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@tessera/testing": "workspace:*",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}
