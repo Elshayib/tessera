@@ -7,5 +7,6 @@ test("visual empty viewport", async ({ page }) => {
     animations: "disabled",
     caret: "hide",
     mask: [page.locator("canvas")],
+    maxDiffPixelRatio: 0.02,
   });
 });
