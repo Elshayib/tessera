@@ -454,6 +454,13 @@ Options: (a) follow the title (b) implement the full §8.5 table
 Conservative choice implemented: (b) spec wins; T-0206 includes all nine macros. Touches include schema + core because T-0004 deferred macros.
 Answer: —
 
+### Q-0133 — Root Vitest glob for `@tessera/llm`
+Raised by: T-0201 · Spec: `01` §7, Q-0018 · Status: open
+Question: `01` §7 requires 85% coverage for `llm`. The root Vitest config still has a 90% global branch floor from T-0007.
+Options: (a) over-test llm to hold a 90% global mix (b) add a `packages/llm/**` glob at 85% like core’s 90% glob
+Conservative choice implemented: (b) `vitest.config.ts` glob for `packages/llm/src/**/*.ts` at 85%. Engine and ui stay on their 70% package bars (`01` §7) and are omitted from the root 90% branch mix so adding `llm` does not fail the global floor.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

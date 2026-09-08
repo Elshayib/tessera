@@ -5,7 +5,14 @@ const config = defineConfig({
     coverage: {
       all: false,
       include: ["packages/*/src/**/*.ts"],
-      exclude: ["**/*.test.ts", "**/*.bench.ts", "docs/**", "**/*.cjs"],
+      exclude: [
+        "**/*.test.ts",
+        "**/*.bench.ts",
+        "docs/**",
+        "**/*.cjs",
+        "packages/engine/src/**",
+        "packages/ui/src/**",
+      ],
       provider: "v8",
       thresholds: {
         lines: 95,
@@ -17,6 +24,12 @@ const config = defineConfig({
           branches: 90,
           functions: 90,
           statements: 90,
+        },
+        "packages/llm/src/**/*.ts": {
+          lines: 85,
+          branches: 85,
+          functions: 85,
+          statements: 85,
         },
       },
     },
