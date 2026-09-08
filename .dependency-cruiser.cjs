@@ -119,7 +119,14 @@ module.exports = {
       to: { path: "packages/core/.+/command-bus" },
     },
     {
-      name: "INV-AST-02-assets-worker-no-core",
+      name: "INV-EXP-01-exporters-no-engine",
+      comment: "Exporters never depend on @tessera/engine (INV-EXP-01).",
+      severity: "error",
+      from: { path: "^packages/exporters/" },
+      to: { path: "^packages/engine/" },
+    },
+    {
+      name: "INV-AST-02-import-worker-no-core",
       comment: "Import worker never imports @tessera/core (INV-AST-02).",
       severity: "error",
       from: { path: "^packages/assets/src/import-(worker|plan)\\.ts$" },

@@ -9,6 +9,7 @@
     { "path": "packages/spatial" },
     { "path": "packages/engine" },
     { "path": "packages/assets" },
+    { "path": "packages/exporters" },
     { "path": "apps/cli" }
   ]
 }

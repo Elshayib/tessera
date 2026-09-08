@@ -100,5 +100,19 @@ export {
   sceneMeasureQuery,
   sceneStatsQuery,
 } from "./queries/scene.js";
+export type {
+  Sidecar,
+  SidecarAsset,
+  SidecarCollider,
+  SidecarEntity,
+  SidecarEnvironment,
+} from "./sidecar.js";
+export {
+  emitSidecarJsonSchema,
+  emitSidecarJsonSchemaText,
+  SIDECAR_FORMAT,
+  SIDECAR_VERSION,
+  SidecarSchema,
+} from "./sidecar.js";
 export type { DocumentInvariant, ValidationIssue, ValidationReport } from "./validate.js";
 export { validateDocument } from "./validate.js";

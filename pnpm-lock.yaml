@@ -163,6 +163,46 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
 
+  packages/exporters:
+    dependencies:
+      '@gltf-transform/core':
+        specifier: 4.4.2
+        version: 4.4.2
+      '@gltf-transform/extensions':
+        specifier: 4.4.2
+        version: 4.4.2
+      '@tessera/assets':
+        specifier: workspace:*
+        version: link:../assets
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../std
+      '@tessera/storage':
+        specifier: workspace:*
+        version: link:../storage
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
+    devDependencies:
+      '@tessera/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tessera/testing':
+        specifier: workspace:*
+        version: link:../testing
+      gltf-validator:
+        specifier: 2.0.0-dev.3.10
+        version: 2.0.0-dev.3.10
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
+
   packages/schema:
     dependencies:
       '@tessera/std':
@@ -1546,6 +1586,9 @@ packages:
   globby@11.1.0:
     resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
     engines: {node: '>=10'}
+
+  gltf-validator@2.0.0-dev.3.10:
+    resolution: {integrity: sha512-odJ4k0tRkGXiDGn78yDBg+fBbAIvBnXxh3RwAta0emSxGtyagFE8B4xELB1oYe3S5RD8Ci3uZAsZaascH2LAEQ==}
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
@@ -3479,6 +3522,8 @@ snapshots:
       ignore: 5.3.2
       merge2: 1.4.1
       slash: 3.0.0
+
+  gltf-validator@2.0.0-dev.3.10: {}
 
   graceful-fs@4.2.11: {}
 

@@ -1,0 +1,851 @@
+{
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "propertyNames": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assets": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^a_[0-9a-z]{10}$",
+            "type": "string"
+          },
+          "kind": {
+            "enum": ["geometry", "material", "texture", "environment", "script"],
+            "type": "string"
+          },
+          "license": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[\\p{L}\\p{N} _.\\-()]{1,64}$",
+            "type": "string"
+          },
+          "provenance": {
+            "additionalProperties": false,
+            "properties": {
+              "author": {
+                "type": "string"
+              },
+              "importedAt": {
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "type": "string"
+              },
+              "source": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "sourceId": {
+                "type": "string"
+              },
+              "sourceUrl": {
+                "type": "string"
+              }
+            },
+            "required": ["source", "importedAt"],
+            "type": "object"
+          }
+        },
+        "required": ["id", "kind", "name", "license", "provenance"],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "documentVersion": {
+      "const": "0.1.0",
+      "type": "string"
+    },
+    "entities": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "behaviors": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "pattern": "^b_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "pattern": "^[\\p{L}\\p{N} _.\\-()]{1,64}$",
+                  "type": "string"
+                },
+                "params": {
+                  "additionalProperties": {
+                    "$ref": "#/$defs/__schema0"
+                  },
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              },
+              "required": ["id", "name", "params"],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "camera": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "far": {
+                    "default": 1000,
+                    "description": "Far clip plane",
+                    "exclusiveMinimum": 0,
+                    "group": "Lens",
+                    "label": "Far",
+                    "order": 30,
+                    "type": "number",
+                    "unit": "m",
+                    "widget": "number"
+                  },
+                  "fov": {
+                    "default": 50,
+                    "description": "Vertical field of view",
+                    "exclusiveMaximum": 179,
+                    "exclusiveMinimum": 1,
+                    "group": "Lens",
+                    "label": "Field of view",
+                    "order": 10,
+                    "step": 1,
+                    "type": "number",
+                    "unit": "°",
+                    "widget": "slider"
+                  },
+                  "near": {
+                    "default": 0.1,
+                    "description": "Near clip plane",
+                    "exclusiveMinimum": 0,
+                    "group": "Lens",
+                    "label": "Near",
+                    "order": 20,
+                    "type": "number",
+                    "unit": "m",
+                    "widget": "number"
+                  },
+                  "orthoSize": {
+                    "default": 5,
+                    "description": "Orthographic half-height",
+                    "exclusiveMinimum": 0,
+                    "group": "Lens",
+                    "label": "Ortho size",
+                    "order": 40,
+                    "type": "number",
+                    "unit": "m",
+                    "widget": "number"
+                  },
+                  "type": {
+                    "default": "perspective",
+                    "description": "Projection type",
+                    "enum": ["perspective", "orthographic"],
+                    "group": "Lens",
+                    "label": "Type",
+                    "order": 10,
+                    "type": "string",
+                    "widget": "select"
+                  }
+                },
+                "required": ["type", "fov", "near", "far", "orthoSize"],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "collider": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "height": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "isTrigger": {
+                    "type": "boolean"
+                  },
+                  "offset": {
+                    "items": false,
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  "radius": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  },
+                  "shape": {
+                    "enum": ["box", "sphere", "capsule", "convex", "mesh"],
+                    "type": "string"
+                  },
+                  "size": {
+                    "items": false,
+                    "maxItems": 3,
+                    "minItems": 3,
+                    "prefixItems": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  }
+                },
+                "required": ["shape", "offset", "isTrigger"],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "pattern": "^e_[0-9a-z]{10}$",
+            "type": "string"
+          },
+          "light": {
+            "anyOf": [
+              {
+                "oneOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "castShadow": {
+                        "default": true,
+                        "description": "Whether this light casts shadows",
+                        "group": "Light",
+                        "label": "Cast shadow",
+                        "order": 80,
+                        "type": "boolean",
+                        "widget": "toggle"
+                      },
+                      "color": {
+                        "default": "#ffffff",
+                        "description": "sRGB light color",
+                        "group": "Light",
+                        "label": "Color",
+                        "order": 20,
+                        "pattern": "^#[0-9a-f]{6}$",
+                        "type": "string",
+                        "widget": "color"
+                      },
+                      "intensity": {
+                        "default": 3,
+                        "description": "Illuminance",
+                        "group": "Light",
+                        "label": "Intensity",
+                        "minimum": 0,
+                        "order": 30,
+                        "type": "number",
+                        "unit": "lx",
+                        "widget": "number"
+                      },
+                      "type": {
+                        "const": "directional",
+                        "description": "Light kind",
+                        "group": "Light",
+                        "label": "Type",
+                        "order": 10,
+                        "type": "string",
+                        "widget": "select"
+                      }
+                    },
+                    "required": ["color", "type", "intensity", "castShadow"],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "castShadow": {
+                        "default": false,
+                        "description": "Whether this light casts shadows",
+                        "group": "Light",
+                        "label": "Cast shadow",
+                        "order": 80,
+                        "type": "boolean",
+                        "widget": "toggle"
+                      },
+                      "color": {
+                        "default": "#ffffff",
+                        "description": "sRGB light color",
+                        "group": "Light",
+                        "label": "Color",
+                        "order": 20,
+                        "pattern": "^#[0-9a-f]{6}$",
+                        "type": "string",
+                        "widget": "color"
+                      },
+                      "intensity": {
+                        "default": 100,
+                        "description": "Luminous intensity",
+                        "group": "Light",
+                        "label": "Intensity",
+                        "minimum": 0,
+                        "order": 30,
+                        "type": "number",
+                        "unit": "cd",
+                        "widget": "number"
+                      },
+                      "range": {
+                        "default": 0,
+                        "description": "Attenuation range; 0 is infinite",
+                        "group": "Light",
+                        "label": "Range",
+                        "minimum": 0,
+                        "order": 40,
+                        "type": "number",
+                        "unit": "m",
+                        "widget": "number"
+                      },
+                      "type": {
+                        "const": "point",
+                        "description": "Light kind",
+                        "group": "Light",
+                        "label": "Type",
+                        "order": 10,
+                        "type": "string",
+                        "widget": "select"
+                      }
+                    },
+                    "required": ["color", "type", "intensity", "range", "castShadow"],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "angle": {
+                        "default": 30,
+                        "description": "Outer cone half-angle",
+                        "exclusiveMaximum": 90,
+                        "exclusiveMinimum": 0,
+                        "group": "Light",
+                        "label": "Angle",
+                        "order": 50,
+                        "step": 1,
+                        "type": "number",
+                        "unit": "°",
+                        "widget": "slider"
+                      },
+                      "castShadow": {
+                        "default": false,
+                        "description": "Whether this light casts shadows",
+                        "group": "Light",
+                        "label": "Cast shadow",
+                        "order": 80,
+                        "type": "boolean",
+                        "widget": "toggle"
+                      },
+                      "color": {
+                        "default": "#ffffff",
+                        "description": "sRGB light color",
+                        "group": "Light",
+                        "label": "Color",
+                        "order": 20,
+                        "pattern": "^#[0-9a-f]{6}$",
+                        "type": "string",
+                        "widget": "color"
+                      },
+                      "intensity": {
+                        "default": 200,
+                        "description": "Luminous intensity",
+                        "group": "Light",
+                        "label": "Intensity",
+                        "minimum": 0,
+                        "order": 30,
+                        "type": "number",
+                        "unit": "cd",
+                        "widget": "number"
+                      },
+                      "penumbra": {
+                        "default": 0.2,
+                        "description": "Soft edge of the spot cone",
+                        "group": "Light",
+                        "label": "Penumbra",
+                        "maximum": 1,
+                        "minimum": 0,
+                        "order": 60,
+                        "step": 0.01,
+                        "type": "number",
+                        "widget": "slider"
+                      },
+                      "range": {
+                        "default": 0,
+                        "description": "Attenuation range; 0 is infinite",
+                        "group": "Light",
+                        "label": "Range",
+                        "minimum": 0,
+                        "order": 40,
+                        "type": "number",
+                        "unit": "m",
+                        "widget": "number"
+                      },
+                      "type": {
+                        "const": "spot",
+                        "description": "Light kind",
+                        "group": "Light",
+                        "label": "Type",
+                        "order": 10,
+                        "type": "string",
+                        "widget": "select"
+                      }
+                    },
+                    "required": [
+                      "color",
+                      "type",
+                      "intensity",
+                      "range",
+                      "angle",
+                      "penumbra",
+                      "castShadow"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "castShadow": {
+                        "const": false,
+                        "default": false,
+                        "description": "Whether this light casts shadows",
+                        "group": "Light",
+                        "label": "Cast shadow",
+                        "order": 80,
+                        "type": "boolean",
+                        "widget": "toggle"
+                      },
+                      "color": {
+                        "default": "#ffffff",
+                        "description": "sRGB light color",
+                        "group": "Light",
+                        "label": "Color",
+                        "order": 20,
+                        "pattern": "^#[0-9a-f]{6}$",
+                        "type": "string",
+                        "widget": "color"
+                      },
+                      "intensity": {
+                        "default": 5,
+                        "description": "Luminance",
+                        "group": "Light",
+                        "label": "Intensity",
+                        "minimum": 0,
+                        "order": 30,
+                        "type": "number",
+                        "unit": "nt",
+                        "widget": "number"
+                      },
+                      "size": {
+                        "default": [1, 1],
+                        "description": "Rectangle width and height",
+                        "group": "Light",
+                        "items": false,
+                        "label": "Size",
+                        "maxItems": 2,
+                        "minItems": 2,
+                        "order": 40,
+                        "prefixItems": [
+                          {
+                            "exclusiveMinimum": 0,
+                            "type": "number"
+                          },
+                          {
+                            "exclusiveMinimum": 0,
+                            "type": "number"
+                          }
+                        ],
+                        "type": "array",
+                        "unit": "m",
+                        "widget": "vec2"
+                      },
+                      "type": {
+                        "const": "area",
+                        "description": "Light kind",
+                        "group": "Light",
+                        "label": "Type",
+                        "order": 10,
+                        "type": "string",
+                        "widget": "select"
+                      }
+                    },
+                    "required": ["color", "type", "intensity", "size", "castShadow"],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "metadata": {
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "propertyNames": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "name": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[\\p{L}\\p{N} _.\\-()]{1,64}$",
+            "type": "string"
+          },
+          "nodeIndex": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rigidBody": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "friction": {
+                    "default": 0.5,
+                    "description": "Coulomb friction",
+                    "group": "Rigid body",
+                    "label": "Friction",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "order": 30,
+                    "step": 0.01,
+                    "type": "number",
+                    "widget": "slider"
+                  },
+                  "mass": {
+                    "default": 1,
+                    "description": "Mass; ignored for static bodies",
+                    "exclusiveMinimum": 0,
+                    "group": "Rigid body",
+                    "label": "Mass",
+                    "order": 20,
+                    "type": "number",
+                    "unit": "kg",
+                    "widget": "number"
+                  },
+                  "restitution": {
+                    "default": 0,
+                    "description": "Bounciness",
+                    "group": "Rigid body",
+                    "label": "Restitution",
+                    "maximum": 1,
+                    "minimum": 0,
+                    "order": 40,
+                    "step": 0.01,
+                    "type": "number",
+                    "widget": "slider"
+                  },
+                  "type": {
+                    "default": "static",
+                    "description": "Body motion type",
+                    "enum": ["static", "dynamic", "kinematic"],
+                    "group": "Rigid body",
+                    "label": "Type",
+                    "order": 10,
+                    "type": "string",
+                    "widget": "select"
+                  }
+                },
+                "required": ["type", "mass", "friction", "restitution"],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "path",
+          "nodeIndex",
+          "enabled",
+          "visible",
+          "tags",
+          "collider",
+          "rigidBody",
+          "metadata",
+          "behaviors",
+          "light",
+          "camera"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "environment": {
+      "additionalProperties": false,
+      "properties": {
+        "ambient": {
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "pattern": "^#[0-9a-f]{6}$",
+              "type": "string"
+            },
+            "intensity": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          "required": ["color", "intensity"],
+          "type": "object"
+        },
+        "exposure": {
+          "type": "number"
+        },
+        "fog": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "none",
+                  "type": "string"
+                }
+              },
+              "required": ["kind"],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "color": {
+                  "pattern": "^#[0-9a-f]{6}$",
+                  "type": "string"
+                },
+                "far": {
+                  "type": "number"
+                },
+                "kind": {
+                  "const": "linear",
+                  "type": "string"
+                },
+                "near": {
+                  "type": "number"
+                }
+              },
+              "required": ["kind", "color", "near", "far"],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "color": {
+                  "pattern": "^#[0-9a-f]{6}$",
+                  "type": "string"
+                },
+                "density": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "kind": {
+                  "const": "exponential",
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "color", "density"],
+              "type": "object"
+            }
+          ]
+        },
+        "sky": {
+          "oneOf": [
+            {
+              "additionalProperties": false,
+              "properties": {
+                "file": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "intensity": {
+                  "type": "number"
+                },
+                "kind": {
+                  "const": "environment",
+                  "type": "string"
+                },
+                "rotation": {
+                  "type": "number"
+                }
+              },
+              "required": ["kind", "file", "rotation", "intensity"],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "color": {
+                  "pattern": "^#[0-9a-f]{6}$",
+                  "type": "string"
+                },
+                "kind": {
+                  "const": "color",
+                  "type": "string"
+                }
+              },
+              "required": ["kind", "color"],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "const": "none",
+                  "type": "string"
+                }
+              },
+              "required": ["kind"],
+              "type": "object"
+            }
+          ]
+        },
+        "toneMapping": {
+          "enum": ["neutral", "aces", "agx", "none"],
+          "type": "string"
+        }
+      },
+      "required": ["sky", "exposure", "toneMapping", "fog", "ambient"],
+      "type": "object"
+    },
+    "exportedAt": {
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "type": "string"
+    },
+    "format": {
+      "const": "tessera-sidecar",
+      "type": "string"
+    },
+    "generator": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "settings": {
+      "additionalProperties": false,
+      "properties": {
+        "handedness": {
+          "const": "right",
+          "type": "string"
+        },
+        "mainCamera": {
+          "anyOf": [
+            {
+              "pattern": "^e_[0-9a-z]{10}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "units": {
+          "const": "m",
+          "type": "string"
+        },
+        "up": {
+          "const": "Y",
+          "type": "string"
+        }
+      },
+      "required": ["units", "up", "handedness", "mainCamera"],
+      "type": "object"
+    },
+    "version": {
+      "const": 1,
+      "type": "number"
+    }
+  },
+  "required": [
+    "format",
+    "version",
+    "documentVersion",
+    "generator",
+    "settings",
+    "environment",
+    "entities",
+    "assets"
+  ],
+  "type": "object"
+}

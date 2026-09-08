@@ -16,6 +16,7 @@ Zod 4 document schema for Tessera: types, validation levels 1–3, canonical JSO
 | `ENGINE_QUERY_NAMES` | Engine-backed queries omitted from `QUERY_CATALOG`. |
 | `EntityRefSchema`, `ComponentTypeSchema` | Shared command input types. |
 | `emitJsonSchema` | Deterministic JSON Schema for the catalogs. |
+| `SidecarSchema`, `emitSidecarJsonSchema` | Export sidecar (`09` §4); committed `json-schema/sidecar.v1.json`. |
 | Component and asset schemas/types | Field names match `docs/03-domain-model.md`; inspector widgets via `.meta()`. |
 
 Subpath `@tessera/schema/json-schema` re-exports `emitJsonSchema`.

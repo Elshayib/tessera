@@ -399,4 +399,25 @@ Options: (a) add `mikktspace` now (b) skip tangent generation with a warning unt
 Conservative choice implemented: (b) call `tangents()` and, if it throws, keep the import and warn. Do not add a new dependency in T-0109.
 Answer: —
 
+### Q-0056 — glTF round-trip ids through `commitPlan`
+Raised by: T-0110 · Spec: `09` §10 INV-EXP-04, T-0110 AC4 · Status: open
+Question: INV-EXP-04 / T-0110 AC4 ask re-import via `commitPlan` to preserve entity ids. `entity.create` / `asset.create` always mint new ids, and the T-0109 import worker does not read `extras.tessera`. Changing those packages is outside T-0110 `Touches`. The import worker also only proposes entities for mesh-bearing nodes, so lights and cameras without meshes are not re-imported.
+Options: (a) change `entity.create` to accept caller ids and teach import to honor `extras.tessera` (b) treat the interchange as the source of ids
+Conservative choice implemented: (b) T-0110 writes original ids to node `extras.tessera.id` and sidecar `entities[].id`. Round-trip tests assert extras/sidecar ids plus names/transforms after `commitPlan`. Document ids after commit are new (Q-0051).
+Answer: —
+
+### Q-0057 — exporters import `@tessera/assets` for primitive meshes
+Raised by: T-0110 · Spec: `02` §4 vs `09` §3.2 · Status: open
+Question: Architecture §4 lists exporters may import std, schema, core, storage, `@gltf-transform/*`. Spec `09` §3.2 requires primitive meshes from the same generator as the engine (T-0108, `@tessera/assets`).
+Options: (a) import `@tessera/assets` in exporters (b) duplicate the generator
+Conservative choice implemented: (a) exporters depend on `@tessera/assets` for `createPrimitiveMesh` only. Production code does not import `@tessera/core`.
+Answer: —
+
+### Q-0058 — exporters consume Zod for `optionsSchema`
+Raised by: T-0110 · Spec: `09` §2 vs `02` §5 · Status: open
+Question: `Exporter.optionsSchema` is a Zod type so the UI can generate the export dialog. Architecture §5 lists Zod consumption for schema, core, agent, mcp, plugin-api — not exporters.
+Options: (a) add `zod` to `@tessera/exporters` (b) define export option schemas in `@tessera/schema`
+Conservative choice implemented: (a) `GltfExportOptionsSchema` lives in exporters with inspector `.meta()`, matching `09` §2.
+Answer: —
+
 
