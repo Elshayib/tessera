@@ -6,7 +6,9 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 | Export | Description |
 | --- | --- |
-| `Shell` | Landmarks for viewport, outliner, inspector, chat. No command bus. |
+| `Shell` | Landmarks for viewport, outliner, inspector, chat. |
+| `Outliner` | Accessible entity tree; reparent/reorder via `CommandBus`. |
+| `useSelectionStore` | UI-only selection (`INV-ARCH-04`). |
 | `useLayoutStore` | UI-only panel sizes (`INV-ARCH-04`). |
 | `en` | English catalog (`01` §9). |
 | `describeError` | Maps `TesseraError.code` to `errors.*` catalog text. |
@@ -24,4 +26,4 @@ Colocated Vitest + happy-dom for `*.browser.test.ts`. Coverage ≥ 70%.
 
 - `docs/01-engineering-standards.md` §5–§6, §9
 - `docs/02-architecture.md` INV-ARCH-04
-- Ticket T-0112
+- Ticket T-0112, T-0113

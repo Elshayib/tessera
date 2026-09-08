@@ -302,6 +302,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@tessera/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@tessera/std':
         specifier: workspace:*
         version: link:../std
@@ -315,9 +321,6 @@ importers:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.2.18)(react@19.2.8)
     devDependencies:
-      '@tessera/schema':
-        specifier: workspace:*
-        version: link:../schema
       '@types/react':
         specifier: 19.2.18
         version: 19.2.18

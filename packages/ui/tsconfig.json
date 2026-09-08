@@ -14,5 +14,5 @@
     "src/**/*.browser.test.tsx",
     "src/test-setup.ts"
   ],
-  "references": [{ "path": "../std" }]
+  "references": [{ "path": "../std" }, { "path": "../schema" }, { "path": "../core" }]
 }

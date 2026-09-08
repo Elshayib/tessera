@@ -16,6 +16,14 @@ export const en = {
     tallerChat: "Taller chat",
     shorterChat: "Shorter chat",
   },
+  outliner: {
+    search: "Search by name",
+    tag: "Tag",
+    tree: "Entities",
+    reparent: "Reparent into focused",
+    moveUp: "Move up",
+    moveDown: "Move down",
+  },
   errors: {
     INVALID_INPUT: "That input is not valid. Check the field and try again.",
     NOT_FOUND: "The requested item was not found.",

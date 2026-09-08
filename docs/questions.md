@@ -441,5 +441,12 @@ Options: (a) spec path (b) ticket path
 Conservative choice implemented: (b) `i18n/en.ts` to stay inside Touches; strings still live in one catalog with no JSX literals.
 Answer: —
 
+### Q-0062 — outliner glob vs `scene.find`
+Raised by: T-0113 · Spec: `04` §10 · Status: open
+Question: Search must use the same glob rules as `scene.find`. The matcher lives inside `@tessera/core` query handlers and is not exported.
+Options: (a) export glob from core (b) duplicate the `*` / `?` matcher in the outliner
+Conservative choice implemented: (b) `outliner/name-glob.ts` copies the core `globMatch` implementation so T-0113 stays in Touches.
+Answer: —
+
 
 
