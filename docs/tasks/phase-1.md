@@ -16,7 +16,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `in-progress` |
 | T-0109 | `@tessera/assets`: glTF import worker (gltf-transform normalize) | assets | T-0108 | `in-progress` |
 | T-0110 | `@tessera/exporters`: glTF + sidecar from document (not from scene) | exporters | T-0101, T-0108, T-0109 | `in-progress` |
-| T-0111 | `@tessera/exporters`: Three.js code export | exporters | T-0110 | `todo` |
+| T-0111 | `@tessera/exporters`: Three.js code export | exporters | T-0110 | `in-progress` |
 | T-0112 | `@tessera/ui`: design tokens, shell, resizable panels, i18n en.ts | ui | T-0010 | `todo` |
 | T-0113 | `@tessera/ui`: outliner (tree, reparent, search, tags) | ui | T-0112, T-0008 | `todo` |
 | T-0114 | `@tessera/ui`: inspector generated from schema `.meta()` | ui | T-0112, T-0004 | `todo` |
@@ -627,7 +627,7 @@ packages/schema/json-schema/sidecar.v1.json
 | Package | `@tessera/exporters` |
 | Size | M |
 | Depends on | T-0110 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

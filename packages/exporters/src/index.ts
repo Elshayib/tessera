@@ -3,6 +3,7 @@ export {
   licenseIsFlagged,
   licenseRequiresAttribution,
 } from "./attribution.js";
+export { createCodeThreeExporter } from "./code-three.js";
 export {
   candelaToBlenderPointWatts,
   candelaToGodotOmniLumens,

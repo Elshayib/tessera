@@ -420,4 +420,11 @@ Options: (a) add `zod` to `@tessera/exporters` (b) define export option schemas 
 Conservative choice implemented: (a) `GltfExportOptionsSchema` lives in exporters with inspector `.meta()`, matching `09` §2.
 Answer: —
 
+### Q-0059 — `code-three` bundle includes glTF files
+Raised by: T-0111 · Spec: `09` §6 · Status: open
+Question: The spec describes ESM `scene.js` that loads `<name>.glb` but does not say whether `code-three` also emits the glTF (T-0110) files in the same bundle.
+Options: (a) emit only `scene.js` (b) compose `gltf` export + `scene.js`
+Conservative choice implemented: (b) `createCodeThreeExporter` calls the glTF exporter and adds `scene.js`. Options reuse `GltfExportOptionsSchema`. Generated JS uses single-quoted `three` imports so exporter sources do not contain `from "three"` (`INV-EXP-01` source scan). Snapshot `scene.js` is excluded from Biome and knip because it is printer output, not package source.
+Answer: —
+
 

@@ -1,6 +1,11 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["**/generated/**", "**/dist/**", "docs/templates/**"],
+  "ignore": [
+    "**/generated/**",
+    "**/dist/**",
+    "docs/templates/**",
+    "packages/exporters/fixtures/**"
+  ],
   "ignoreDependencies": ["lefthook"],
   "workspaces": {
     ".": {
