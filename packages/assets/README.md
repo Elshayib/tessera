@@ -1,6 +1,6 @@
 # `@tessera/assets`
 
-Canonical primitive mesh generator and default PBR material used by the engine and exporters (`09` §3.2). Import sources and glTF workers land in later tickets.
+Canonical primitive mesh generator, default PBR material, and glTF import pipeline (`08` §7).
 
 ## Public API
 
@@ -8,32 +8,36 @@ Canonical primitive mesh generator and default PBR material used by the engine a
 | --- | --- |
 | `createPrimitiveMesh` | Pure triangle mesh (positions, normals, uvs, indices) for every schema `Primitive`. |
 | `createDefaultMaterial` | Valid `MaterialAsset` (license `unknown`, provenance `derived`, Q-0014). |
+| `importGltf` | Worker body: parse/normalize glTF, write blobs, return `ImportPlan` (`INV-AST-02`). |
+| `createAssetService` / `commitPlan` | Main thread: `asset.create` + `entity.create` in one `Import <fileName>` transaction. |
+| `HARD_BLOB_LIMIT_BYTES` | Reject files larger than 50 MiB (Q-0050). |
 
-No document mutation. No blob writes in this ticket; meshes stay in memory until a caller asks a `BlobStore` to persist them.
+No document mutation inside `importGltf`. `asset.import` stays unregistered (Q-0016); commit uses existing catalog handlers.
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std` and `@tessera/schema`. Must not import `three`, `@tessera/core`, or `@gltf-transform/*` (T-0109). Must not import `CommandBus`.
+Layer 2. May import `@tessera/std`, `@tessera/schema`, `@tessera/core`, `@tessera/storage`, and `@gltf-transform/*`. `import-worker.ts` / `import-plan.ts` must not import `@tessera/core` or `CommandBus` (`INV-AST-02`). Must not import `three`.
 
 ## Usage example
 
 ```ts
-import { createDefaultMaterial, createPrimitiveMesh } from "@tessera/assets";
+import { createAssetService, importGltf } from "@tessera/assets";
 
-const mesh = createPrimitiveMesh({ type: "box", size: [1, 1, 1] });
-const material = createDefaultMaterial({
-  id: "a_aaaaaaaaaa",
-  createdAt: "2026-01-01T00:00:00.000Z",
-});
+const imported = await importGltf({ bytes, fileName: "hero.glb", blobs, clock });
+if (imported.ok) {
+  createAssetService({ bus }).commitPlan(imported.value, {
+    author: { kind: "user", id: "u1" },
+  });
+}
 ```
 
 ## Testing notes
 
-Colocated Vitest tests. Coverage ≥ 85% (`01` §7). Mesh AABBs must match `primitiveBounds` within 1e-5.
+Colocated Vitest tests plus `import.int.test.ts`. Coverage ≥ 85% (`01` §7). Fixtures live in `packages/schema/fixtures/gltf/`.
 
 ## Related specs
 
 - `docs/03-domain-model.md` primitives
+- `docs/08-assets-and-storage.md` §7
 - `docs/09-export-and-bridges.md` §3.2
-- `docs/05-rendering.md` §4
-- Ticket T-0108
+- Tickets T-0108, T-0109

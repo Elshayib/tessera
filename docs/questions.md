@@ -357,3 +357,46 @@ Options: (a) extend `GpuRenderer` and wire the host now (b) injectable `render` 
 Conservative choice implemented: (b) `captureScreenshot` + `viewportStats` are the T-0107 surface.
 Answer: —
 
+### Q-0050 — Hard blob size for glTF import
+Raised by: T-0109 · Spec: `08` §7.1 · Status: open
+Question: Import rejects files above a “hard blob limit” but no byte count is named. Archive unzip and document snapshot budgets are 50 MB (`03` §12, `storage` `DEFAULT_ARCHIVE_LIMITS`).
+Options: (a) 50 MiB matching the archive entry cap (b) a larger generation-era cap (c) leave unlimited until Settings quotas
+Conservative choice implemented: (a) `HARD_BLOB_LIMIT_BYTES = 50 * 1024 * 1024`.
+Answer: —
+
+### Q-0051 — Temporary ids on ImportPlan assets and entities
+Raised by: T-0109 · Spec: `08` §7.5 · Status: open
+Question: `AssetInput` in the command catalog omits `id`/`createdAt`, but the ImportPlan comment says temporary ids are resolved on commit. `EntityInput` is unnamed.
+Options: (a) assets/entities in the plan include temporary `a_`/`e_` ids (b) refer by array index
+Conservative choice implemented: (a) `AssetInput` is `Omit<Asset, "createdAt">`; `EntityInput` has `id`, `name`, `parent`, `components?`.
+Answer: —
+
+### Q-0052 — AssetService façade surface in T-0109
+Raised by: T-0109 · Spec: `08` §10 vs T-0109 Touches · Status: open
+Question: The spec `AssetService` includes `importFiles`, `search`, `addFromSource`, `generate`, thumbnails, and sources. T-0109 AC only requires `commitPlan` plus the worker `ImportPlan`.
+Options: (a) stub the rest as `UNSUPPORTED` (b) implement only `commitPlan`
+Conservative choice implemented: (b) `createAssetService` exposes `commitPlan` only. Sources and jobs wait for T-0120 / later.
+Answer: —
+
+### Q-0053 — import.worker is a function in this ticket
+Raised by: T-0109 · Spec: `08` INV-AST-06 · Status: open
+Question: INV-AST-06 requires a Worker so the main thread never blocks > 50 ms (50 MB e2e). T-0109 non-goals that measurement.
+Options: (a) ship a real Worker now (b) export the worker body as `importGltf` for Node tests and host it in a Worker in a later ticket
+Conservative choice implemented: (b) `importGltf` is the worker body. It does not import `CommandBus`.
+Answer: —
+
+### Q-0054 — gltf-transform v4 `weld()` has no tolerance
+Raised by: T-0109 · Spec: `08` §7.1 · Status: open
+Question: Spec asks for `weld()` with tolerance `1e-5`. `@gltf-transform/functions` 4.4.2 `WeldOptions` only has `overwrite` (bitwise-identical vertices).
+Options: (a) call `weld()` as provided (b) vendor a tolerance weld
+Conservative choice implemented: (a) `weld()` with library defaults. `unlit()` convert-to-unlit is not applied; `KHR_materials_unlit` is preserved via extension registration.
+Answer: —
+
+### Q-0055 — mikktspace not bundled for `tangents()`
+Raised by: T-0109 · Spec: `08` §7.1 · Status: open
+Question: Spec asks to run `tangents()` when a normal texture is present. gltf-transform 4 requires a `generateTangents` callback (typically `mikktspace`); that WASM package is not a Tessera dependency.
+Options: (a) add `mikktspace` now (b) skip tangent generation with a warning until a later ticket
+Conservative choice implemented: (b) call `tangents()` and, if it throws, keep the import and warn. Do not add a new dependency in T-0109.
+Answer: —
+
+

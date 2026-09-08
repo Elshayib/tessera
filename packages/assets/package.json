@@ -1,7 +1,7 @@
 {
   "name": "@tessera/assets",
   "version": "0.0.0",
-  "description": "Primitive geometry factory, default material, and later import sources for Tessera.",
+  "description": "Primitive geometry, default material, and glTF import pipeline for Tessera.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,10 +24,16 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@gltf-transform/core": "4.4.2",
+    "@gltf-transform/extensions": "4.4.2",
+    "@gltf-transform/functions": "4.4.2",
+    "@tessera/core": "workspace:*",
     "@tessera/schema": "workspace:*",
-    "@tessera/std": "workspace:*"
+    "@tessera/std": "workspace:*",
+    "@tessera/storage": "workspace:*"
   },
   "devDependencies": {
+    "@tessera/testing": "workspace:*",
     "typescript": "5.9.2",
     "vitest": "3.2.4"
   }
