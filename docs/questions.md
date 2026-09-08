@@ -299,6 +299,20 @@ Options: (a) invent a CLI-local encoder (b) add `@tessera/exporters` and `@tesse
 Conservative choice implemented: (b). Empty memory blobs: campfire uses primitive geometry, not blob meshes.
 Answer: —
 
+### Q-0090 — T-0122 PR template and recordings stub
+Raised by: T-0122 · Spec: ticket Touches vs AC3 · Status: open
+Question: AC3 wants a checklist in the PR template; Touches list the runbook and roadmap, plus a recordings link directory.
+Options: (a) runbook-only checklist (b) also `.github/pull_request_template.md` and `docs/recordings/README.md`
+Conservative choice implemented: (b). No binary recordings committed.
+Answer: —
+
+### Q-0091 — phase 1 not complete without human import evidence
+Raised by: T-0122 · Spec: `17` m1 exit · Status: open
+Question: T-0122 can land the runbook without Godot/Blender screenshots on this machine.
+Options: (a) mark the roadmap phase 1 row complete (b) keep the row unchanged and document that the tag is reserved
+Conservative choice implemented: (b). No `m1-composition-editor` tag.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

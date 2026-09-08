@@ -27,7 +27,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | T-0119 | `apps/web`: Playwright smoke + visual baseline R1-empty | web | T-0117 | `in-progress` |
 | T-0120 | Poly Haven source (HDRI, models, textures) behind flag | assets, web | T-0117, T-0109 | `in-progress` |
 | T-0121 | CLI `tessera export gltf` | cli | T-0110 | `in-progress` |
-| T-0122 | Phase 1 exit: open export in Godot 4 and Blender 5 (manual + recorded) | docs | T-0110, T-0119 | `todo` |
+| T-0122 | Phase 1 exit: open export in Godot 4 and Blender 5 (manual + recorded) | docs | T-0110, T-0119 | `in-progress` |
 
 ## Specs
 
@@ -1146,7 +1146,7 @@ README.md
 | Package | `docs` |
 | Size | S |
 | Depends on | T-0110, T-0119 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

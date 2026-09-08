@@ -16,6 +16,14 @@ T-____ — <title> (link to `docs/tasks/phase-N.md#t-____`)
 
 <!-- Required for any UI change. -->
 
+### Phase 1 export check (T-0122)
+
+When this PR is the human evidence for `m1-composition-editor`, attach Godot 4 and Blender 5 screenshots per [`docs/runbooks/phase-1-export-check.md`](../docs/runbooks/phase-1-export-check.md). Do not tag the milestone without them.
+
+- [ ] Godot 4.x scene tree (node names)
+- [ ] Blender 5.x outliner (object names)
+
+
 ## New dependencies
 
 <!-- For each: name, version, license, size (minified gz), why no existing dependency works. Write "none" otherwise. -->
