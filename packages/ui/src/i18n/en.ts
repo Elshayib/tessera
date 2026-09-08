@@ -47,6 +47,12 @@ export const en = {
       spot: "Spot light",
     },
   },
+  projectIo: {
+    label: "Project",
+    save: "Save",
+    download: "Download",
+    open: "Open",
+  },
   errors: {
     INVALID_INPUT: "That input is not valid. Check the field and try again.",
     NOT_FOUND: "The requested item was not found.",

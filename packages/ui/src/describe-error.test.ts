@@ -35,4 +35,5 @@ test("describeError uses i18n key", () => {
   expect(en.createMenu.camera).toBe("Camera");
   expect(en.createMenu.primitives.box).toBe("Box");
   expect(en.createMenu.lights.point).toBe("Point light");
+  expect(en.projectIo.save).toBe("Save");
 });

@@ -504,6 +504,35 @@ Options: (a) `material.create` + `component.add` (b) one transaction of `asset.c
 Conservative choice implemented: (b) so new meshes use `createDefaultMaterial` / `createPrimitiveMesh`.
 Answer: —
 
+### Q-0071 — ProjectStore has no save
+Raised by: T-0118 · Spec: `08` §2 · Status: open
+Question: `ProjectStore` can `snapshot` / `exportArchive` stored JSON, but cannot write a live `fromYDoc` document in place. Memory and IndexedDB listing snapshots are not the live Yjs graph.
+Options: (a) add `save` to storage (out of Touches) (b) persist via `encodeTesseraArchive` + `importArchive`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0075 — project-io composition
+Raised by: T-0118 · Spec: ticket Touches vs `App` · Status: open
+Question: Touches are `project-io/**` only; knip and the editor need a mount point.
+Options: (a) unused module (b) `App` renders `ProjectIo`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0076 — project-io English strings
+Raised by: T-0118 · Spec: `01` §9 vs Touches · Status: open
+Question: Save/download/open are user-visible.
+Options: (a) hardcoded JSX (b) `en.projectIo.*`
+Conservative choice implemented: (b).
+Answer: —
+
+### Q-0077 — open does not swap the live Y.Doc
+Raised by: T-0118 · Spec: `02` §7 EditorContext · Status: open
+Question: `importArchive` returns a new `ProjectId`; replacing `EditorContext.document` is not in Touches.
+Options: (a) rebuild bootstrap from snapshot (b) persist into the store only
+Conservative choice implemented: (b) for UI; tests compare snapshots after import.
+Answer: —
+
+
 
 
 
