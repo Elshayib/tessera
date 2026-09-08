@@ -39,6 +39,8 @@ evals/           Agent evaluation suites, runner and reports                    
 
 - Humans: read [`CONTRIBUTING.md`](CONTRIBUTING.md).
 - AI agents: read [`AGENTS.md`](AGENTS.md), then [`docs/18-implementation-playbook.md`](docs/18-implementation-playbook.md), then the next `todo` ticket in [`docs/tasks/phase-0.md`](docs/tasks/phase-0.md) (**T-0001**).
+- Headless validate: `pnpm tessera validate <path>` (snapshot JSON or a folder containing `project.tessera.json`).
+- Headless glTF export: `pnpm tessera export gltf <path> --out <dir>` (writes glb/gltf + sidecar; no `three`).
 
 ## Languages
 

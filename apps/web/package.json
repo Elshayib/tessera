@@ -1,0 +1,39 @@
+{
+  "name": "@tessera/web",
+  "version": "0.0.0",
+  "description": "Tessera web editor: Vite composition root and EditorContext.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:e2e": "playwright test --config ../../playwright.config.ts",
+    "size": "size-limit"
+  },
+  "dependencies": {
+    "@tessera/assets": "workspace:*",
+    "@tessera/core": "workspace:*",
+    "@tessera/engine": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "@tessera/storage": "workspace:*",
+    "@tessera/ui": "workspace:*",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@size-limit/file": "11.2.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "5.0.4",
+    "@playwright/test": "1.55.0",
+    "fake-indexeddb": "6.2.5",
+    "size-limit": "11.2.0",
+    "typescript": "5.9.2",
+    "vite": "7.3.6",
+    "vitest": "3.2.4"
+  }
+}

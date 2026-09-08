@@ -1,0 +1,27 @@
+{
+  "version": "0.1.0",
+  "meta": {
+    "id": "p_aaaaaaaaaa",
+    "name": "Untitled",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z",
+    "generator": "tessera@0.0.0"
+  },
+  "settings": {
+    "units": "m",
+    "up": "Y",
+    "handedness": "right",
+    "mainCamera": null,
+    "physics": { "gravity": [0, -9.81, 0] }
+  },
+  "entities": {},
+  "assets": {},
+  "environment": {
+    "sky": { "kind": "none" },
+    "exposure": 1,
+    "toneMapping": "neutral",
+    "fog": { "kind": "none" },
+    "ambient": { "color": "#ffffff", "intensity": 0.2 }
+  },
+  "behaviors": {}
+}

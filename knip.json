@@ -1,5 +1,21 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignore": ["**/generated/**", "**/dist/**", "docs/templates/**"],
-  "ignoreDependencies": ["lefthook", "tsx"]
+  "ignore": [
+    "**/generated/**",
+    "**/dist/**",
+    "docs/templates/**",
+    "packages/exporters/fixtures/**",
+    "apps/web/src/engine-entry.ts"
+  ],
+  "ignoreDependencies": ["lefthook"],
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.ts"],
+      "project": ["scripts/**/*.ts"]
+    },
+    "apps/web": {
+      "entry": ["src/main.tsx", "src/flags.ts", "src/bootstrap.ts", "e2e/**/*.ts"],
+      "project": ["src/**"]
+    }
+  }
 }

@@ -1,0 +1,41 @@
+{
+  "name": "@tessera/ui",
+  "version": "0.0.0",
+  "description": "React shell, design tokens, panel layout store, and i18n for Tessera.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/core": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "happy-dom": "18.0.1",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

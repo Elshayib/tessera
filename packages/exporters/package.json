@@ -1,0 +1,42 @@
+{
+  "name": "@tessera/exporters",
+  "version": "0.0.0",
+  "description": "glTF + sidecar export from the Tessera document, plus engine conversion tables.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "4.4.2",
+    "@gltf-transform/extensions": "4.4.2",
+    "@tessera/assets": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "@tessera/storage": "workspace:*",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@tessera/core": "workspace:*",
+    "@tessera/testing": "workspace:*",
+    "gltf-validator": "2.0.0-dev.3.10",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

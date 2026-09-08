@@ -1,0 +1,43 @@
+{
+  "name": "@tessera/engine",
+  "version": "0.0.0",
+  "description": "three.js WebGPU renderer host, on-demand viewport loop, and scene sync for Tessera.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/assets": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/spatial": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "camera-controls": "3.1.2",
+    "three": "0.183.2",
+    "three-mesh-bvh": "0.9.14"
+  },
+  "devDependencies": {
+    "@tessera/core": "workspace:*",
+    "@tessera/testing": "workspace:*",
+    "@types/three": "0.183.1",
+    "happy-dom": "18.0.1",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

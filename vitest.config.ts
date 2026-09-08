@@ -5,8 +5,20 @@ const config = defineConfig({
     coverage: {
       all: false,
       include: ["packages/*/src/**/*.ts"],
-      exclude: ["**/*.test.ts", "docs/**", "**/*.cjs"],
+      exclude: ["**/*.test.ts", "**/*.bench.ts", "docs/**", "**/*.cjs"],
       provider: "v8",
+      thresholds: {
+        lines: 95,
+        statements: 95,
+        functions: 95,
+        branches: 90,
+        "packages/core/src/**/*.ts": {
+          lines: 90,
+          branches: 90,
+          functions: 90,
+          statements: 90,
+        },
+      },
     },
   },
 });

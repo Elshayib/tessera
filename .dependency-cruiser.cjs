@@ -12,7 +12,8 @@ module.exports = {
       severity: "warn",
       from: {
         orphan: true,
-        pathNot: "\\.(test|bench|int)\\.ts$|vitest\\.config\\.ts$|vite\\.config\\.ts$",
+        pathNot:
+          "\\.(test|bench|int)\\.tsx?$|vitest\\.config\\.ts$|vite\\.config\\.ts$|test-setup\\.ts$",
       },
       to: {},
     },
@@ -37,6 +38,27 @@ module.exports = {
       to: { path: "node_modules/three" },
     },
     {
+      name: "three-mesh-bvh-isolation",
+      comment: "three-mesh-bvh is allowed only in @tessera/engine (02 §5).",
+      severity: "error",
+      from: { pathNot: "^packages/engine/" },
+      to: { path: "node_modules/three-mesh-bvh" },
+    },
+    {
+      name: "camera-controls-isolation",
+      comment: "camera-controls is allowed only in @tessera/engine (02 §5).",
+      severity: "error",
+      from: { pathNot: "^packages/engine/" },
+      to: { path: "node_modules/camera-controls" },
+    },
+    {
+      name: "INV-ARCH-06-cli-headless",
+      comment: "apps/cli must not load three (INV-ARCH-06).",
+      severity: "error",
+      from: { path: "^apps/cli/" },
+      to: { path: "node_modules/three" },
+    },
+    {
       name: "ai-sdk-isolation",
       severity: "error",
       from: { pathNot: "^packages/providers-llm/" },
@@ -55,6 +77,13 @@ module.exports = {
       to: { path: "node_modules/yjs" },
     },
     {
+      name: "y-indexeddb-isolation",
+      comment: "y-indexeddb is allowed only in @tessera/storage (T-0102).",
+      severity: "error",
+      from: { pathNot: "^packages/storage/" },
+      to: { path: "node_modules/y-indexeddb" },
+    },
+    {
       name: "react-isolation",
       severity: "error",
       from: { pathNot: "^(packages/ui/|apps/web/|apps/desktop/|apps/docs/)" },
@@ -69,7 +98,10 @@ module.exports = {
     {
       name: "testing-not-in-prod",
       severity: "error",
-      from: { path: "^packages/.+/src/", pathNot: "\\.(test|bench|int|browser\\.test)\\.ts$" },
+      from: {
+        path: "^packages/.+/src/",
+        pathNot: ["\\.(test|bench|int|browser\\.test)\\.ts$", "^packages/testing/"],
+      },
       to: { path: "^packages/testing/" },
     },
     {
@@ -79,6 +111,27 @@ module.exports = {
         path: "^packages/(std|schema|core|spatial|llm|generation|engine|agent|ui|plugin-api)/",
       },
       to: { dependencyTypes: ["core"], path: "^node:" },
+    },
+    {
+      name: "INV-ARCH-02-engine-no-command-bus",
+      comment: "Engine never imports CommandBus (INV-ARCH-02 / INV-RND-03).",
+      severity: "error",
+      from: { path: "^packages/engine/" },
+      to: { path: "packages/core/.+/command-bus" },
+    },
+    {
+      name: "INV-EXP-01-exporters-no-engine",
+      comment: "Exporters never depend on @tessera/engine (INV-EXP-01).",
+      severity: "error",
+      from: { path: "^packages/exporters/" },
+      to: { path: "^packages/engine/" },
+    },
+    {
+      name: "INV-AST-02-import-worker-no-core",
+      comment: "Import worker never imports @tessera/core (INV-AST-02).",
+      severity: "error",
+      from: { path: "^packages/assets/src/import-(worker|plan)\\.ts$" },
+      to: { path: "^packages/core/" },
     },
     {
       name: "no-deep-imports",

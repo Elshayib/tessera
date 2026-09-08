@@ -87,7 +87,7 @@ Implementing Result, ids, or any real std API. Creating other packages. Enabling
 | Package | `@tessera/std` |
 | Size | L |
 | Depends on | T-0001 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -204,7 +204,7 @@ Zod. Yjs. UI. A console sink that uses `console.*` in production code — the de
 | Package | `@tessera/schema` |
 | Size | L |
 | Depends on | T-0002 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -281,7 +281,7 @@ Inspector `.meta()` completeness (`INV-DOC-09`) — that is **T-0004**. Command/
 | Package | `@tessera/schema` |
 | Size | L |
 | Depends on | T-0003 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -335,7 +335,7 @@ Handlers. Macros (`layout.*`, `camera.fit`). Jobs.
 | Package | `@tessera/testing` |
 | Size | M |
 | Depends on | T-0004 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -380,7 +380,7 @@ R1–R3 with GPU. FakeLlmClient (phase 2). `expectScene` (phase 2). `runCommands
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0005 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -431,7 +431,7 @@ Command bus. Undo. Persistence adapters (IndexedDB).
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0006 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -492,7 +492,7 @@ Undo (T-0008). Queries (T-0008). Macros. Jobs. UI.
 | Package | `@tessera/core` |
 | Size | L |
 | Depends on | T-0007 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -547,7 +547,7 @@ y-indexeddb. Engine queries. UI history panel.
 | Package | `apps/cli` |
 | Size | S |
 | Depends on | T-0008 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -594,7 +594,7 @@ packages/schema/fixtures/documents/0.1.0/campfire.json
 | Package | `repo` |
 | Size | S |
 | Depends on | T-0009 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

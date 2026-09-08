@@ -1,4 +1,16 @@
 {
   "files": [],
-  "references": [{ "path": "packages/std" }]
+  "references": [
+    { "path": "packages/std" },
+    { "path": "packages/schema" },
+    { "path": "packages/testing" },
+    { "path": "packages/core" },
+    { "path": "packages/storage" },
+    { "path": "packages/spatial" },
+    { "path": "packages/engine" },
+    { "path": "packages/assets" },
+    { "path": "packages/exporters" },
+    { "path": "packages/ui" },
+    { "path": "apps/cli" }
+  ]
 }

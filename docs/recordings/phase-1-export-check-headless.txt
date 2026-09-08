@@ -1,0 +1,26 @@
+Phase 1 export check — headless import log (not a substitute for GUI screenshots)
+
+Date: 2026-09-08
+Export: tessera export gltf packages/schema/fixtures/documents/0.1.0/campfire.json
+Outputs: campfire.glb (4168 bytes), campfire.tessera.json (1782 bytes)
+
+This log is local machine evidence of File-equivalent glTF import (Godot GLTFDocument.append_from_file; Blender import_scene.gltf). T-0122 still requires human screenshots of the scene tree / outliner. No git tag m1-composition-editor. No Godot CI job.
+
+--- Blender 5.2.0 LTS (hash fbe6228777e7) ---
+OBJECT_COUNT 4
+OBJ name=Camera type=CAMERA parent=- dims=(0.0, 0.0, 0.0)
+OBJ name=Fire type=LIGHT parent=- dims=(0.0, 0.0, 0.0)
+OBJ name=Ground type=MESH parent=- dims=(10.0, 10.0, 0.0)
+OBJ name=Log type=MESH parent=- dims=(0.3, 1.0, 0.3)
+
+Notes: Ground 10 m × 10 m plane; Log 0.3 × 1.0 × 0.3 m. Sizes are meters. Blender Z-up is host convention (runbook).
+
+--- Godot Engine v4.7.2.stable.mono.official.ed1daf0bf ---
+GODOT_GLTF_ERR 0
+NODE campfire class=Node3D
+NODE   Ground class=MeshInstance3D
+NODE   Log class=MeshInstance3D
+NODE   Fire class=OmniLight3D
+NODE   Camera class=Camera3D
+
+Notes: Godot printed renderer dummy RID leaks at process exit after generate_scene; import itself returned OK (err 0) with names intact. Not treated as a Tessera export failure.
