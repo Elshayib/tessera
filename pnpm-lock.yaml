@@ -142,6 +142,9 @@ importers:
       '@tessera/schema':
         specifier: workspace:*
         version: link:../schema
+      '@tessera/spatial':
+        specifier: workspace:*
+        version: link:../spatial
       '@tessera/std':
         specifier: workspace:*
         version: link:../std

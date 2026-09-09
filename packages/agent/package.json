@@ -27,6 +27,7 @@
     "@tessera/core": "workspace:*",
     "@tessera/llm": "workspace:*",
     "@tessera/schema": "workspace:*",
+    "@tessera/spatial": "workspace:*",
     "@tessera/std": "workspace:*",
     "zod": "4.5.4"
   },

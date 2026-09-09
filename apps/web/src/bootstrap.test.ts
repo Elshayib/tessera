@@ -9,6 +9,7 @@ test("bootstrap empty document validates", () => {
   const report = validateDocument(fromYDoc(ctx.document.ydoc));
   expect(report.ok).toBe(true);
   expect(ctx.flags.polyhaven).toBe(true);
+  expect(ctx.agentVerify).toBe("none");
   expect(ctx.engine).toBeUndefined();
   expect(ctx.queries.list().length).toBeGreaterThan(0);
 });

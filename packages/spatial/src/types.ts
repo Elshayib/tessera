@@ -11,3 +11,13 @@ export interface SpatialReader {
   getAsset(id: string): Asset | undefined;
   parentChain(id: string): readonly Entity[];
 }
+
+/**
+ * Reads for `checkScene` (`06` §8.1). `DocumentReader` satisfies this.
+ *
+ * @public
+ */
+export interface CheckSceneReader extends SpatialReader {
+  entities(): Iterable<Entity>;
+  pathOf(id: string): string | undefined;
+}

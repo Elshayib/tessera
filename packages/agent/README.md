@@ -12,12 +12,13 @@ Capability probing, role assignment, the agent `ToolRegistry`, and `AgentRuntime
 | `createToolRegistry` | Derive command/query tools for tiers 0–2 plus meta-tools |
 | `selectTools` | Progressive disclosure (`maxTools ≥ 40` vs catalog mode) |
 | `suggestionFor` | Fixed `(group, error code)` suggestion table (`06` §7.2) |
-| `createAgentRuntime` | Observe → plan → act loop (`06` §4) |
+| `createAgentRuntime` | Observe → plan → act → verify loop (`06` §4, §8) |
+| `createSceneVerifier` / `createSkipVerifier` | Spatial then optional vision critic |
 | `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std`, `@tessera/llm`, `@tessera/schema`, and `@tessera/core`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`).
+Layer 2. May import `@tessera/std`, `@tessera/llm`, `@tessera/schema`, `@tessera/core`, and `@tessera/spatial`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`).
 
 Query tools call `QueryHost.query` when it is present on the `QueryRegistry` object (Q-0136). They never call `tx.run`.
 

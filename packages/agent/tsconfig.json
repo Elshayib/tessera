@@ -10,6 +10,7 @@
     { "path": "../std" },
     { "path": "../llm" },
     { "path": "../schema" },
+    { "path": "../spatial" },
     { "path": "../core" }
   ]
 }

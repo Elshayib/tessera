@@ -49,11 +49,12 @@ export interface UsageSummary {
  */
 export interface SpatialCheckResult {
   readonly issues: readonly {
-    readonly entity?: string;
+    readonly entity: string;
     readonly path: string;
     readonly check: string;
     readonly severity: "error" | "warning" | "info";
     readonly message: string;
+    readonly suggestedTool?: { readonly name: string; readonly input: unknown };
   }[];
 }
 

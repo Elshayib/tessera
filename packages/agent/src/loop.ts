@@ -23,6 +23,7 @@ import {
   toolResultMessage,
   userText,
 } from "@tessera/llm";
+import type { CheckSceneReader } from "@tessera/spatial";
 import type { Clock, Logger, Result, TesseraError } from "@tessera/std";
 import { err, ok, tesseraError } from "@tessera/std";
 import { createBudget } from "./budget.js";
@@ -32,11 +33,17 @@ import { applyPlan, executeStep, mergeChangeSets } from "./execute-step.js";
 import { parseJsonModeTools } from "./json-mode.js";
 import { defaultRunPolicy, mergeRunPolicy } from "./policy.js";
 import { buildSystemPrompt, describeMaxChars } from "./prompts/build.js";
-import type { RunEvent, RunRequest, UsageSummary } from "./run-types.js";
+import type {
+  RunEvent,
+  RunRequest,
+  SpatialCheckResult,
+  UsageSummary,
+  Verdict,
+} from "./run-types.js";
 import { selectTools } from "./tools/select.js";
 import type { RunPolicy, ToolDefinition, ToolRegistry } from "./tools/types.js";
 import type { CapabilityProfile, ResolvedRoles } from "./types.js";
-import type { Verifier } from "./verifier.js";
+import { type Verifier, verificationFeedbackMessage, verificationHasIssues } from "./verifier.js";
 
 const EMPTY_CHANGE_SET: ChangeSet = {
   entities: { created: [], deleted: [], updated: [] },
@@ -62,6 +69,7 @@ export interface LoopDeps {
   readonly verifier: Verifier;
   readonly profiles: Readonly<Record<string, CapabilityProfile>>;
   readonly roles: ResolvedRoles;
+  readonly reader?: CheckSceneReader;
 }
 
 /**
@@ -153,110 +161,150 @@ export async function* runLoop(
     stepIndex += 1;
   }
 
-  while (stepIndex < policy.maxSteps) {
-    const halt = haltRun(budget, cancelled);
-    if (halt !== undefined && !halt.ok) {
-      yield failOrCancel(halt.error, budget.snapshot(), cancelled);
-      return;
-    }
-    yield { type: "step.started", stepIndex, role: "executor" };
-    const fitted = fitMessages(
-      messages,
-      contextBudget(executorProfile.contextTokens, executorProfile.maxOutputTokens),
-    );
-    const stepped = await modelStep(
-      deps.llm,
-      jsonMode,
-      selected,
-      fitted,
-      policy,
-      deps.roles.models.executor,
-      stepIndex,
-      budget,
-    );
-    if (!stepped.ok) {
-      if (stepped.error.code === "INVALID_INPUT" && jsonMode) {
-        jsonParseFails += 1;
-        if (jsonParseFails >= 2) {
-          yield {
-            type: "run.failed",
-            error: tesseraError("INVALID_INPUT", "two consecutive JSON-mode parse failures"),
-            usage: budget.snapshot(),
-          };
-          return;
-        }
-        messages = [...fitted, userText("JSON-mode parse error. Emit a ```tool fence.")];
-        stepIndex += 1;
-        continue;
-      }
-      yield failOrCancel(stepped.error, budget.snapshot(), cancelled);
-      return;
-    }
-    jsonParseFails = 0;
-    yield* stepped.value.deltas;
-    const calls = stepped.value.calls.slice(0, policy.maxToolCallsPerStep);
-    const text = assistantPlainText(stepped.value.response);
-    if (calls.length === 0) {
-      if (text.trim() === "") {
-        emptyStreak += 1;
-        if (emptyStreak >= 2) {
-          remainingIssues.push("model produced no actions");
-          break;
-        }
-        stepIndex += 1;
-        continue;
-      }
-      break;
-    }
-    emptyStreak = 0;
-    const ctxBase = {
-      runId,
-      stepIndex,
-      author,
-      queries: deps.queries,
-      jobs: deps.jobs,
-      blobs: deps.blobs,
-      policy,
-      signal: signal ?? new AbortController().signal,
-      logger: deps.logger,
-    };
-    const executed = executeStep(deps.bus, deps.tools, selected, calls, ctxBase, deps.clock);
-    for (const event of executed.events) {
-      yield event;
-    }
-    if (executed.plan !== undefined) {
-      yield { type: "plan.updated", items: executed.plan };
-    }
-    if (executed.askUser !== undefined) {
-      remainingIssues.push(executed.askUser);
-    }
-    if (executed.record !== undefined && !isChangeSetEmpty(executed.record.changeSet)) {
-      yield { type: "transaction.committed", transaction: executed.record };
-      records.push(executed.record);
-      merged = mergeChangeSets(merged, executed.record.changeSet);
-    }
-    messages = appendTurn(fitted, stepped.value.response, executed.results, executorProfile);
-    stepIndex += 1;
-    if (executed.askUser !== undefined) {
-      break;
-    }
-  }
+  let planItems: readonly { text: string; done: boolean }[] = [];
+  let verification: {
+    readonly spatial: SpatialCheckResult | null;
+    readonly vision: Verdict | null;
+  } = { spatial: null, vision: null };
+  let repairRound = 0;
 
-  const mutated = records.length > 0;
-  if (policy.verify !== "none" && mutated) {
+  for (;;) {
+    while (stepIndex < policy.maxSteps) {
+      const halt = haltRun(budget, cancelled);
+      if (halt !== undefined && !halt.ok) {
+        yield failOrCancel(halt.error, budget.snapshot(), cancelled);
+        return;
+      }
+      yield { type: "step.started", stepIndex, role: "executor" };
+      const fitted = fitMessages(
+        messages,
+        contextBudget(executorProfile.contextTokens, executorProfile.maxOutputTokens),
+      );
+      const stepped = await modelStep(
+        deps.llm,
+        jsonMode,
+        selected,
+        fitted,
+        policy,
+        deps.roles.models.executor,
+        stepIndex,
+        budget,
+      );
+      if (!stepped.ok) {
+        if (stepped.error.code === "INVALID_INPUT" && jsonMode) {
+          jsonParseFails += 1;
+          if (jsonParseFails >= 2) {
+            yield {
+              type: "run.failed",
+              error: tesseraError("INVALID_INPUT", "two consecutive JSON-mode parse failures"),
+              usage: budget.snapshot(),
+            };
+            return;
+          }
+          messages = [...fitted, userText("JSON-mode parse error. Emit a ```tool fence.")];
+          stepIndex += 1;
+          continue;
+        }
+        yield failOrCancel(stepped.error, budget.snapshot(), cancelled);
+        return;
+      }
+      jsonParseFails = 0;
+      yield* stepped.value.deltas;
+      const calls = stepped.value.calls.slice(0, policy.maxToolCallsPerStep);
+      const text = assistantPlainText(stepped.value.response);
+      if (calls.length === 0) {
+        if (text.trim() === "") {
+          emptyStreak += 1;
+          if (emptyStreak >= 2) {
+            remainingIssues.push("model produced no actions");
+            break;
+          }
+          stepIndex += 1;
+          continue;
+        }
+        break;
+      }
+      emptyStreak = 0;
+      const ctxBase = {
+        runId,
+        stepIndex,
+        author,
+        queries: deps.queries,
+        jobs: deps.jobs,
+        blobs: deps.blobs,
+        policy,
+        signal: signal ?? new AbortController().signal,
+        logger: deps.logger,
+      };
+      const executed = executeStep(deps.bus, deps.tools, selected, calls, ctxBase, deps.clock);
+      for (const event of executed.events) {
+        yield event;
+      }
+      if (executed.plan !== undefined) {
+        planItems = executed.plan;
+        yield { type: "plan.updated", items: executed.plan };
+      }
+      if (executed.askUser !== undefined) {
+        remainingIssues.push(executed.askUser);
+      }
+      if (executed.record !== undefined && !isChangeSetEmpty(executed.record.changeSet)) {
+        yield { type: "transaction.committed", transaction: executed.record };
+        records.push(executed.record);
+        merged = mergeChangeSets(merged, executed.record.changeSet);
+      }
+      messages = appendTurn(fitted, stepped.value.response, executed.results, executorProfile);
+      stepIndex += 1;
+      if (executed.askUser !== undefined) {
+        break;
+      }
+    }
+
+    const mutated = records.length > 0;
+    if (policy.verify === "none" || !mutated) {
+      break;
+    }
+    yield { type: "verify.started", round: repairRound, mode: "spatial" };
     const dummyTx: TransactionHandle = {
       id: "t_verify000",
       run: () => err(tesseraError("UNSUPPORTED", "verify")),
     };
+    const criticProfile = profileOf(deps, criticRef(deps.roles));
     const verified = await deps.verifier.verify({
       policy,
       mutated,
       queries: deps.queries,
       tx: dummyTx,
+      changedEntities: changedEntityIds(merged),
+      prompt: `${request.prompt}\nplan:${JSON.stringify(planItems)}`,
+      ...(deps.reader === undefined ? {} : { reader: deps.reader }),
+      llm: deps.llm,
+      ...(deps.roles.criticEnabled ? { critic: { profile: criticProfile } } : {}),
     });
     if (!verified.ok) {
       remainingIssues.push(verified.error.message);
+      break;
     }
+    verification = verified.value;
+    if (policy.verify === "spatial+vision" && criticVision) {
+      yield { type: "verify.started", round: repairRound, mode: "vision" };
+    }
+    yield {
+      type: "verify.result",
+      round: repairRound,
+      verdict: verdictFrom(verification.spatial, verification.vision),
+    };
+    if (!verificationHasIssues(verification.spatial, verification.vision)) {
+      break;
+    }
+    if (repairRound >= policy.maxRepairRounds) {
+      remainingIssues.push("verification issues remain");
+      break;
+    }
+    messages = [
+      ...messages,
+      userText(verificationFeedbackMessage(verification.spatial, verification.vision)),
+    ];
+    repairRound += 1;
   }
 
   const summary = lastAssistantText(messages).slice(0, 600);
@@ -266,11 +314,35 @@ export async function* runLoop(
       summary: stripToolNames(summary),
       transactions: records.map((record) => record.id),
       changeSet: merged,
-      verification: { spatial: null, vision: null },
+      verification,
       remainingIssues,
       suggestions: [],
     },
     usage: budget.snapshot(),
+  };
+}
+
+function changedEntityIds(changeSet: ChangeSet): readonly string[] {
+  const ids = [...changeSet.entities.created, ...changeSet.entities.updated.map((item) => item.id)];
+  return [...new Set(ids)];
+}
+
+function verdictFrom(spatial: SpatialCheckResult | null, vision: Verdict | null): Verdict {
+  if (vision !== null) {
+    return vision;
+  }
+  const issues =
+    spatial === null
+      ? []
+      : spatial.issues.map((item) => ({
+          entity: item.entity,
+          problem: item.message,
+          suggestion: item.suggestedTool === undefined ? "" : item.suggestedTool.name,
+        }));
+  return {
+    pass: issues.length === 0,
+    score: issues.length === 0 ? 5 : 1,
+    issues,
   };
 }
 
