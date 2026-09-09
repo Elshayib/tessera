@@ -14,7 +14,8 @@ AI SDK adapters for `@tessera/llm`. This is the only package allowed to import `
 | `createOpenRouterClient` | OpenRouter catalog + chat |
 | `createOllamaClient` | Default `http://localhost:11434/v1`; `listModels` via `/api/tags` |
 | `createOpenAICompatibleClient` | User `baseUrl` required |
-| `LlmClientDeps` | `vault`, `Logger`, `Clock`; optional `fetch` / `sleep` / `languageModel` |
+| `createIndexedDbKeyVault` | Browser IndexedDB vault (`tessera-vault`); optional AES-GCM + PBKDF2 |
+| `LlmClientDeps` | `vault`, `Logger`, `Clock`; optional `fetch` / `sleep` / `languageModel`
 | `withProviderRetries` | 3 attempts, 500 ms base, jitter from `Clock` |
 
 ## Dependency rules
@@ -31,7 +32,7 @@ const client = createOpenAIClient({ providerId: "openai", apiKeyRef: "openai-key
 
 ## Testing notes
 
-Colocated Vitest. HTTP list-model bodies live in `fixtures/`. Generate/stream use `languageModel` mocks (`ai/test`) so CI never hits live endpoints (Q-0116). Package coverage ≥ 85% lines (75% branches; Q-0134).
+Colocated Vitest. HTTP list-model bodies live in `fixtures/`. Generate/stream use `languageModel` mocks (`ai/test`) so CI never hits live endpoints (Q-0116). Package coverage ≥ 85% lines (75% branches; Q-0134). Browser vault tests use `fake-indexeddb`. Desktop OS keychain is T-0505, not this package.
 
 ## Related specs
 

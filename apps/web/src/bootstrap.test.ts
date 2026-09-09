@@ -12,3 +12,8 @@ test("bootstrap empty document validates", () => {
   expect(ctx.engine).toBeUndefined();
   expect(ctx.queries.list().length).toBeGreaterThan(0);
 });
+
+test("bootstrap still builds EditorContext without KeyVault field", () => {
+  const ctx = bootstrap({ storage: new MemoryProjectStore() });
+  expect("keyVault" in ctx).toBe(false);
+});

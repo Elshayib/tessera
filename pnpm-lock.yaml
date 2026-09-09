@@ -328,6 +328,9 @@ importers:
       '@tessera/testing':
         specifier: workspace:*
         version: link:../testing
+      fake-indexeddb:
+        specifier: 6.2.5
+        version: 6.2.5
       typescript:
         specifier: 5.9.2
         version: 5.9.2

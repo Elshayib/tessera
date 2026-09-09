@@ -10,10 +10,12 @@ import { createOllamaClient } from "./create-ollama-client.js";
 import { createOpenAICompatibleClient } from "./create-openai-compatible-client.js";
 import { createOpenRouterClient } from "./create-openrouter-client.js";
 import { createXaiClient } from "./create-xai-client.js";
-import { PACKAGE_NAME } from "./index.js";
+import { createIndexedDbKeyVault, PACKAGE_NAME, VAULT_DB_NAME } from "./index.js";
 
 test("exports PACKAGE_NAME", () => {
   expect(PACKAGE_NAME).toBe("@tessera/providers-llm");
+  expect(VAULT_DB_NAME).toBe("tessera-vault");
+  expect(typeof createIndexedDbKeyVault).toBe("function");
 });
 
 test("openai-compatible requires baseUrl", async () => {

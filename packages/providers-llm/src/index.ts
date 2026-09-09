@@ -24,5 +24,13 @@ export {
   OPENROUTER_DESCRIPTOR,
   XAI_DESCRIPTOR,
 } from "./descriptors.js";
+export type { IndexedDbKeyVaultDeps } from "./indexeddb-key-vault.js";
+export {
+  createIndexedDbKeyVault,
+  VAULT_DB_NAME,
+  VAULT_IV_BYTES,
+  VAULT_PBKDF2_ITERATIONS,
+  VAULT_SALT_BYTES,
+} from "./indexeddb-key-vault.js";
 export type { LlmClientDeps } from "./llm-client-deps.js";
 export { isRetryableProviderError, retryDelayMs, withProviderRetries } from "./retries.js";
