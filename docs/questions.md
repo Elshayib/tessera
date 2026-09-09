@@ -489,6 +489,13 @@ Options: (a) invent extra fields (timeout, options) (b) `ask_user({ question })`
 Conservative choice implemented: (b) T-0205. Groups for `tools.enable` are the `06` §3 union only.
 Answer: —
 
+### Q-0138 — `layout.placeOn` `anchor: 'random'` has no seed
+Raised by: T-0206 · Spec: `04` §8.5 · Status: open
+Question: `placeOn` allows `anchor: 'random'` but the seed field is only documented on scatter.
+Options: (a) add an undocumented `seed` input (b) derive a deterministic RNG from target and surface entity ids
+Conservative choice implemented: (b) T-0206. Same document + input stays deterministic (`INV-CMD-08`).
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

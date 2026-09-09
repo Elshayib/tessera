@@ -1,8 +1,8 @@
-import { createDocument } from "@tessera/core";
-import type { Primitive } from "@tessera/schema";
+import type { Document, Entity, Primitive } from "@tessera/schema";
 import { primitiveBounds } from "@tessera/schema";
 import { docBuilder } from "@tessera/testing";
 import { expect, test } from "vitest";
+import type { SpatialReader } from "./types.js";
 import { localAabb, worldAabb } from "./world-aabb.js";
 
 const PRIMITIVES: readonly Primitive[] = [
@@ -15,14 +15,43 @@ const PRIMITIVES: readonly Primitive[] = [
   { type: "capsule", radius: 1, height: 4, segments: 8 },
 ];
 
+function snapshotReader(snapshot: Document): SpatialReader {
+  return {
+    getEntity: (id) => snapshot.entities[id],
+    getAsset: (id) => snapshot.assets[id],
+    parentChain(id) {
+      const chain: Entity[] = [];
+      const visiting = new Set<string>();
+      let current: string | null = id;
+      while (current !== null) {
+        if (visiting.has(current)) {
+          break;
+        }
+        visiting.add(current);
+        const entity = snapshot.entities[current];
+        if (entity === undefined) {
+          break;
+        }
+        chain.push(entity);
+        current = entity.parent;
+      }
+      return chain;
+    },
+  };
+}
+
+function named(snapshot: Document, name: string): Entity | undefined {
+  return Object.values(snapshot.entities).find((entity) => entity.name === name);
+}
+
 test("world AABB matches primitive bounds at identity", () => {
   for (const primitive of PRIMITIVES) {
     const snapshot = docBuilder()
       .geometry("mesh", primitive)
       .entity("body", { mesh: "mesh" })
       .build();
-    const { reader } = createDocument({ snapshot });
-    const entity = [...reader.entities()].find((item) => item.name === "body");
+    const reader = snapshotReader(snapshot);
+    const entity = named(snapshot, "body");
     expect(entity !== undefined).toBe(true);
     if (entity === undefined) {
       return;
@@ -40,8 +69,8 @@ test("world AABB applies translation", () => {
     .geometry("mesh", { type: "box", size: [2, 2, 2] })
     .entity("body", { mesh: "mesh", transform: { position: [10, 0, 0] } })
     .build();
-  const { reader } = createDocument({ snapshot });
-  const entity = [...reader.entities()].find((item) => item.name === "body");
+  const reader = snapshotReader(snapshot);
+  const entity = named(snapshot, "body");
   expect(entity !== undefined).toBe(true);
   if (entity === undefined) {
     return;
@@ -56,8 +85,8 @@ test("world AABB applies parent translation", () => {
     .entity("root", { transform: { position: [5, 0, 0] } })
     .entity("body", { parent: "root", mesh: "mesh" })
     .build();
-  const { reader } = createDocument({ snapshot });
-  const entity = [...reader.entities()].find((item) => item.name === "body");
+  const reader = snapshotReader(snapshot);
+  const entity = named(snapshot, "body");
   expect(entity !== undefined).toBe(true);
   if (entity === undefined) {
     return;
@@ -71,8 +100,8 @@ test("world AABB when parentChain omits entity", () => {
     .geometry("mesh", { type: "box", size: [2, 2, 2] })
     .entity("body", { mesh: "mesh", transform: { position: [3, 0, 0] } })
     .build();
-  const { reader } = createDocument({ snapshot });
-  const entity = [...reader.entities()].find((item) => item.name === "body");
+  const reader = snapshotReader(snapshot);
+  const entity = named(snapshot, "body");
   expect(entity !== undefined).toBe(true);
   if (entity === undefined) {
     return;
@@ -87,8 +116,8 @@ test("world AABB when parentChain omits entity", () => {
 
 test("missing mesh is a degenerate origin box", () => {
   const snapshot = docBuilder().entity("empty").build();
-  const { reader } = createDocument({ snapshot });
-  const entity = [...reader.entities()].find((item) => item.name === "empty");
+  const reader = snapshotReader(snapshot);
+  const entity = named(snapshot, "empty");
   expect(entity !== undefined).toBe(true);
   if (entity === undefined) {
     return;
@@ -101,8 +130,8 @@ test("missing geometry asset is a degenerate origin box", () => {
     .geometry("mesh", { type: "box", size: [2, 2, 2] })
     .entity("body", { mesh: "mesh" })
     .build();
-  const { reader } = createDocument({ snapshot });
-  const entity = [...reader.entities()].find((item) => item.name === "body");
+  const reader = snapshotReader(snapshot);
+  const entity = named(snapshot, "body");
   expect(entity !== undefined).toBe(true);
   if (entity === undefined) {
     return;

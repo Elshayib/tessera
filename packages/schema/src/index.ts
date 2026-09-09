@@ -19,7 +19,7 @@ export {
   assetImportCommand,
   assetUpdateCommand,
 } from "./commands/asset.js";
-export { cameraSetMainCommand } from "./commands/camera.js";
+export { cameraFitCommand, cameraSetMainCommand } from "./commands/camera.js";
 export type { ComponentType, EntityRef } from "./commands/common.js";
 export { COMPONENT_TYPES, ComponentTypeSchema, EntityRefSchema } from "./commands/common.js";
 export {
@@ -37,6 +37,16 @@ export {
   entitySetParentCommand,
 } from "./commands/entity.js";
 export { environmentSetCommand } from "./commands/environment.js";
+export {
+  layoutAlignToCommand,
+  layoutArrangeGridCommand,
+  layoutDistributeCommand,
+  layoutLookAtCommand,
+  layoutPlaceOnCommand,
+  layoutResolveOverlapsCommand,
+  layoutScatterCommand,
+  layoutSnapToGroundCommand,
+} from "./commands/layout.js";
 export {
   materialAssignCommand,
   materialCreateCommand,

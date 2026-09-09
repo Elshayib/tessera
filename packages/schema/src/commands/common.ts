@@ -28,3 +28,5 @@ export const EmptyObjectSchema = z.object({});
 export const MUTATING = ["mutating"] as const;
 
 export const MUTATING_JOB = ["mutating", "job"] as const;
+
+export const MUTATING_MACRO = ["mutating", "macro"] as const;

@@ -20,7 +20,9 @@ Yjs-backed live document, snapshot mapping (`03` §9), `DocumentReader`, command
 
 ## Dependency rules
 
-Layer 1. May import `@tessera/std`, `@tessera/schema`, `yjs`, and `fractional-indexing`. Must not import engine, UI, or Node builtins. Other packages must not call `Y.Doc.transact` (`INV-ARCH-01`; `pnpm check:yjs`).
+Layer 1. May import `@tessera/std`, `@tessera/schema`, `@tessera/spatial`, `yjs`, and `fractional-indexing`. Must not import engine, UI, or Node builtins. Other packages must not call `Y.Doc.transact` (`INV-ARCH-01`; `pnpm check:yjs`).
+
+Layout macros (`layout.*`, `camera.fit`) expand to primitive `ctx.run` calls (`04` §8.5).
 
 ## Usage example
 

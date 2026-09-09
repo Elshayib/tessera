@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@tessera/schema": "workspace:*",
+    "@tessera/spatial": "workspace:*",
     "@tessera/std": "workspace:*",
     "yjs": "13.6.32",
     "fractional-indexing": "4.0.0"
