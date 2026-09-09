@@ -187,6 +187,7 @@ Raised by: T-0010 · Spec: `docs/templates/task-template.md`, T-0010 AC5 · Stat
 Question: T-0010 requires T-0001–T-0009 `done` with PR links. Work is stacked locally and has not been pushed or opened as PRs.
 Options: (a) invent placeholder links (b) keep `in-progress` until a human opens PRs
 Conservative choice implemented: (b) tickets stay `in-progress`. Do not git-tag `m0-foundations`.
+Follow-up: review PRs [#1](https://github.com/Elshayib/tessera/pull/1)–[#33](https://github.com/Elshayib/tessera/pull/33) exist; implementation is on `main` with CI green after [#34](https://github.com/Elshayib/tessera/pull/34). Ticket tables now record `done` with those PR links. Tags `m0-foundations` and `m1-composition-editor` stay uncut.
 Answer: —
 
 ### Q-0026 — `ProjectStore.create` templates `studio` and `outdoor`
