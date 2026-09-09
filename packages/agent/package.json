@@ -1,0 +1,35 @@
+{
+  "name": "@tessera/agent",
+  "version": "0.0.0",
+  "description": "Agent runtime: capability probing, roles, tools, and the observe-plan-act loop.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/llm": "workspace:*",
+    "@tessera/std": "workspace:*"
+  },
+  "devDependencies": {
+    "@tessera/testing": "workspace:*",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

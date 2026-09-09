@@ -468,6 +468,13 @@ Options: (a) invent a 90% global mix (b) 85% like `llm`, plus `LlmClientDeps.lan
 Conservative choice implemented: (b) package Vitest 85% lines/functions/statements and 75% branches. Root `coverage.include` omits `packages/providers-llm` so the AI SDK bridge does not pull the 90% global branch mix below the T-0007 floor (same pattern as engine/ui in Q-0133). List endpoints use `fixtures/`. Generate/stream use `ai/test` mocks via `languageModel`. No live network.
 Answer: —
 
+### Q-0135 — `@tessera/agent` coverage in the root Vitest mix
+Raised by: T-0204 · Spec: `01` §7 · Status: open
+Question: `01` §7 requires 85% for `agent`. The root config still has a 90% global branch floor.
+Options: (a) over-test agent to hold the 90% mix (b) omit `packages/agent` from the root include and enforce 85% on the package Vitest config
+Conservative choice implemented: (b) same pattern as Q-0134 for `providers-llm`.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
