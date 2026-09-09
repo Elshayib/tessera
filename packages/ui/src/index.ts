@@ -1,3 +1,7 @@
+export type { ChatPanelProps } from "./chat/chat-panel.js";
+export { ChatPanel } from "./chat/chat-panel.js";
+export type { TraceViewProps } from "./chat/trace-view.js";
+export { TraceView } from "./chat/trace-view.js";
 export { describeError, errorMessageKey } from "./describe-error.js";
 export { en } from "./i18n/en.js";
 export type { InspectorProps } from "./inspector/inspector.js";

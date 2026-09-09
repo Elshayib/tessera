@@ -12,7 +12,7 @@ export { probeModel } from "./probe.js";
 export type { ProbeCache } from "./probe-cache.js";
 export { createProbeCache, PROBE_CACHE_TTL_MS } from "./probe-cache.js";
 export { resolveRoles } from "./roles.js";
-export type { RunEvent, RunReport, RunRequest } from "./run-types.js";
+export type { RunEvent, RunReport, RunRequest, ViewportCamera } from "./run-types.js";
 export type { AgentRuntime } from "./runtime.js";
 export { createAgentRuntime } from "./runtime.js";
 export { DESTRUCTIVE_CONFIRM_SUGGESTION } from "./tools/destructive.js";
@@ -26,8 +26,15 @@ export type {
   ToolGroup,
   ToolRegistry,
 } from "./tools/types.js";
+export type { RunTrace, Span, SpanName } from "./trace.js";
+export { buildRunTrace } from "./trace.js";
+export { createIndexedDbTranscriptStore, TRANSCRIPT_DB_NAME } from "./transcript/idb.js";
+export { createMemoryTranscriptStore } from "./transcript/memory.js";
+export type { ConversationSummary, TranscriptEntry, TranscriptStore } from "./transcript/store.js";
 export type { CapabilityProfile, ResolvedRoles, Role, RoleSources } from "./types.js";
 export { wrapUntrusted } from "./untrusted.js";
+export type { UsageLedger, UsageRecord, UsageTotals } from "./usage-ledger.js";
+export { createUsageLedger } from "./usage-ledger.js";
 export type { Verifier, VerifyInput } from "./verifier.js";
 export {
   createSceneVerifier,

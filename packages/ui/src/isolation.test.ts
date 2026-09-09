@@ -17,5 +17,6 @@ test("ui production sources do not import three or yjs", () => {
     }
     expect(source.includes('from "three"'), path).toBe(false);
     expect(source.includes('from "yjs"'), path).toBe(false);
+    expect(source.includes("@tessera/providers-llm"), path).toBe(false);
   }
 });

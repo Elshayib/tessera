@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@tessera/assets": "workspace:*",
+    "@tessera/agent": "workspace:*",
     "@tessera/core": "workspace:*",
     "@tessera/engine": "workspace:*",
     "@tessera/schema": "workspace:*",

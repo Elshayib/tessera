@@ -6,6 +6,7 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 | Export | Description |
 | --- | --- |
+| `ChatPanel` / `TraceView` | Streams `AgentRuntime.run`; live tokens/cost; show/export traces (`06` §13). |
 | `ReviewPanel` / `groupAgentRuns` | Live agent run groups; Accept no-op; Revert run uses `undo.revertRun` (`06` §9). |
 | `Outliner` | Accessible entity tree; reparent/reorder via `CommandBus`. |
 | `ViewportHost` | `aria-hidden` canvas for the engine (`01` a11y). |
@@ -17,7 +18,7 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 ## Dependency rules
 
-Layer 3. May import React and packages below except `providers-*` and `mcp`. Must not import `three` or Yjs.
+Layer 3. May import React and packages below except `providers-*` and `mcp`. Must not import `three` or Yjs. Chat imports `@tessera/agent/observability`, not `providers-llm`.
 
 ## Testing notes
 

@@ -1,6 +1,6 @@
 # `@tessera/agent`
 
-Capability probing, role assignment, the agent `ToolRegistry`, and `AgentRuntime.run` (`06`).
+Capability probing, role assignment, the agent `ToolRegistry`, `AgentRuntime.run`, transcripts, traces, and the usage ledger (`06`, `15`).
 
 ## Public API
 
@@ -14,6 +14,10 @@ Capability probing, role assignment, the agent `ToolRegistry`, and `AgentRuntime
 | `suggestionFor` | Fixed `(group, error code)` suggestion table (`06` §7.2) |
 | `createAgentRuntime` | Observe → plan → act → verify loop (`06` §4, §8) |
 | `createSceneVerifier` / `createSkipVerifier` | Spatial then optional vision critic |
+| `createMemoryTranscriptStore` / `createIndexedDbTranscriptStore` | Project-local transcripts; never synced (`06` §13) |
+| `buildRunTrace` | Root `run` span plus one `step` span per model call (`INV-OBS-03`) |
+| `createUsageLedger` | Per run / conversation / project token and cost totals (`07` §7) |
+| `@tessera/agent/observability` | Transcripts, traces, and ledger without the run loop (for `@tessera/ui`) |
 | `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
 ## Dependency rules

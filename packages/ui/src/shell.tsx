@@ -1,4 +1,6 @@
 import type { ReactElement, ReactNode } from "react";
+import type { ChatPanelProps } from "./chat/chat-panel.js";
+import { ChatPanel } from "./chat/chat-panel.js";
 import { en } from "./i18n/en.js";
 import { useLayoutStore } from "./layout-store.js";
 import type { ReviewPanelProps } from "./review/review-panel.js";
@@ -17,7 +19,11 @@ import { ViewportHost } from "./viewport-host.js";
  * @public
  */
 export function Shell(
-  props: { readonly viewport?: ReactNode; readonly review?: ReviewPanelProps } = {},
+  props: {
+    readonly viewport?: ReactNode;
+    readonly review?: ReviewPanelProps;
+    readonly chat?: ChatPanelProps;
+  } = {},
 ): ReactElement {
   const outlinerWidth = useLayoutStore((state) => state.outlinerWidth);
   const inspectorWidth = useLayoutStore((state) => state.inspectorWidth);
@@ -81,6 +87,7 @@ export function Shell(
           {en.shell.tallerChat}
         </button>
         {props.review === undefined ? null : <ReviewPanel {...props.review} />}
+        {props.chat === undefined ? null : <ChatPanel {...props.chat} />}
       </section>
     </div>
   );

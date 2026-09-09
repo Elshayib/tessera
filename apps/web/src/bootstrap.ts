@@ -1,3 +1,4 @@
+import { createMemoryTranscriptStore, createUsageLedger } from "@tessera/agent";
 import { createAssetService } from "@tessera/assets";
 import {
   createCommandBus,
@@ -56,6 +57,8 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     clock,
     flags,
     agentVerify: bootstrapVerifyMode(flags),
+    transcripts: createMemoryTranscriptStore(),
+    usage: createUsageLedger(),
   };
   return context;
 }

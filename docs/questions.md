@@ -503,6 +503,23 @@ Options: (a) generate R1 in T-0208 (out of Touches) (b) assert the budget on an 
 Conservative choice implemented: (b) T-0208. Warm-up plus ~250-entity subset so the assertion is stable under parallel Vitest.
 Answer: —
 
+### Q-0141 — `ask_user` confirmDestructive mid-run
+Raised by: T-0210 · Spec: `06` §3 vs loop · Status: open
+Question: Confirmation should set `confirmDestructive` for the rest of the run, but `AgentRuntime.run` does not accept policy updates after `run.started`.
+Options: (a) change the loop to watch a mutable policy (out of Touches) (b) surface remaining issues in chat; Confirm sets `confirmDestructive` on later `RunRequest`s in that conversation
+Conservative choice implemented: (b) T-0210.
+
+### Q-0142 — Sync bootstrap vs IndexedDB transcripts
+Raised by: T-0210 · Spec: `06` §13 vs `bootstrap()` · Status: open
+Question: IndexedDB transcript open is async; `bootstrap()` is synchronous.
+Options: (a) make bootstrap async (b) memory store in bootstrap; IndexedDB store remains available via `createIndexedDbTranscriptStore`
+Conservative choice implemented: (b) T-0210 so existing EditorContext tests stay sync.
+
+### Q-0143 — UI must not load agent prompt files
+Raised by: T-0210 · Spec: `06` §13 vs `node:fs` in prompt assembly · Status: open
+Question: Importing `@tessera/agent` from the chat panel loads `prompts/build.ts` (`fileURLToPath` + `node:fs`), which fails in happy-dom.
+Options: (a) rewrite prompt loading for the browser (out of T-0210) (b) `@tessera/agent/observability` subpath for transcripts/traces/ledger
+Conservative choice implemented: (b) T-0210.
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

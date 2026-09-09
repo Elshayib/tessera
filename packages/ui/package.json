@@ -27,6 +27,7 @@
     "@tessera/core": "workspace:*",
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
+    "@tessera/agent": "workspace:*",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zustand": "5.0.15"
