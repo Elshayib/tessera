@@ -1,6 +1,6 @@
 # `@tessera/agent`
 
-Capability probing, role assignment, and the agent `ToolRegistry` (`06`). The run loop is T-0207.
+Capability probing, role assignment, the agent `ToolRegistry`, and `AgentRuntime.run` (`06`).
 
 ## Public API
 
@@ -12,7 +12,8 @@ Capability probing, role assignment, and the agent `ToolRegistry` (`06`). The ru
 | `createToolRegistry` | Derive command/query tools for tiers 0–2 plus meta-tools |
 | `selectTools` | Progressive disclosure (`maxTools ≥ 40` vs catalog mode) |
 | `suggestionFor` | Fixed `(group, error code)` suggestion table (`06` §7.2) |
-| `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy` | Types |
+| `createAgentRuntime` | Observe → plan → act loop (`06` §4) |
+| `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
 ## Dependency rules
 
@@ -38,4 +39,4 @@ Colocated Vitest. Inject `FakeClock` and an in-process `LlmClient` double. No ne
 
 - `docs/06-agent-runtime.md` §3, §5, §7.2–§7.4, §10–§11
 - `docs/04-command-bus.md` §8, §10
-- Tickets T-0204, T-0205
+- Tickets T-0204, T-0205, T-0207

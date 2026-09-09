@@ -5,7 +5,8 @@
     "**/dist/**",
     "docs/templates/**",
     "packages/exporters/fixtures/**",
-    "apps/web/src/engine-entry.ts"
+    "apps/web/src/engine-entry.ts",
+    "packages/agent/src/prompts/*.md"
   ],
   "ignoreDependencies": ["lefthook"],
   "workspaces": {
