@@ -13,7 +13,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0205 | ToolRegistry derived from command/query catalogs + tiers 0–2 | agent | T-0204, T-0004 | `in-progress` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
 | T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `in-progress` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
 | T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
-| T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` |
+| T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
 | T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `todo` |
 | T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `todo` |
 | T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `todo` |
@@ -633,7 +633,7 @@ Use T-0212 `FakeLlmClient` if `done`; otherwise a scripted `LlmClient` in tests.
 | Package | `@tessera/agent` (`checkScene` in `@tessera/spatial`) |
 | Size | M |
 | Depends on | T-0207, T-0107 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
 
 ## Goal
 
