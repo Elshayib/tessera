@@ -1,6 +1,6 @@
 # `@tessera/agent`
 
-Capability probing and role assignment for the Tessera agent (`06`, `07` §3). The run loop is T-0207.
+Capability probing, role assignment, and the agent `ToolRegistry` (`06`). The run loop is T-0207.
 
 ## Public API
 
@@ -9,19 +9,25 @@ Capability probing and role assignment for the Tessera agent (`06`, `07` §3). T
 | `probeModel` | ≤ 4 `LlmClient.generate` probes → `CapabilityProfile` |
 | `createProbeCache`, `PROBE_CACHE_TTL_MS` | 7-day in-memory cache |
 | `resolveRoles` | `request` → project → global; critic omitted when disabled (Q-0120) |
-| `CapabilityProfile`, `Role`, `ResolvedRoles` | Types |
+| `createToolRegistry` | Derive command/query tools for tiers 0–2 plus meta-tools |
+| `selectTools` | Progressive disclosure (`maxTools ≥ 40` vs catalog mode) |
+| `suggestionFor` | Fixed `(group, error code)` suggestion table (`06` §7.2) |
+| `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy` | Types |
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std` and `@tessera/llm`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`).
+Layer 2. May import `@tessera/std`, `@tessera/llm`, `@tessera/schema`, and `@tessera/core`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`).
+
+Query tools call `QueryHost.query` when it is present on the `QueryRegistry` object (Q-0136). They never call `tx.run`.
 
 ## Usage example
 
 ```ts
-import { createProbeCache, probeModel, resolveRoles } from "@tessera/agent";
+import { createToolRegistry, selectTools } from "@tessera/agent";
 
-const profile = await probeModel({ client, ref, cache, clock });
-const roles = resolveRoles({ global: { executor: ref }, executorVision: false });
+const tools = createToolRegistry();
+tools.deriveFromRegistries(bus.registry, queries.registry);
+const selected = selectTools(tools, policy, profile);
 ```
 
 ## Testing notes
@@ -30,6 +36,6 @@ Colocated Vitest. Inject `FakeClock` and an in-process `LlmClient` double. No ne
 
 ## Related specs
 
-- `docs/06-agent-runtime.md` §10–§11
-- `docs/07-providers.md` §3
-- Ticket T-0204
+- `docs/06-agent-runtime.md` §3, §5, §7.2–§7.4, §10–§11
+- `docs/04-command-bus.md` §8, §10
+- Tickets T-0204, T-0205

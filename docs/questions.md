@@ -475,6 +475,20 @@ Options: (a) over-test agent to hold the 90% mix (b) omit `packages/agent` from 
 Conservative choice implemented: (b) same pattern as Q-0134 for `providers-llm`.
 Answer: —
 
+### Q-0136 — Query tools vs `QueryRegistry`
+Raised by: T-0205 · Spec: `06` §3 `ToolContext.queries: QueryRegistry` vs `QueryHost.query` · Status: open
+Question: Query tools must not call `tx.run` (`INV-AGT-05`) but `QueryRegistry` has no execute method.
+Options: (a) add `query` to `QueryRegistry` in core (b) call `QueryHost.query` when present as an extra method on the registry object
+Conservative choice implemented: (b) T-0205. `deriveQueryTool` uses `Reflect.get(queries, "query")` when it is a function; otherwise `UNSUPPORTED`. Bootstrap in T-0207 should pass a façade that forwards to `QueryHost.query`.
+Answer: —
+
+### Q-0137 — `ask_user` / `tools.catalog` input shapes
+Raised by: T-0205 · Spec: `06` §3 names the meta-tools without Zod fields except `plan.set({ items })` and `tools.enable({ group })` · Status: open
+Question: `ask_user` and `tools.catalog` have no documented input/output fields.
+Options: (a) invent extra fields (timeout, options) (b) `ask_user({ question })` and `tools.catalog({})` listing `{ name, group, tier, description }`
+Conservative choice implemented: (b) T-0205. Groups for `tools.enable` are the `06` §3 union only.
+Answer: —
+
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

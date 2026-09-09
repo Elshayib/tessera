@@ -133,12 +133,21 @@ importers:
 
   packages/agent:
     dependencies:
+      '@tessera/core':
+        specifier: workspace:*
+        version: link:../core
       '@tessera/llm':
         specifier: workspace:*
         version: link:../llm
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@tessera/std':
         specifier: workspace:*
         version: link:../std
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
     devDependencies:
       '@tessera/testing':
         specifier: workspace:*
