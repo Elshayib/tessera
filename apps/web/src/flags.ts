@@ -7,9 +7,10 @@ export interface Flags {
   readonly polyhaven: boolean;
   readonly agentVerifyLoop: boolean;
   readonly createMenu: boolean;
+  readonly agentDryRun: boolean;
 }
 
-const FLAG_NAMES = ["polyhaven", "agentVerifyLoop", "createMenu"] as const;
+const FLAG_NAMES = ["polyhaven", "agentVerifyLoop", "createMenu", "agentDryRun"] as const;
 
 /**
  * Defaults: Poly Haven on (T-0120); unfinished flags off.
@@ -17,7 +18,7 @@ const FLAG_NAMES = ["polyhaven", "agentVerifyLoop", "createMenu"] as const;
  * @public
  */
 export function defaultFlags(): Flags {
-  return { polyhaven: true, agentVerifyLoop: false, createMenu: false };
+  return { polyhaven: true, agentVerifyLoop: false, createMenu: false, agentDryRun: false };
 }
 
 /**
@@ -43,6 +44,9 @@ function enableKnown(flags: Flags, name: string): Flags {
   }
   if (name === "createMenu") {
     return { ...flags, createMenu: true };
+  }
+  if (name === "agentDryRun") {
+    return { ...flags, agentDryRun: true };
   }
   void FLAG_NAMES;
   return flags;

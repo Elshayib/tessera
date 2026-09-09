@@ -16,6 +16,17 @@ export const en = {
     tallerChat: "Taller chat",
     shorterChat: "Shorter chat",
   },
+  review: {
+    title: "Review",
+    working: "Agent working",
+    plan: "Plan",
+    empty: "No agent runs yet",
+    accept: "Accept",
+    revertRun: "Revert run",
+    revertStep: "Revert step",
+    revertLastRun: "Revert last run",
+    revertRunHint: "While this control is focused, Enter or Space reverts the last agent run",
+  },
   outliner: {
     search: "Search by name",
     tag: "Tag",

@@ -14,7 +14,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `in-progress` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
 | T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
 | T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
-| T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `todo` |
+| T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `in-progress` |
 | T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `todo` |
 | T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `todo` |
 | T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `todo` |
@@ -709,7 +709,7 @@ Rapier. Changing T-0107 screenshot implementation. Chat UI. Turning `agentVerify
 | Package | `@tessera/ui`, `@tessera/agent` |
 | Size | M |
 | Depends on | T-0207 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

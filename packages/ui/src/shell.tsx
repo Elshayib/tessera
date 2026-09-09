@@ -1,6 +1,8 @@
 import type { ReactElement, ReactNode } from "react";
 import { en } from "./i18n/en.js";
 import { useLayoutStore } from "./layout-store.js";
+import type { ReviewPanelProps } from "./review/review-panel.js";
+import { ReviewPanel } from "./review/review-panel.js";
 import { TOKENS_CSS } from "./tokens.js";
 import { ViewportHost } from "./viewport-host.js";
 
@@ -14,7 +16,9 @@ import { ViewportHost } from "./viewport-host.js";
  *
  * @public
  */
-export function Shell(props: { readonly viewport?: ReactNode } = {}): ReactElement {
+export function Shell(
+  props: { readonly viewport?: ReactNode; readonly review?: ReviewPanelProps } = {},
+): ReactElement {
   const outlinerWidth = useLayoutStore((state) => state.outlinerWidth);
   const inspectorWidth = useLayoutStore((state) => state.inspectorWidth);
   const chatHeight = useLayoutStore((state) => state.chatHeight);
@@ -76,6 +80,7 @@ export function Shell(props: { readonly viewport?: ReactNode } = {}): ReactEleme
         <button type="button" onClick={() => setChatHeight(chatHeight + 16)}>
           {en.shell.tallerChat}
         </button>
+        {props.review === undefined ? null : <ReviewPanel {...props.review} />}
       </section>
     </div>
   );
