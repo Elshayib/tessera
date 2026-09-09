@@ -8,7 +8,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0200 | Freeze phase-2 tickets | docs | T-0122 | `in-progress` |
 | T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `in-progress` |
 | T-0202 | `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama | providers-llm | T-0201 | `in-progress` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
-| T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `in-progress` |
+| T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `in-progress` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
 | T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `todo` |
 | T-0205 | ToolRegistry derived from command/query catalogs + tiers 0–2 | agent | T-0204, T-0004 | `todo` |
 | T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `todo` |
