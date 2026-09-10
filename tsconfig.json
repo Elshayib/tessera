@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/std" },
     { "path": "packages/llm" },
+    { "path": "packages/agent" },
     { "path": "packages/providers-llm" },
     { "path": "packages/schema" },
     { "path": "packages/testing" },

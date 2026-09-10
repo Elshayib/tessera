@@ -131,6 +131,25 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
 
+  packages/agent:
+    dependencies:
+      '@tessera/llm':
+        specifier: workspace:*
+        version: link:../llm
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../std
+    devDependencies:
+      '@tessera/testing':
+        specifier: workspace:*
+        version: link:../testing
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
+
   packages/assets:
     dependencies:
       '@gltf-transform/core':
