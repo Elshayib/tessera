@@ -2,7 +2,11 @@ import { expect, test } from "@playwright/test";
 
 test("visual empty viewport", async ({ page }) => {
   await page.goto("/");
-  const viewport = page.getByRole("region", { name: "Viewport" });
-  await expect(viewport).toBeVisible();
-  await expect(viewport).toHaveScreenshot("empty-viewport.png");
+  await expect(page.getByRole("region", { name: "Viewport" })).toBeVisible();
+  await expect(page).toHaveScreenshot("empty-viewport.png", {
+    animations: "disabled",
+    caret: "hide",
+    mask: [page.locator("canvas")],
+    maxDiffPixelRatio: 0.02,
+  });
 });

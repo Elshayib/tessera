@@ -3,6 +3,7 @@ import type { Clock } from "@tessera/std";
 import { isErr, isOk } from "@tessera/std";
 import { strToU8, zipSync } from "fflate";
 import { expect, test } from "vitest";
+import { encodeTesseraArchive } from "./archive.js";
 import { MemoryBlobStore } from "./memory-blob-store.js";
 import { MemoryProjectStore } from "./memory-project-store.js";
 
@@ -133,4 +134,29 @@ test("SEC-08 rejects zip-slip and oversized entries", async () => {
   });
   const oversized = await store.importArchive(new Blob([huge], { type: "application/zip" }));
   expect(isErr(oversized) && oversized.error.code === "INVALID_INPUT").toBe(true);
+});
+
+test("encodeTesseraArchive returns CANCELLED when aborted", async () => {
+  const blobs = new MemoryBlobStore();
+  const store = new MemoryProjectStore({
+    clock: frozenClock("2026-09-07T12:00:00.000Z"),
+    blobs,
+  });
+  const created = await store.create({ name: "Packed" });
+  expect(isOk(created)).toBe(true);
+  if (!isOk(created)) {
+    return;
+  }
+  const snap = await store.snapshot(created.value);
+  expect(isOk(snap)).toBe(true);
+  if (!isOk(snap)) {
+    return;
+  }
+  const cancelled = await encodeTesseraArchive(
+    snap.value,
+    blobs,
+    "2026-09-07T12:00:00.000Z",
+    AbortSignal.abort(),
+  );
+  expect(isErr(cancelled) && cancelled.error.code === "CANCELLED").toBe(true);
 });

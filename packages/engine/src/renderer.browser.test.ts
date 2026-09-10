@@ -308,6 +308,67 @@ test("pixel ratio is capped at 2 and stubs do not write", async () => {
   engine.dispose();
 });
 
+test("identical container size does not call setSize again", async () => {
+  const Original = globalThis.ResizeObserver;
+  const observers: Array<() => void> = [];
+  class FakeObserver {
+    readonly #callback: () => void;
+    constructor(callback: ResizeObserverCallback) {
+      this.#callback = () => {
+        callback([], this);
+      };
+      observers.push(this.#callback);
+    }
+    observe(_target: Element): void {
+      return;
+    }
+    disconnect(): void {
+      return;
+    }
+    takeRecords(): ResizeObserverEntry[] {
+      return [];
+    }
+    unobserve(_target: Element): void {
+      return;
+    }
+  }
+  globalThis.ResizeObserver = FakeObserver;
+  let sizeCalls = 0;
+  const created = await createEngine({
+    canvas: document.createElement("canvas"),
+    createRenderer: fakeRenderer({
+      failUnlessWebGL: false,
+      onSize: () => {
+        sizeCalls += 1;
+      },
+    }),
+    requestFrame: idleFrame,
+    cancelFrame: () => {
+      return;
+    },
+  });
+  expect(isOk(created)).toBe(true);
+  if (!isOk(created)) {
+    globalThis.ResizeObserver = Original;
+    return;
+  }
+  const box = document.createElement("div");
+  Object.defineProperty(box, "clientWidth", { configurable: true, value: 320 });
+  Object.defineProperty(box, "clientHeight", { configurable: true, value: 180 });
+  document.body.appendChild(box);
+  created.value.mount(box);
+  expect(sizeCalls).toBe(1);
+  const notify = observers[0];
+  expect(notify !== undefined).toBe(true);
+  if (notify !== undefined) {
+    notify();
+    notify();
+  }
+  expect(sizeCalls).toBe(1);
+  created.value.dispose();
+  globalThis.ResizeObserver = Original;
+});
+
 function idleFrame(_callback: FrameRequestCallback): number {
   return 0;
 }
@@ -337,6 +398,7 @@ function fakeRenderer(options: {
   readonly failAlways?: boolean;
   readonly onRender?: () => void;
   readonly onPixelRatio?: (ratio: number) => void;
+  readonly onSize?: () => void;
 }): CreateGpuRenderer {
   return ({ forceWebGL }): GpuRenderer => {
     const backend = forceWebGL ? "webgl2" : "webgpu";
@@ -355,7 +417,7 @@ function fakeRenderer(options: {
         options.onRender?.();
       },
       setSize: () => {
-        return;
+        options.onSize?.();
       },
       setPixelRatio: (ratio) => {
         options.onPixelRatio?.(ratio);
