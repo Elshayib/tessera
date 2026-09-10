@@ -315,13 +315,152 @@ Conservative choice implemented: (b). No `m1-composition-editor` tag.
 Follow-up: a local headless Godot 4.7.2 + Blender 5.2 import of campfire.glb confirmed names and meter-scale dimensions (`docs/recordings/phase-1-export-check-headless.txt`). That does not fill the GUI screenshot checklist; the tag and roadmap row stay reserved.
 Answer: —
 
+### Q-0112 — T-0200 depends on T-0122 `done`
+Raised by: T-0200 · Spec: playbook §4, Q-0025 · Status: open
+Question: T-0200 depends on T-0122. T-0122 implementation is on `main` but phase-1 tickets stay `in-progress` until PR links exist.
+Options: (a) block phase-2 freeze until every phase-1 ticket is marked `done` with PR links (b) freeze phase 2 now, same as T-0100 vs T-0010
+Conservative choice implemented: (b) freeze proceeds; do not git-tag `m1-composition-editor` or `m2-agent-v1`.
+Answer: —
+
+### Q-0113 — `LlmClientFactory` vs `createXxxClient(config, deps)`
+Raised by: T-0200 · Spec: `07` §2 vs §4 · Status: open
+Question: §2 types `ProviderRegistry.register(factory: LlmClientFactory)` as `(config) => LlmClient`. §4 adapters take `(config, deps)`.
+Options: (a) widen the factory in `@tessera/llm` (b) keep the §2 type; adapters in providers-llm take `deps` without changing the llm factory
+Conservative choice implemented: (b) recorded for T-0201/T-0202.
+Answer: —
+
+### Q-0114 — `JsonSchema` type in `@tessera/llm`
+Raised by: T-0200 · Spec: `07` §2 `JsonSchema` · Status: open
+Question: `ToolSpec.inputSchema` and `responseFormat.schema` use `JsonSchema` with no package-level type.
+Options: (a) add a Zod JSON Schema type in `@tessera/schema` now (b) alias `Readonly<Record<string, unknown>>` in `@tessera/llm`
+Conservative choice implemented: (b) T-0201; do not invent a schema package type.
+Answer: —
+
+### Q-0115 — `LlmClient.stream` error shape
+Raised by: T-0200 · Spec: `07` §2 stream comment · Status: open
+Question: The stream comment says both “throws-as-Err via a final event” and “errors are yielded as a rejected iterator”.
+Options: (a) add `{ type: 'error' }` (b) reject the iterator with `TesseraError`
+Conservative choice implemented: (b) T-0201. Do not invent an error stream event.
+Answer: —
+
+### Q-0116 — Provider HTTP recordings before T-0212
+Raised by: T-0200 · Spec: `07` §4 vs `13` §4 · Status: open
+Question: Adapter tests need recorded fixtures but `ReplayLlmClient` is T-0212.
+Options: (a) block T-0202 until T-0212 (b) package-local JSON fixtures in `providers-llm/fixtures/`
+Conservative choice implemented: (b) T-0202; no network in `pnpm test`.
+Answer: —
+
+### Q-0117 — xAI and DeepSeek base URLs
+Raised by: T-0200 · Spec: `07` §4 · Status: open
+Question: Spec says official AI SDK providers where available, else openai-compatible with preset base URLs, but does not list those URLs.
+Options: (a) invent URLs in source (b) require `ProviderConfig.baseUrl` when no official SDK package exists at the pin
+Conservative choice implemented: (b) T-0202. Do not hardcode undocumented vendor URLs.
+Answer: —
+
+### Q-0118 — `KeyVault` on `EditorContext`
+Raised by: T-0200 · Spec: `02` §7 vs `07` §6 · Status: open
+Question: `EditorContext` has no `keyVault` field. T-0203 needs a composition-root home for the vault.
+Options: (a) add `keyVault` to `EditorContext` in T-0203 (b) factory + tests in providers-llm; do not add the field until settings (T-0211) needs it
+Conservative choice implemented: (b) T-0203. Do not static-import the providers-llm barrel if it pulls `ai` into the empty editor.
+Answer: —
+
+### Q-0119 — Vault KDF parameters beyond 600k iterations
+Raised by: T-0200 · Spec: `07` §6 · Status: open
+Question: Spec names AES-GCM, PBKDF2, 600k iterations, per-vault salt. Hash, salt length, and IV length are silent.
+Options: (a) invent extra product knobs (b) named constants PBKDF2-SHA-256, 16-byte salt, 12-byte IV, AES-256-GCM
+Conservative choice implemented: (b) T-0203.
+Answer: —
+
+### Q-0120 — Critic role when the executor has no vision
+Raised by: T-0200 · Spec: `06` §3 `Record<Role, ModelRef>` vs §10 “else none” · Status: open
+Question: `run.started.models` is `Record<Role, ModelRef>` but critic may be none.
+Options: (a) invent a sentinel model id (b) `criticEnabled: false` and omit critic from the resolved map until T-0207 emits events
+Conservative choice implemented: (b) T-0204. Do not invent a dummy `ModelRef`.
+Answer: —
+
+### Q-0121 — `history.undoLast` named in the agent spec
+Raised by: T-0200 · Spec: `06` §7.1 vs `04` §8 · Status: open
+Question: The agent spec tells the model it can undo via `history.undoLast`. That name is not a v0.1 command.
+Options: (a) add the command in T-0205 (b) do not add a command; models use existing undo through the UI / `revertRun`
+Conservative choice implemented: (b) T-0205. Do not invent a command.
+Answer: —
+
+### Q-0123 — `camera.fit` directions other than iso
+Raised by: T-0200 · Spec: `04` §8.5 vs T-0103 `frameBounds` · Status: open
+Question: `direction` includes `'keep' | 'front' | 'iso' | 'top'`. Only iso is covered by existing `frameBounds`.
+Options: (a) invent Euler formulas for front/top (b) iso uses `frameBounds`; other directions keep existing camera axes except as required to frame
+Conservative choice implemented: (b) T-0206. Do not invent undocumented Euler tables.
+Answer: —
+
+### Q-0124 — `layout.resolveOverlaps` `ground?: …`
+Raised by: T-0200 · Spec: `04` §8.5 · Status: open
+Question: The table uses an ellipsis for `ground`.
+Options: (a) invent a new ground type (b) reuse `layout.snapToGround`’s `EntityRef | 'y0'`
+Conservative choice implemented: (b) T-0206.
+Answer: —
+
+### Q-0125 — Agent context camera field name
+Raised by: T-0200 · Spec: `02` §6.2 `cameraId` vs `06` `viewportCamera` · Status: open
+Question: Architecture prose uses `cameraId`; the agent interface uses `viewportCamera` / `CameraPose`.
+Options: (a) change `06` (b) implement `06` §3 `RunRequest.context`
+Conservative choice implemented: (b) T-0207. Spec `06` wins.
+Answer: —
+
+### Q-0126 — Default `enabledTiers` includes generation
+Raised by: T-0200 · Spec: `06` §3 default `[0,1,2,3]` vs phase-2 no generation package · Status: open
+Question: Default policy enables tier 3. `@tessera/generation` is phase 3.
+Options: (a) implement stub generation tools now (b) phase-2 default `[0,1,2]`; omit 3 and 4
+Conservative choice implemented: (b) T-0207. Do not invent generation tools.
+Answer: —
+
+### Q-0127 — Vision screenshot `preset` / `background`
+Raised by: T-0200 · Spec: `06` §8.2 vs `04` §10 `view.screenshot` · Status: open
+Question: Agent verification names `preset: iso` and `background: 'neutral'`. The query schema has `width`/`height`/`camera`/`frame`/`includeHelpers`.
+Options: (a) extend the query schema in T-0208 (b) use existing fields; jpeg ≤ 1024×576 via width/height
+Conservative choice implemented: (b) T-0208. Do not invent query fields.
+Answer: —
+
+### Q-0128 — `checkScene` package vs T-0208 package field
+Raised by: T-0200 · Spec: `06` §8.1 vs T-0208 package `agent` · Status: open
+Question: `checkScene` is specified on `@tessera/spatial`. T-0208’s package field is agent.
+Options: (a) put `checkScene` in agent (b) implement in spatial; T-0208 Touches include `packages/spatial`
+Conservative choice implemented: (b) T-0208. Spec wins.
+Answer: —
+
+### Q-0129 — One-keystroke revert chord
+Raised by: T-0200 · Spec: `06` §9, `01` §9 · Status: open
+Question: “The last agent run is always revertible with one keystroke” does not name the key.
+Options: (a) invent a global shortcut (b) focused Revert run control activatable with one key; document in `en.ts`
+Conservative choice implemented: (b) T-0209. Do not invent a conflicting global chord.
+Answer: —
+
+### Q-0130 — `TranscriptEntry` and `ConversationSummary` fields
+Raised by: T-0200 · Spec: `06` §13 · Status: open
+Question: `TranscriptStore` is typed; `TranscriptEntry` and `ConversationSummary` are not.
+Options: (a) invent rich chat product fields (b) minimum fields needed for `append` / `recent` / `listConversations` / usage
+Conservative choice implemented: (b) T-0210. Record the chosen fields in TSDoc.
+Answer: —
+
+### Q-0131 — `core.generate-barrel` before generation providers
+Raised by: T-0200 · Spec: `13` §5.4 vs `07` §8.2 phase 3 · Status: open
+Question: core-20 includes a generate-barrel case. Generation adapters are phase 3.
+Options: (a) invent a Meshy client in phase 2 (b) keep the case, tag `needs-generation`, exclude from phase-2 scored replay
+Conservative choice implemented: (b) T-0213/T-0215. 90% applies to the remaining scored ids.
+Answer: —
+
+### Q-0132 — T-0206 title omitted scatter and resolveOverlaps
+Raised by: T-0200 · Spec: `04` §8.5 vs T-0206 title · Status: open
+Question: The ticket title lists placeOn, snap, align, distribute, grid, lookAt, fit. §8.5 also specifies `layout.scatter` and `layout.resolveOverlaps`.
+Options: (a) follow the title (b) implement the full §8.5 table
+Conservative choice implemented: (b) spec wins; T-0206 includes all nine macros. Touches include schema + core because T-0004 deferred macros.
+Answer: —
+
 ### Q-0092 — CI unit coverage and unstable empty viewport screenshot
 Raised by: main CI after T-0122 merge · Spec: `01` §7, T-0119 · Status: open
 Question: Ubuntu CI failed with branches 89.82% (threshold 90%) and Playwright `toHaveScreenshot` timing out because the Viewport region was not layout-stable. ResizeObserver always called `setSize`, which can keep the canvas (and the region) moving.
 Options: (a) lower the global branch threshold (b) add missing branch tests and skip `setSize` when CSS size is unchanged; wait for a stable box and mask the canvas in the visual test
 Conservative choice implemented: (b). Do not lower coverage thresholds. Linux snapshot still uses the OS suffix (Q-0079). Follow-up: Ubuntu Chrome still differed from the committed Linux PNG by ~1% of pixels after a stable capture; this test uses `maxDiffPixelRatio: 0.02` instead of the global 0.002.
 Answer: —
-
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
