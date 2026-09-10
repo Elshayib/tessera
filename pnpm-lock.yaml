@@ -505,9 +505,6 @@ importers:
         specifier: workspace:*
         version: link:../storage
     devDependencies:
-      '@tessera/spatial':
-        specifier: workspace:*
-        version: link:../spatial
       '@types/node':
         specifier: 24.3.1
         version: 24.3.1
