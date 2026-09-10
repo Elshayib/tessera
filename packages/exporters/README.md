@@ -8,6 +8,7 @@ glTF 2.0 + Tessera sidecar from the **document** (never from the three.js scene)
 | --- | --- |
 | `createGltfExporter` | `Exporter` id `gltf`: GLB/glTF + `<name>.tessera.json` (`09` §2–§4). |
 | `createCodeThreeExporter` | `Exporter` id `code-three`: ESM `scene.js` plus the glTF bundle (`09` §6). |
+| `createCodeR3fExporter` | `Exporter` id `code-r3f`: TypeScript `Scene.tsx` plus the glTF bundle (`09` §6). |
 | `GltfExportOptionsSchema` | Zod options with inspector metadata, including `deterministic` (Q-0028). |
 | `buildAttributionMarkdown` | `ATTRIBUTIONS.md` for CC-BY and generated assets (`09` §9). |
 | `candelaToGodotOmniLumens` / `candelaToGodotSpotLumens` | Godot 4 physical light conversions (`09` §5). |

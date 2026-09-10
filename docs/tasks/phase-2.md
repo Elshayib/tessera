@@ -19,7 +19,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `in-progress` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
 | T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `in-progress` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
 | T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `in-progress` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
-| T-0214 | R3F code export | exporters | T-0111 | `todo` |
+| T-0214 | R3F code export | exporters | T-0111 | `in-progress` |
 | T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `todo` |
 
 ## Specs
@@ -988,7 +988,7 @@ Depend on `@tessera/llm` types only. Do not import `ai`. Extra Touches: `package
 | Package | `evals` |
 | Size | L |
 | Depends on | T-0207, T-0212 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
 
 ## Goal
 
@@ -1057,7 +1057,7 @@ Extended suites (`13` §5.5). Live CI. Implementing `checkScene`. Phase-3 genera
 | Package | `@tessera/exporters` |
 | Size | M |
 | Depends on | T-0111 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 

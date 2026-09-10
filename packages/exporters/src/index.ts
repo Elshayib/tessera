@@ -3,6 +3,7 @@ export {
   licenseIsFlagged,
   licenseRequiresAttribution,
 } from "./attribution.js";
+export { createCodeR3fExporter } from "./code-r3f.js";
 export { createCodeThreeExporter } from "./code-three.js";
 export {
   candelaToBlenderPointWatts,
