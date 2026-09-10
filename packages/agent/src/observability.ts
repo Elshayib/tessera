@@ -1,5 +1,6 @@
 export { defaultRunPolicy } from "./policy.js";
 export type { RunEvent, RunReport, RunRequest, ViewportCamera } from "./run-types.js";
+export type { RunPolicy } from "./tools/types.js";
 export type { RunTrace, Span, SpanName } from "./trace.js";
 export { buildRunTrace } from "./trace.js";
 export { createIndexedDbTranscriptStore, TRANSCRIPT_DB_NAME } from "./transcript/idb.js";

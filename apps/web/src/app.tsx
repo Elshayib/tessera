@@ -1,4 +1,4 @@
-import { Shell, useSelectionStore } from "@tessera/ui";
+import { SettingsPanel, Shell, useSelectionStore } from "@tessera/ui";
 import type { ReactElement } from "react";
 import { AssetPanel } from "./asset-panel/asset-panel.js";
 import { CreateMenu } from "./create-menu/create-menu.js";
@@ -18,6 +18,11 @@ export function App(props: { readonly context: EditorContext }): ReactElement {
       <CreateMenu />
       <AssetPanel />
       <ProjectIo />
+      <SettingsPanel
+        vault={props.context.keyVault}
+        vaultEncrypted={false}
+        usage={props.context.usage}
+      />
       <EditorShell />
     </EditorProvider>
   );

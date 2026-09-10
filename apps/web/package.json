@@ -18,6 +18,7 @@
     "@tessera/agent": "workspace:*",
     "@tessera/core": "workspace:*",
     "@tessera/engine": "workspace:*",
+    "@tessera/llm": "workspace:*",
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
     "@tessera/storage": "workspace:*",

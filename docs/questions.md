@@ -521,6 +521,18 @@ Question: Importing `@tessera/agent` from the chat panel loads `prompts/build.ts
 Options: (a) rewrite prompt loading for the browser (out of T-0210) (b) `@tessera/agent/observability` subpath for transcripts/traces/ledger
 Conservative choice implemented: (b) T-0210.
 
+### Q-0144 — Monthly usage without timestamps
+Raised by: T-0211 · Spec: `07` §7 · Status: open
+Question: Settings must show monthly totals per provider, but `UsageRecord` has no timestamp (Q-0130).
+Options: (a) invent `recordedAt` on every T-0210 row (b) `monthlyByProvider` sums all recorded rows per provider until timestamps exist
+Conservative choice implemented: (b) T-0211.
+
+### Q-0145 — Built-in base URLs vs SEC-02
+Raised by: T-0211 · Spec: `14` SEC-02 vs `ProviderDescriptor.baseUrl.configurable` · Status: open
+Question: Descriptors mark built-in `baseUrl.configurable: true`, but SEC-02 forbids re-pointing built-in keys without a new entry.
+Options: (a) allow editing every configurable URL (b) only `openai-compatible` may set origin; built-in entries keep their default origin
+Conservative choice implemented: (b) T-0211.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

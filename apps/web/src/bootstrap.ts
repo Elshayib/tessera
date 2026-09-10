@@ -10,6 +10,7 @@ import {
 import { createLogger, systemClock } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
 import { MemoryProjectStore } from "@tessera/storage";
+import { createMemoryKeyVault } from "@tessera/ui";
 import type { EditorContext } from "./editor-context.js";
 import { bootstrapVerifyMode, parseFlags } from "./flags.js";
 
@@ -59,6 +60,7 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     agentVerify: bootstrapVerifyMode(flags),
     transcripts: createMemoryTranscriptStore(),
     usage: createUsageLedger(),
+    keyVault: createMemoryKeyVault(),
   };
   return context;
 }

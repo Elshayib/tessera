@@ -6,7 +6,7 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 | Export | Description |
 | --- | --- |
-| `ChatPanel` / `TraceView` | Streams `AgentRuntime.run`; live tokens/cost; show/export traces (`06` §13). |
+| `SettingsPanel` | BYOK keys via `KeyVault`, role `ModelRef`s, `RunPolicy` budgets (`07` §4–§7). |
 | `ReviewPanel` / `groupAgentRuns` | Live agent run groups; Accept no-op; Revert run uses `undo.revertRun` (`06` §9). |
 | `Outliner` | Accessible entity tree; reparent/reorder via `CommandBus`. |
 | `ViewportHost` | `aria-hidden` canvas for the engine (`01` a11y). |

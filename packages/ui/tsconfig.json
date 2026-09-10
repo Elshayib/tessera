@@ -18,6 +18,7 @@
     { "path": "../std" },
     { "path": "../schema" },
     { "path": "../core" },
-    { "path": "../agent" }
+    { "path": "../agent" },
+    { "path": "../llm" }
   ]
 }

@@ -8,6 +8,7 @@ import type {
   UndoService,
 } from "@tessera/core";
 import type { EngineHandle } from "@tessera/engine";
+import type { KeyVault } from "@tessera/llm";
 import type { Clock, Logger } from "@tessera/std";
 import { invariant } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
@@ -45,6 +46,7 @@ export interface EditorContext {
   readonly agentVerify: "none" | "spatial" | "spatial+vision";
   readonly transcripts: TranscriptStore;
   readonly usage: UsageLedger;
+  readonly keyVault: KeyVault;
 }
 
 const EditorReactContext = createContext<EditorContext | undefined>(undefined);
