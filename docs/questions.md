@@ -533,6 +533,24 @@ Question: Descriptors mark built-in `baseUrl.configurable: true`, but SEC-02 for
 Options: (a) allow editing every configurable URL (b) only `openai-compatible` may set origin; built-in entries keep their default origin
 Conservative choice implemented: (b) T-0211.
 
+### Q-0146 — Recording age when dates are `<ts>`
+Raised by: T-0212 · Spec: `13` §4 · Status: open
+Question: Recordings redact ISO dates to `<ts>`, so payload timestamps cannot drive the 180-day stale warning.
+Options: (a) keep a raw `recordedAt` field (conflicts with the redaction pass) (b) warn from filesystem mtime
+Conservative choice implemented: (b) `warnStaleRecordings` uses `mtimeMs` vs `RECORDING_MAX_AGE_MS`.
+
+### Q-0147 — Recording `suite` / `case` and `TESSERA_RECORD`
+Raised by: T-0212 · Spec: `13` §4 · Status: open
+Question: The spec names the fixture path but not how suite/case names or the env flag reach `RecordingLlmClient`.
+Options: (a) infer from Vitest file names (b) constructor options `suite` / `caseId` / `fixturesRoot`; `TESSERA_RECORD` from options then `process.env`
+Conservative choice implemented: (b) T-0212.
+
+### Q-0148 — FakeLlm provider descriptor
+Raised by: T-0212 · Spec: `13` §3 vs `07` §2 `LlmClient.provider` · Status: open
+Question: `FakeLlmClient` must implement `LlmClient.provider`, but no fake descriptor is specified.
+Options: (a) omit provider (illegal) (b) `id: "fake"`, `auth: "none"`, non-configurable `baseUrl`
+Conservative choice implemented: (b) T-0212.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

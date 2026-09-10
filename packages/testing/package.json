@@ -1,7 +1,7 @@
 {
   "name": "@tessera/testing",
   "version": "0.0.0",
-  "description": "Test fixtures, document builder, FakeClock, MemoryBlobStore, and runCommands for Tessera.",
+  "description": "Test fixtures, document builder, FakeClock, MemoryBlobStore, FakeLlmClient, and replay/recording LLM clients.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -24,6 +24,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tessera/llm": "workspace:*",
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
     "@tessera/storage": "workspace:*"
