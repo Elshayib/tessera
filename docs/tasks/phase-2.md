@@ -926,6 +926,10 @@ Inject `KeyVault` / `ProviderRegistry` / `UsageLedger`. Copy for the unencrypted
 | Depends on | T-0201 |
 | Status | `in-progress` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
 
+## Goal
+
+`@tessera/testing` exports `FakeLlmClient`, `ReplayLlmClient`, and `RecordingLlmClient` (`13` §3–§4) so agent tests and evals never hit the network in CI (`INV-TST-01`, `INV-TST-04`).
+
 ## Context
 
 - Spec: `docs/13-testing-and-evals.md` §3–§4, §9
