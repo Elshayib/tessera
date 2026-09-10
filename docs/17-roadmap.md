@@ -16,6 +16,8 @@ Effort estimates assume one part-time maintainer (~10 h/week) directing AI agent
 | 7 | `m7-depth` | CSG (manifold), parametric modifiers (extrude, lathe, bevel, array, mirror), procedural geometry scripts, behaviors with engine stub export, keyframe timeline, physics preview (Rapier), headless Blender jobs (remesh, decimate, UV, bake), auto-instancing | 8–12+ weeks | A game-ready prop and a scripted level are produced from a single prompt session and exported to Godot |
 | 8 | `m8-community` | External plugin loading (npm), docs site with API reference, templates and gallery, eval leaderboard publication, contributor onboarding, 1.0 API freeze | ongoing | First external plugin (a provider or exporter) published by someone outside the core team; 1.0 tagged |
 
+Phase 2 is **not** marked complete: T-0215 commits replay fixtures and the runbook, but the human prompt-only trial is not attached. Do not git-tag `m2-agent-v1`.
+
 ## Cross-phase tracks
 
 | Track | Always on |

@@ -600,6 +600,18 @@ Question: Punctual lights are already in the glTF graph that `useGLTF` loads. `c
 Options: (a) duplicate punctual lights in JSX (b) emit `ambientLight` plus area `rectAreaLight` only
 Conservative choice implemented: (b) T-0214, matching `code-three`.
 
+### Q-0156 — Multi-turn eval recordings in one file
+Raised by: T-0215 · Spec: `13` §4 path vs agent loop · Status: open
+Question: One `<case>.<model>.json` path must cover several `generate` steps. `newId` is random, so later hashes drift unless ids are seeded.
+Options: (a) one hash per file (b) JSON array of recordings plus seeded `crypto.getRandomValues` in the eval runner
+Conservative choice implemented: (b) T-0215.
+
+### Q-0157 — Oracle recordings vs live `TESSERA_RECORD=1`
+Raised by: T-0215 · Spec: `13` §4 vs T-0215 notes · Status: open
+Question: Maintainers are expected to record live providers; CI cannot network (`INV-TST-01`).
+Options: (a) empty fixtures (replay 0%) (b) deterministic oracle tool scripts committed as `openai` and `anthropic` fixtures
+Conservative choice implemented: (b) T-0215. Live re-record remains `TESSERA_RECORD=1`.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
