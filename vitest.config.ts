@@ -13,6 +13,7 @@ const config = defineConfig({
         "packages/engine/src/**",
         "packages/ui/src/**",
         "packages/llm/src/**",
+        "packages/providers-llm/src/**",
       ],
       provider: "v8",
       thresholds: {
