@@ -8,6 +8,8 @@ import { expect, test } from "vitest";
 import { en } from "../i18n/en.js";
 import { LAYOUT_STORAGE_KEY } from "../layout-store.js";
 import { useSelectionStore } from "../selection-store.js";
+import { reorderEntity, reparentEntity } from "./actions.js";
+import { globMatch } from "./name-glob.js";
 import { Outliner } from "./outliner.js";
 import { collectOutlinerRows } from "./visible-tree.js";
 
@@ -44,6 +46,30 @@ test("INV-ARCH-04 selection not persisted in snapshot", () => {
   }
   useSelectionStore.getState().setSelection([]);
   useSelectionStore.getState().setFocused(null);
+});
+
+test("reparent and reorder reject invalid moves", () => {
+  const { reader, bus } = setup();
+  const first = bus.execute("entity.create", { name: "first" }, { author });
+  const second = bus.execute("entity.create", { name: "second" }, { author });
+  expect(isOk(first) && isOk(second)).toBe(true);
+  if (!first.ok || !second.ok) {
+    return;
+  }
+  const firstId = outputId(first.value.output);
+  const secondId = outputId(second.value.output);
+  expect(firstId !== undefined && secondId !== undefined).toBe(true);
+  if (firstId === undefined || secondId === undefined) {
+    return;
+  }
+  expect(reparentEntity(bus, author, firstId, firstId)).toBe(false);
+  expect(reorderEntity(bus, reader, author, "e_missingxxx", "up")).toBe(false);
+  expect(reorderEntity(bus, reader, author, firstId, "up")).toBe(false);
+  expect(reorderEntity(bus, reader, author, secondId, "down")).toBe(false);
+  expect(reorderEntity(bus, reader, author, firstId, "down")).toBe(true);
+  expect(reorderEntity(bus, reader, author, firstId, "up")).toBe(true);
+  expect(globMatch("oak", "o?k")).toBe(true);
+  expect(globMatch("oak", "o*k")).toBe(true);
 });
 
 test("reparent calls entity.setParent", async () => {
