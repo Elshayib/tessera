@@ -1154,3 +1154,5 @@ Cutting the `m2-agent-v1` tag. Live evals in CI. Extended suites. Claiming the n
 ## Notes for the implementing agent
 
 Do not lower 90% or drop `INV-TST-02`. Maintainers produce recordings with `TESSERA_RECORD=1` locally; this ticket commits redacted fixtures and the existence gate.
+
+Extra vs original Touches: `pnpm-lock.yaml` (T-0213 dropped `@tessera/spatial` from `@tessera/testing` without refreshing the lockfile); `apps/web` `bootstrap.ts` / `editor-context.tsx` / `isolation.test.ts` so the editor imports `@tessera/agent/observability` (Q-0143) and Vite does not bundle `prompts/build.js` (`node:fs`).

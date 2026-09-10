@@ -1,4 +1,4 @@
-import type { TranscriptStore, UsageLedger } from "@tessera/agent";
+import type { TranscriptStore, UsageLedger } from "@tessera/agent/observability";
 import type { AssetService } from "@tessera/assets";
 import type {
   CommandBus,
