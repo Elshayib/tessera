@@ -19,10 +19,10 @@ function isLlmRecording(value: unknown): value is LlmRecording {
     return false;
   }
   return (
-    typeof value.requestHash === "string" &&
-    isRecord(value.request) &&
-    isRecord(value.response) &&
-    isRecord(value.usage)
+    typeof value["requestHash"] === "string" &&
+    isRecord(value["request"]) &&
+    isRecord(value["response"]) &&
+    isRecord(value["usage"])
   );
 }
 

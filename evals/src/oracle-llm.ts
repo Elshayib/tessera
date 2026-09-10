@@ -570,8 +570,8 @@ function outputIds(messages: readonly LlmMessage[]): readonly string[] {
         continue;
       }
       const value = result.result;
-      if (isRecord(value) && typeof value.id === "string") {
-        ids.push(value.id);
+      if (isRecord(value) && typeof value["id"] === "string") {
+        ids.push(value["id"]);
       }
     }
   }
