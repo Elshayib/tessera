@@ -1059,6 +1059,10 @@ Extended suites (`13` §5.5). Live CI. Implementing `checkScene`. Phase-3 genera
 | Depends on | T-0111 |
 | Status | `in-progress` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
 
+## Goal
+
+`code-r3f` exporter emits TypeScript `Scene.tsx` that uses `useGLTF`, `Environment`, lights and camera, with props for the model URL (`09` §6). Snapshot-tested, deterministic.
+
 ## Context
 
 - Spec: `docs/09-export-and-bridges.md` §2, §6, `INV-EXP-01`
