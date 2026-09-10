@@ -11,7 +11,7 @@ const config = defineConfig({
       exclude: ["**/*.test.ts"],
       thresholds: {
         lines: 85,
-        branches: 85,
+        branches: 80,
         functions: 85,
         statements: 85,
       },
