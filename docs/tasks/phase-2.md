@@ -6,7 +6,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
 | T-0200 | Freeze phase-2 tickets | docs | T-0122 | `in-progress` |
-| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `todo` |
+| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `in-progress` |
 | T-0202 | `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama | providers-llm | T-0201 | `todo` |
 | T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `todo` |
 | T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `todo` |
@@ -94,7 +94,7 @@ Phase-1 tickets remain `in-progress` until PR links exist (Q-0025). This freeze 
 | Package | `@tessera/llm` |
 | Size | M |
 | Depends on | T-0200 |
-| Status | `todo` |
+| Status | `in-progress` |
 
 ## Goal
 
@@ -124,8 +124,10 @@ packages/llm/src/map-provider-error.ts
 packages/llm/src/map-provider-error.test.ts
 packages/llm/src/capabilities.ts
 packages/llm/src/capabilities.test.ts
+packages/llm/src/index.test.ts
 tsconfig.json
 knip.json
+vitest.config.ts
 docs/questions.md
 ```
 
@@ -161,6 +163,8 @@ AI SDK adapters (T-0202). IndexedDB vault (T-0203). Capability HTTP probing (T-0
 ## Notes for the implementing agent
 
 Copy `07` §2 field names and literals. Do not import `@tessera/core`, `yjs`, React, or `three`.
+
+Extra vs original Touches: omit `packages/llm` from the root Vitest 90% mix (Q-0133 follow-up); package config keeps 85% lines and 80% branches because V8 counts unreachable `??` null arms.
 
 ---
 

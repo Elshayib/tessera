@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/std" },
+    { "path": "packages/llm" },
     { "path": "packages/schema" },
     { "path": "packages/testing" },
     { "path": "packages/core" },
