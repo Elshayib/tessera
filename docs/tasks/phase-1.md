@@ -5,29 +5,29 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
-| T-0100 | Freeze phase-1 tickets (fill AC/Tests for T-0101+) | `docs/tasks` | T-0010 | `in-progress` |
-| T-0101 | `@tessera/storage`: BlobStore + Memory + archive codec `.tessera` | storage | T-0010 | `in-progress` |
-| T-0102 | `@tessera/storage`: IndexedDB + OPFS project store | storage | T-0101 | `in-progress` |
-| T-0103 | `@tessera/spatial`: AABB, world bounds, overlap, primitive bounds | spatial | T-0010 | `in-progress` |
-| T-0104 | `@tessera/engine`: WebGPURenderer host, fallback, viewport loop | engine | T-0103 | `in-progress` |
-| T-0105 | `@tessera/engine`: RendererSync + transform/mesh/light/camera handlers | engine | T-0104, T-0108 | `in-progress` |
-| T-0106 | `@tessera/engine`: picking (BVH), transform gizmos, camera-controls | engine | T-0105 | `in-progress` |
-| T-0107 | `@tessera/engine`: screenshots + viewport stats | engine | T-0105 | `in-progress` |
-| T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `in-progress` |
-| T-0109 | `@tessera/assets`: glTF import worker (gltf-transform normalize) | assets | T-0108 | `in-progress` |
-| T-0110 | `@tessera/exporters`: glTF + sidecar from document (not from scene) | exporters | T-0101, T-0108, T-0109 | `in-progress` |
-| T-0111 | `@tessera/exporters`: Three.js code export | exporters | T-0110 | `in-progress` |
-| T-0112 | `@tessera/ui`: design tokens, shell, resizable panels, i18n en.ts | ui | T-0010 | `in-progress` |
-| T-0113 | `@tessera/ui`: outliner (tree, reparent, search, tags) | ui | T-0112, T-0008 | `in-progress` |
-| T-0114 | `@tessera/ui`: inspector generated from schema `.meta()` | ui | T-0112, T-0004 | `in-progress` |
-| T-0115 | `apps/web`: bootstrap EditorContext, flags, Vite, empty project | web | T-0105, T-0112, T-0102, T-0108 | `in-progress` |
-| T-0116 | `apps/web`: viewport + gizmos + keyboard nudge | web | T-0115, T-0106 | `in-progress` |
-| T-0117 | `apps/web`: create primitives, lights, cameras via commands | web | T-0116, T-0108 | `in-progress` |
-| T-0118 | `apps/web`: save/load IndexedDB + `.tessera` download/open | web | T-0115, T-0102 | `in-progress` |
-| T-0119 | `apps/web`: Playwright smoke + visual baseline R1-empty | web | T-0117 | `in-progress` |
-| T-0120 | Poly Haven source (HDRI, models, textures) behind flag | assets, web | T-0117, T-0109 | `in-progress` |
-| T-0121 | CLI `tessera export gltf` | cli | T-0110 | `in-progress` |
-| T-0122 | Phase 1 exit: open export in Godot 4 and Blender 5 (manual + recorded) | docs | T-0110, T-0119 | `in-progress` |
+| T-0100 | Freeze phase-1 tickets (fill AC/Tests for T-0101+) | `docs/tasks` | T-0010 | `done` ([#11](https://github.com/Elshayib/tessera/pull/11)) |
+| T-0101 | `@tessera/storage`: BlobStore + Memory + archive codec `.tessera` | storage | T-0010 | `done` ([#12](https://github.com/Elshayib/tessera/pull/12)) |
+| T-0102 | `@tessera/storage`: IndexedDB + OPFS project store | storage | T-0101 | `done` ([#13](https://github.com/Elshayib/tessera/pull/13)) |
+| T-0103 | `@tessera/spatial`: AABB, world bounds, overlap, primitive bounds | spatial | T-0010 | `done` ([#14](https://github.com/Elshayib/tessera/pull/14)) |
+| T-0104 | `@tessera/engine`: WebGPURenderer host, fallback, viewport loop | engine | T-0103 | `done` ([#15](https://github.com/Elshayib/tessera/pull/15)) |
+| T-0105 | `@tessera/engine`: RendererSync + transform/mesh/light/camera handlers | engine | T-0104, T-0108 | `done` ([#17](https://github.com/Elshayib/tessera/pull/17)) |
+| T-0106 | `@tessera/engine`: picking (BVH), transform gizmos, camera-controls | engine | T-0105 | `done` ([#18](https://github.com/Elshayib/tessera/pull/18)) |
+| T-0107 | `@tessera/engine`: screenshots + viewport stats | engine | T-0105 | `done` ([#19](https://github.com/Elshayib/tessera/pull/19)) |
+| T-0108 | `@tessera/assets`: primitive geometry factory + default material | assets | T-0101 | `done` ([#16](https://github.com/Elshayib/tessera/pull/16)) |
+| T-0109 | `@tessera/assets`: glTF import worker (gltf-transform normalize) | assets | T-0108 | `done` ([#20](https://github.com/Elshayib/tessera/pull/20)) |
+| T-0110 | `@tessera/exporters`: glTF + sidecar from document (not from scene) | exporters | T-0101, T-0108, T-0109 | `done` ([#21](https://github.com/Elshayib/tessera/pull/21)) |
+| T-0111 | `@tessera/exporters`: Three.js code export | exporters | T-0110 | `done` ([#22](https://github.com/Elshayib/tessera/pull/22)) |
+| T-0112 | `@tessera/ui`: design tokens, shell, resizable panels, i18n en.ts | ui | T-0010 | `done` ([#23](https://github.com/Elshayib/tessera/pull/23)) |
+| T-0113 | `@tessera/ui`: outliner (tree, reparent, search, tags) | ui | T-0112, T-0008 | `done` ([#24](https://github.com/Elshayib/tessera/pull/24)) |
+| T-0114 | `@tessera/ui`: inspector generated from schema `.meta()` | ui | T-0112, T-0004 | `done` ([#25](https://github.com/Elshayib/tessera/pull/25)) |
+| T-0115 | `apps/web`: bootstrap EditorContext, flags, Vite, empty project | web | T-0105, T-0112, T-0102, T-0108 | `done` ([#26](https://github.com/Elshayib/tessera/pull/26)) |
+| T-0116 | `apps/web`: viewport + gizmos + keyboard nudge | web | T-0115, T-0106 | `done` ([#27](https://github.com/Elshayib/tessera/pull/27)) |
+| T-0117 | `apps/web`: create primitives, lights, cameras via commands | web | T-0116, T-0108 | `done` ([#28](https://github.com/Elshayib/tessera/pull/28)) |
+| T-0118 | `apps/web`: save/load IndexedDB + `.tessera` download/open | web | T-0115, T-0102 | `done` ([#29](https://github.com/Elshayib/tessera/pull/29)) |
+| T-0119 | `apps/web`: Playwright smoke + visual baseline R1-empty | web | T-0117 | `done` ([#30](https://github.com/Elshayib/tessera/pull/30), [#34](https://github.com/Elshayib/tessera/pull/34)) |
+| T-0120 | Poly Haven source (HDRI, models, textures) behind flag | assets, web | T-0117, T-0109 | `done` ([#31](https://github.com/Elshayib/tessera/pull/31)) |
+| T-0121 | CLI `tessera export gltf` | cli | T-0110 | `done` ([#32](https://github.com/Elshayib/tessera/pull/32)) |
+| T-0122 | Phase 1 exit: open export in Godot 4 and Blender 5 (manual + recorded) | docs | T-0110, T-0119 | `done` ([#33](https://github.com/Elshayib/tessera/pull/33)) |
 
 ## Specs
 
@@ -47,7 +47,7 @@ Tickets below were frozen by **T-0100**. Do not implement T-0101 until T-0100 is
 | Package | `docs/tasks` |
 | Size | M |
 | Depends on | T-0010 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -98,7 +98,7 @@ T-0010 remains `in-progress` until PRs exist (Q-0025). This freeze still proceed
 | Package | `@tessera/storage` |
 | Size | L |
 | Depends on | T-0010 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -157,7 +157,7 @@ Do not use `node:fs` in Memory\* (allowed only for Fs later). Hash with WebCrypt
 | Package | `@tessera/storage` |
 | Size | L |
 | Depends on | T-0101 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -215,7 +215,7 @@ Browser-mode Vitest + Playwright provider (`13` §2). Tests must not depend on w
 | Package | `@tessera/spatial` |
 | Size | M |
 | Depends on | T-0010 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -269,7 +269,7 @@ Layer 0–2: `Result` where failure is possible. Prefer schema bounds over tesse
 | Package | `@tessera/engine` |
 | Size | L |
 | Depends on | T-0103 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -318,7 +318,7 @@ RendererSync handlers (T-0105). Picking/gizmos (T-0106). Screenshots (T-0107). I
 | Package | `@tessera/engine` |
 | Size | L |
 | Depends on | T-0104, T-0108 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -371,7 +371,7 @@ Change sets are topologically sorted with `spatial.sortByHierarchy`. MeshStandar
 | Package | `@tessera/engine` |
 | Size | L |
 | Depends on | T-0105 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -421,7 +421,7 @@ Keyboard nudge wiring in apps/web (T-0116). Outline pass (phase 2). Screenshot A
 | Package | `@tessera/engine` |
 | Size | M |
 | Depends on | T-0105 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -469,7 +469,7 @@ Vision critic, JPEG quality tuning UI, R1 leak test of 100 cycles (can be a late
 | Package | `@tessera/assets` |
 | Size | M |
 | Depends on | T-0101 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -517,7 +517,7 @@ glTF import worker (T-0109). Poly Haven (T-0120). Thumbnails GPU.
 | Package | `@tessera/assets` |
 | Size | L |
 | Depends on | T-0108 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -569,7 +569,7 @@ Draco/KTX2 encode options (phase 3). Kenney. Sketchfab. Main-thread 50 ms e2e wi
 | Package | `@tessera/exporters` |
 | Size | L |
 | Depends on | T-0101, T-0108, T-0109 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -627,7 +627,7 @@ packages/schema/json-schema/sidecar.v1.json
 | Package | `@tessera/exporters` |
 | Size | M |
 | Depends on | T-0110 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -674,7 +674,7 @@ packages/exporters/fixtures/code-three/**
 | Package | `@tessera/ui` |
 | Size | M |
 | Depends on | T-0010 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -724,7 +724,7 @@ Outliner (T-0113). Inspector (T-0114). Chat/review (phase 2). Viewport canvas (T
 | Package | `@tessera/ui` |
 | Size | L |
 | Depends on | T-0112, T-0008 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -771,7 +771,7 @@ Inspector fields. Multi-user presence dots. Drag onto viewport.
 | Package | `@tessera/ui` |
 | Size | L |
 | Depends on | T-0112, T-0004 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -816,7 +816,7 @@ Asset picker modal (can be a stub). Script/behavior editor (phase 7).
 | Package | `apps/web` |
 | Size | L |
 | Depends on | T-0105, T-0112, T-0102, T-0108 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -866,7 +866,7 @@ Viewport tools (T-0116). Save UI (T-0118). Playwright (T-0119).
 | Package | `apps/web` |
 | Size | M |
 | Depends on | T-0115, T-0106 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -911,7 +911,7 @@ Create-menu (T-0117). Visual baselines (T-0119).
 | Package | `apps/web` |
 | Size | M |
 | Depends on | T-0116, T-0108 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -956,7 +956,7 @@ glTF upload UI (T-0109 + later). Poly Haven (T-0120).
 | Package | `apps/web` |
 | Size | M |
 | Depends on | T-0115, T-0102 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -999,7 +999,7 @@ Cloud sync. Multi-tab locking (phase 6).
 | Package | `apps/web` |
 | Size | M |
 | Depends on | T-0117 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -1046,7 +1046,7 @@ R1 1000-mesh visual. Godot/Blender (T-0122).
 | Package | `@tessera/assets`, `apps/web` |
 | Size | L |
 | Depends on | T-0117, T-0109 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -1097,7 +1097,7 @@ Kenney. Sketchfab. Generation. Live network in CI.
 | Package | `apps/cli` |
 | Size | S |
 | Depends on | T-0110 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
@@ -1146,7 +1146,7 @@ README.md
 | Package | `docs` |
 | Size | S |
 | Depends on | T-0110, T-0119 |
-| Status | `in-progress` |
+| Status | `done` |
 
 ## Goal
 
