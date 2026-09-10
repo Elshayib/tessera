@@ -1,4 +1,4 @@
-import { createMemoryTranscriptStore, createUsageLedger } from "@tessera/agent";
+import { createMemoryTranscriptStore, createUsageLedger } from "@tessera/agent/observability";
 import { createAssetService } from "@tessera/assets";
 import {
   createCommandBus,
