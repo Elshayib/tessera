@@ -137,6 +137,43 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
 
+  evals:
+    dependencies:
+      '@tessera/agent':
+        specifier: workspace:*
+        version: link:../packages/agent
+      '@tessera/core':
+        specifier: workspace:*
+        version: link:../packages/core
+      '@tessera/llm':
+        specifier: workspace:*
+        version: link:../packages/llm
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../packages/schema
+      '@tessera/spatial':
+        specifier: workspace:*
+        version: link:../packages/spatial
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../packages/std
+      '@tessera/testing':
+        specifier: workspace:*
+        version: link:../packages/testing
+    devDependencies:
+      '@types/node':
+        specifier: 24.3.1
+        version: 24.3.1
+      tsx:
+        specifier: 4.20.5
+        version: 4.20.5
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
+
   packages/agent:
     dependencies:
       '@tessera/core':
@@ -468,6 +505,9 @@ importers:
         specifier: workspace:*
         version: link:../storage
     devDependencies:
+      '@tessera/spatial':
+        specifier: workspace:*
+        version: link:../spatial
       '@types/node':
         specifier: 24.3.1
         version: 24.3.1

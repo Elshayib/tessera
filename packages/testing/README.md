@@ -15,6 +15,7 @@ Fixtures, document builder, `FakeClock`, `MemoryBlobStore`, `runCommands`, and s
 | `RecordingLlmClient` | Wraps an `LlmClient`; with `TESSERA_RECORD=1` writes redacted `fixtures/recordings/<provider>/<suite>/<case>.<model>.json`. |
 | `ReplayLlmClient` | Matches generate requests by hash of model, stripped messages, and tool names (`13` §4). |
 | `installFetchGuard()` | Fails `fetch` to non-loopback hosts (`INV-TST-01`). |
+| `expectScene(doc)` | Scene assertions from `13` §5.3 (`toHaveEntity`, `toBeOnGround`, …). |
 
 ## Dependency rules
 

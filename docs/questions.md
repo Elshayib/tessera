@@ -558,6 +558,36 @@ Question: `FakeLlmClient` must implement `LlmClient.provider`, but no fake descr
 Options: (a) omit provider (illegal) (b) `id: "fake"`, `auth: "none"`, non-configurable `baseUrl`
 Conservative choice implemented: (b) T-0212.
 
+### Q-0149 — CI `evals-replay` vs missing fixtures
+Raised by: T-0213 · Spec: `13` §5.2 vs T-0215 recordings · Status: open
+Question: Replay must fail scored cases on missing recordings, but two-provider fixtures are T-0215. Running `pnpm eval:replay` in CI now would be red.
+Options: (a) fail CI on missing recordings (b) CI job runs `@tessera/evals` tests; full `pnpm eval:replay` is T-0215
+Conservative choice implemented: (b) T-0213. `pnpm eval:replay` still uses `--mode replay`.
+
+### Q-0150 — Light color temperature in evals
+Raised by: T-0213 · Spec: `13` §5.4 vs light schema · Status: open
+Question: Lights store sRGB hex, not kelvin.
+Options: (a) add kelvin to the schema (b) approximate CCT from hex in `expectScene.toHaveLight`
+Conservative choice implemented: (b) T-0213.
+
+### Q-0151 — Default `--model` for replay
+Raised by: T-0213 · Spec: `13` §5.2 · Status: open
+Question: CLI requires `--model providerId/modelId` but replay has no live catalog.
+Options: (a) require the flag (b) default `fake/fake`
+Conservative choice implemented: (b) T-0213.
+
+### Q-0152 — `EvalContext.screenshots`
+Raised by: T-0213 · Spec: `13` §5.1 · Status: open
+Question: Screenshot bytes come from the engine; evals must stay headless (`INV-ARCH-06`).
+Options: (a) capture GPU frames in evals (b) empty `screenshots` array until a later ticket
+Conservative choice implemented: (b) T-0213.
+
+### Q-0153 — `EvalCase.category` vs §5.4 `components`
+Raised by: T-0213 · Spec: `13` §5.1 union vs §5.4 `core.add-colliders` · Status: open
+Question: §5.1’s category union omits `components`.
+Options: (a) map to `composition` (b) add `components` to the union
+Conservative choice implemented: (b) spec §5.4 names it.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
