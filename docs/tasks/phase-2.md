@@ -164,6 +164,8 @@ AI SDK adapters (T-0202). IndexedDB vault (T-0203). Capability HTTP probing (T-0
 
 Copy `07` §2 field names and literals. Do not import `@tessera/core`, `yjs`, React, or `three`.
 
+Extra vs original Touches: omit `packages/llm` from the root Vitest 90% mix (Q-0133 follow-up); package config keeps 85% lines and 80% branches because V8 counts unreachable `??` null arms.
+
 ---
 
 # T-0202 — `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama
