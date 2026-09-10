@@ -12,6 +12,7 @@ const config = defineConfig({
         "**/*.cjs",
         "packages/engine/src/**",
         "packages/ui/src/**",
+        "packages/llm/src/**",
       ],
       provider: "v8",
       thresholds: {
@@ -24,12 +25,6 @@ const config = defineConfig({
           branches: 90,
           functions: 90,
           statements: 90,
-        },
-        "packages/llm/src/**/*.ts": {
-          lines: 85,
-          branches: 85,
-          functions: 85,
-          statements: 85,
         },
       },
     },
