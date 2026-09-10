@@ -121,6 +121,9 @@ class EngineHost implements EngineHandle {
   #stats: ViewportStats = EMPTY_STATS;
   #mounted: HTMLElement | undefined;
   #observer: ResizeObserver | undefined;
+  #lastWidth = 0;
+  #lastHeight = 0;
+  #lastPixelRatio = 0;
   #dirty = false;
   #frameId: number | undefined;
   #disposed = false;
@@ -154,12 +157,14 @@ class EngineHost implements EngineHandle {
     this.#mounted = container;
     container.appendChild(this.canvas);
     this.#observer = new ResizeObserver(() => {
-      this.#resizeToContainer();
-      this.requestRender();
+      if (this.#applyContainerSize()) {
+        this.requestRender();
+      }
     });
     this.#observer.observe(container);
-    this.#resizeToContainer();
-    this.requestRender();
+    if (this.#applyContainerSize()) {
+      this.requestRender();
+    }
   }
 
   unmount(): void {
@@ -173,6 +178,9 @@ class EngineHost implements EngineHandle {
     if (parent !== null) {
       parent.removeChild(this.canvas);
     }
+    this.#lastWidth = 0;
+    this.#lastHeight = 0;
+    this.#lastPixelRatio = 0;
     this.#mounted = undefined;
   }
 
@@ -252,16 +260,27 @@ class EngineHost implements EngineHandle {
     this.#renderer.dispose();
   }
 
-  #resizeToContainer(): void {
+  #applyContainerSize(): boolean {
     const container = this.#mounted;
     if (container === undefined) {
-      return;
+      return false;
     }
     const width = Math.max(1, container.clientWidth);
     const height = Math.max(1, container.clientHeight);
     const ratio = Math.min(2, globalThis.devicePixelRatio || 1);
+    if (
+      width === this.#lastWidth &&
+      height === this.#lastHeight &&
+      ratio === this.#lastPixelRatio
+    ) {
+      return false;
+    }
+    this.#lastWidth = width;
+    this.#lastHeight = height;
+    this.#lastPixelRatio = ratio;
     this.#renderer.setPixelRatio(ratio);
     this.#renderer.setSize(width, height);
+    return true;
   }
 
   #schedule(): void {
