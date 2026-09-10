@@ -14,3 +14,12 @@ test("stats drawCalls after render", () => {
   expect(stats.frameMs).toBe(8);
   expect(stats.fps).toBe(125);
 });
+
+test("stats fps is 0 when frameMs is 0", () => {
+  const stats = viewportStats(
+    { drawCalls: 1, triangles: 0, textures: 0, geometries: 0, programs: 0 },
+    0,
+  );
+  expect(stats.fps).toBe(0);
+  expect(stats.frameMs).toBe(0);
+});
