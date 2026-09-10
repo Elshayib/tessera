@@ -24,8 +24,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tessera/core": "workspace:*",
     "@tessera/llm": "workspace:*",
-    "@tessera/std": "workspace:*"
+    "@tessera/schema": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@tessera/testing": "workspace:*",

@@ -6,5 +6,10 @@
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [{ "path": "../std" }, { "path": "../llm" }]
+  "references": [
+    { "path": "../std" },
+    { "path": "../llm" },
+    { "path": "../schema" },
+    { "path": "../core" }
+  ]
 }
