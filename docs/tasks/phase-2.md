@@ -5,8 +5,8 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
-| T-0200 | Freeze phase-2 tickets | docs | T-0122 | `in-progress` |
-| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `in-progress` |
+| T-0200 | Freeze phase-2 tickets | docs | T-0122 | `in-progress` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
+| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `in-progress` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
 | T-0202 | `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama | providers-llm | T-0201 | `in-progress` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
 | T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `in-progress` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
 | T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `in-progress` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
@@ -42,7 +42,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | Package | `docs/tasks` |
 | Size | M |
 | Depends on | T-0122 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
 
 ## Goal
 
@@ -94,7 +94,7 @@ Phase-1 tickets remain `in-progress` until PR links exist (Q-0025). This freeze 
 | Package | `@tessera/llm` |
 | Size | M |
 | Depends on | T-0200 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
 
 ## Goal
 
@@ -176,7 +176,7 @@ Extra vs original Touches: omit `packages/llm` from the root Vitest 90% mix (Q-0
 | Package | `@tessera/providers-llm` |
 | Size | L |
 | Depends on | T-0201 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
 
 ## Goal
 
@@ -266,7 +266,7 @@ IndexedDB vault (T-0203). Capability probing (T-0204). `FakeLlmClient` in `@tess
 | Package | `@tessera/providers-llm` / `apps/web` |
 | Size | M |
 | Depends on | T-0202 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
 
 ## Goal
 
@@ -331,7 +331,7 @@ Passphrase enters via factory options. Do not auto-migrate plaintext vaults to e
 | Package | `@tessera/agent` |
 | Size | M |
 | Depends on | T-0202 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
 
 ## Goal
 
@@ -403,7 +403,7 @@ Tests must not hit the network. Inject `Clock` / `FakeClock`.
 | Package | `@tessera/agent` |
 | Size | L |
 | Depends on | T-0204, T-0004 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
 
 ## Goal
 
