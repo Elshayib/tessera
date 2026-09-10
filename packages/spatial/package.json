@@ -28,7 +28,6 @@
     "@tessera/std": "workspace:*"
   },
   "devDependencies": {
-    "@tessera/core": "workspace:*",
     "@tessera/testing": "workspace:*",
     "typescript": "5.9.2",
     "vitest": "3.2.4"

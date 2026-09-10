@@ -490,6 +490,13 @@ Options: (a) invent extra fields (timeout, options) (b) `ask_user({ question })`
 Conservative choice implemented: (b) T-0205. Groups for `tools.enable` are the `06` §3 union only.
 Answer: —
 
+### Q-0138 — `layout.placeOn` `anchor: 'random'` has no seed
+Raised by: T-0206 · Spec: `04` §8.5 · Status: open
+Question: `placeOn` allows `anchor: 'random'` but the seed field is only documented on scatter.
+Options: (a) add an undocumented `seed` input (b) derive a deterministic RNG from target and surface entity ids
+Conservative choice implemented: (b) T-0206. Same document + input stays deterministic (`INV-CMD-08`).
+Answer: —
+
 ### Q-0092 — CI unit coverage and unstable empty viewport screenshot
 Raised by: main CI after T-0122 merge · Spec: `01` §7, T-0119 · Status: open
 Question: Ubuntu CI failed with branches 89.82% (threshold 90%) and Playwright `toHaveScreenshot` timing out because the Viewport region was not layout-stable. ResizeObserver always called `setSize`, which can keep the canvas (and the region) moving.

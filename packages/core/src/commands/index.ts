@@ -1,6 +1,6 @@
 import type { CommandDefinition } from "../command-types.js";
 import { assetCreate, assetDelete, assetUpdate } from "./asset.js";
-import { cameraSetMain } from "./camera.js";
+import { cameraFit, cameraSetMain } from "./camera.js";
 import { componentAdd, componentRemove, componentSet } from "./component.js";
 import {
   entityCreate,
@@ -12,6 +12,16 @@ import {
   entitySetParent,
 } from "./entity.js";
 import { environmentSet } from "./environment.js";
+import {
+  layoutAlignTo,
+  layoutArrangeGrid,
+  layoutDistribute,
+  layoutLookAt,
+  layoutPlaceOn,
+  layoutResolveOverlaps,
+  layoutScatter,
+  layoutSnapToGround,
+} from "./layout.js";
 import { materialAssign, materialCreate, materialSet } from "./material.js";
 import { metadataSet } from "./metadata.js";
 import { settingsSet } from "./settings.js";
@@ -50,4 +60,13 @@ export const CATALOG_HANDLERS: readonly CommandDefinition[] = [
   environmentSet,
   settingsSet,
   cameraSetMain,
+  layoutPlaceOn,
+  layoutSnapToGround,
+  layoutAlignTo,
+  layoutDistribute,
+  layoutArrangeGrid,
+  layoutScatter,
+  layoutLookAt,
+  layoutResolveOverlaps,
+  cameraFit,
 ];

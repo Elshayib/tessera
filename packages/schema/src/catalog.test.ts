@@ -29,6 +29,15 @@ const SPEC_COMMAND_NAMES = [
   "environment.set",
   "settings.set",
   "camera.setMain",
+  "layout.placeOn",
+  "layout.snapToGround",
+  "layout.alignTo",
+  "layout.distribute",
+  "layout.arrangeGrid",
+  "layout.scatter",
+  "layout.lookAt",
+  "layout.resolveOverlaps",
+  "camera.fit",
 ] as const;
 
 const SPEC_QUERY_NAMES = [
@@ -60,6 +69,21 @@ test("INV-CMD-10 catalog names match spec lists", () => {
   const assetImport = COMMAND_CATALOG.find((command) => command.name === "asset.import");
   expect(assetImport?.tier).toBe(3);
   expect(assetImport?.tags.includes("job")).toBe(true);
+  const macros = COMMAND_CATALOG.filter((command) => command.tags.includes("macro"));
+  expect(macros.map((command) => command.name)).toEqual([
+    "layout.placeOn",
+    "layout.snapToGround",
+    "layout.alignTo",
+    "layout.distribute",
+    "layout.arrangeGrid",
+    "layout.scatter",
+    "layout.lookAt",
+    "layout.resolveOverlaps",
+    "camera.fit",
+  ]);
+  for (const command of macros) {
+    expect(command.tier).toBe(2);
+  }
   for (const query of QUERY_CATALOG) {
     expect(query.description.length).toBeGreaterThan(0);
     expect(query.input).toBeDefined();

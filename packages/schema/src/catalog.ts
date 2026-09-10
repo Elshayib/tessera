@@ -5,7 +5,7 @@ import {
   assetImportCommand,
   assetUpdateCommand,
 } from "./commands/asset.js";
-import { cameraSetMainCommand } from "./commands/camera.js";
+import { cameraFitCommand, cameraSetMainCommand } from "./commands/camera.js";
 import {
   componentAddCommand,
   componentRemoveCommand,
@@ -21,6 +21,16 @@ import {
   entitySetParentCommand,
 } from "./commands/entity.js";
 import { environmentSetCommand } from "./commands/environment.js";
+import {
+  layoutAlignToCommand,
+  layoutArrangeGridCommand,
+  layoutDistributeCommand,
+  layoutLookAtCommand,
+  layoutPlaceOnCommand,
+  layoutResolveOverlapsCommand,
+  layoutScatterCommand,
+  layoutSnapToGroundCommand,
+} from "./commands/layout.js";
 import {
   materialAssignCommand,
   materialCreateCommand,
@@ -46,7 +56,7 @@ import {
 } from "./queries/scene.js";
 
 /**
- * Primitive v0.1 commands from `docs/04-command-bus.md` §8.1–8.4.
+ * Primitive v0.1 commands from `docs/04-command-bus.md` §8.1–8.5.
  */
 export const COMMAND_CATALOG: readonly CommandSchema[] = [
   entityCreateCommand,
@@ -76,6 +86,15 @@ export const COMMAND_CATALOG: readonly CommandSchema[] = [
   environmentSetCommand,
   settingsSetCommand,
   cameraSetMainCommand,
+  layoutPlaceOnCommand,
+  layoutSnapToGroundCommand,
+  layoutAlignToCommand,
+  layoutDistributeCommand,
+  layoutArrangeGridCommand,
+  layoutScatterCommand,
+  layoutLookAtCommand,
+  layoutResolveOverlapsCommand,
+  cameraFitCommand,
 ];
 
 export type CommandName = (typeof COMMAND_CATALOG)[number]["name"];

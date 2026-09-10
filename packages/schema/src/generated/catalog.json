@@ -10557,6 +10557,822 @@
         "mutating"
       ],
       "tier": 1
+    },
+    "layout.placeOn": {
+      "description": "Rest an entity on the top of a surface's bounds without changing rotation.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "align": {
+            "enum": [
+              "bottom"
+            ],
+            "type": "string"
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "enum": [
+                  "center",
+                  "random"
+                ],
+                "type": "string"
+              },
+              {
+                "items": false,
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ]
+          },
+          "margin": {
+            "type": "number"
+          },
+          "surface": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "target": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "target",
+          "surface"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.snapToGround": {
+      "description": "Move entities along Y until their bottoms touch a ground plane or entity top.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "ground": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "pattern": "^e_[0-9a-z]{10}$",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "path": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "const": "y0",
+                "type": "string"
+              }
+            ]
+          },
+          "targets": {
+            "items": {
+              "anyOf": [
+                {
+                  "pattern": "^e_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "targets"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.alignTo": {
+      "description": "Align target bounds to a reference on the chosen axes.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "axes": {
+            "items": {
+              "enum": [
+                "x",
+                "y",
+                "z"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "min",
+              "center",
+              "max"
+            ],
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "targets": {
+            "items": {
+              "anyOf": [
+                {
+                  "pattern": "^e_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "targets",
+          "reference",
+          "axes",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.distribute": {
+      "description": "Distribute entities along an axis with even spacing or a fixed gap.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "axis": {
+            "enum": [
+              "x",
+              "y",
+              "z"
+            ],
+            "type": "string"
+          },
+          "from": {
+            "items": false,
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "spacing": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "const": "even",
+                "type": "string"
+              }
+            ]
+          },
+          "targets": {
+            "items": {
+              "anyOf": [
+                {
+                  "pattern": "^e_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "to": {
+            "items": false,
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          }
+        },
+        "required": [
+          "targets",
+          "axis"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.arrangeGrid": {
+      "description": "Place entities on a grid in input order.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "columns": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "origin": {
+            "items": false,
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "plane": {
+            "enum": [
+              "xz",
+              "xy"
+            ],
+            "type": "string"
+          },
+          "spacing": {
+            "items": false,
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "targets": {
+            "items": {
+              "anyOf": [
+                {
+                  "pattern": "^e_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "targets",
+          "columns",
+          "spacing"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.scatter": {
+      "description": "Scatter duplicates of a template on a surface with a deterministic Poisson disk.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "alignToNormal": {
+            "type": "boolean"
+          },
+          "count": {
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "minDistance": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "randomYaw": {
+            "type": "boolean"
+          },
+          "scaleJitter": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "seed": {
+            "type": "number"
+          },
+          "surface": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "template": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "template",
+          "surface",
+          "count",
+          "seed"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "ids": {
+            "items": {
+              "pattern": "^e_[0-9a-z]{10}$",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "ids"
+        ],
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.lookAt": {
+      "description": "Rotate an entity so local −Z faces a point or entity.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "point": {
+            "anyOf": [
+              {
+                "items": false,
+                "maxItems": 3,
+                "minItems": 3,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "anyOf": [
+                  {
+                    "pattern": "^e_[0-9a-z]{10}$",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "path": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              }
+            ]
+          },
+          "target": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "up": {
+            "items": false,
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          }
+        },
+        "required": [
+          "target",
+          "point"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "layout.resolveOverlaps": {
+      "description": "Push overlapping bounds apart on XZ by a minimal translation.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "ground": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "pattern": "^e_[0-9a-z]{10}$",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "path": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "const": "y0",
+                "type": "string"
+              }
+            ]
+          },
+          "iterations": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "targets": {
+            "items": {
+              "anyOf": [
+                {
+                  "pattern": "^e_[0-9a-z]{10}$",
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "path": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "targets"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
+    },
+    "camera.fit": {
+      "description": "Position a camera entity to frame target bounds.",
+      "input": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "camera": {
+            "anyOf": [
+              {
+                "pattern": "^e_[0-9a-z]{10}$",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "path": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "direction": {
+            "enum": [
+              "keep",
+              "front",
+              "iso",
+              "top"
+            ],
+            "type": "string"
+          },
+          "padding": {
+            "type": "number"
+          },
+          "targets": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "pattern": "^e_[0-9a-z]{10}$",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "path": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "path"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "const": "all",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "required": [
+          "camera",
+          "targets"
+        ],
+        "type": "object"
+      },
+      "output": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {},
+        "type": "object"
+      },
+      "tags": [
+        "mutating",
+        "macro"
+      ],
+      "tier": 2
     }
   },
   "queries": {
