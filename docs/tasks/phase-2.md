@@ -20,7 +20,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `in-progress` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
 | T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `in-progress` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
 | T-0214 | R3F code export | exporters | T-0111 | `in-progress` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
-| T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `in-progress` |
+| T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `in-progress` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 
 ## Specs
 
@@ -1113,7 +1113,7 @@ Reuse glTF bundle + options from `code-three`. Named export factory; no default 
 | Package | `evals` / `docs` |
 | Size | S |
 | Depends on | T-0213 |
-| Status | `in-progress` |
+| Status | `in-progress` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 
 ## Goal
 
