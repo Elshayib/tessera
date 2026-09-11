@@ -204,11 +204,34 @@ function effectiveBase(kind: BuiltinProviderKind, config: ProviderConfig): strin
   return fallback ?? "";
 }
 
+/**
+ * AI SDK / OpenRouter reject `role: "system"` inside `messages` (Q-0162).
+ * Tessera `LlmMessage` still uses system rows; they become `system` on generate/stream.
+ */
+function promptFromMessages(messages: readonly LlmMessage[]): {
+  readonly messages: ModelMessage[];
+  readonly system?: string;
+} {
+  const systems: string[] = [];
+  const rest: LlmMessage[] = [];
+  for (const message of messages) {
+    if (message.role === "system") {
+      systems.push(message.content);
+      continue;
+    }
+    rest.push(message);
+  }
+  const converted = toModelMessages(rest);
+  if (systems.length === 0) {
+    return { messages: converted };
+  }
+  return { messages: converted, system: systems.join("\n\n") };
+}
+
 function toModelMessages(messages: readonly LlmMessage[]): ModelMessage[] {
   const out: ModelMessage[] = [];
   for (const message of messages) {
     if (message.role === "system") {
-      out.push({ role: "system", content: message.content });
       continue;
     }
     if (message.role === "user") {
@@ -651,9 +674,11 @@ export function createAiSdkLlmClient(
     try {
       const model = await createSdkModel(kind, config, deps, request.model.modelId, key.value);
       const tools = toolsFromSpec(request.tools);
+      const prompt = promptFromMessages(request.messages);
       const result = await generateText({
         model,
-        messages: toModelMessages(request.messages),
+        messages: prompt.messages,
+        ...(prompt.system === undefined ? {} : { system: prompt.system }),
         maxRetries: 0,
         stopWhen: stepCountIs(1),
         abortSignal: signal ?? new AbortController().signal,
@@ -724,9 +749,11 @@ export function createAiSdkLlmClient(
         try {
           const model = await createSdkModel(kind, config, deps, request.model.modelId, key.value);
           const tools = toolsFromSpec(request.tools);
+          const prompt = promptFromMessages(request.messages);
           const result = streamText({
             model,
-            messages: toModelMessages(request.messages),
+            messages: prompt.messages,
+            ...(prompt.system === undefined ? {} : { system: prompt.system }),
             maxRetries: 0,
             stopWhen: stepCountIs(1),
             abortSignal: signal ?? new AbortController().signal,

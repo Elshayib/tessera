@@ -129,6 +129,11 @@ export function ChatPanel(props: ChatPanelProps): ReactElement {
       if (event.type === "model.delta") {
         setStreamText((current) => `${current}${event.text}`);
       }
+      if (event.type === "run.failed") {
+        setStreamText((current) =>
+          current.length === 0 ? event.error.message : `${current}\n${event.error.message}`,
+        );
+      }
       if (
         event.type === "run.completed" ||
         event.type === "run.failed" ||

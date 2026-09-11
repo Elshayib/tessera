@@ -1,5 +1,5 @@
 import type { KeyVault } from "@tessera/llm";
-import { userText } from "@tessera/llm";
+import { systemMessage, userText } from "@tessera/llm";
 import type { TesseraError } from "@tessera/std";
 import { createLogger, createMemorySink, isOk, ok } from "@tessera/std";
 import { FakeClock } from "@tessera/testing";
@@ -307,6 +307,65 @@ test("stream retries retryable failures", async () => {
     { providerId: "openai", apiKeyRef: "vault-ref" },
     wired.deps,
   ).stream(echoRequest)) {
+    events.push(event);
+  }
+  expect(events.at(-1)?.type).toBe("done");
+});
+
+test("system messages use the AI SDK system option", async () => {
+  let promptJson = "";
+  const model = new MockLanguageModelV3({
+    doGenerate: async ({ prompt }) => {
+      promptJson = JSON.stringify(prompt);
+      return {
+        content: [{ type: "text", text: "ok" }],
+        finishReason: "stop",
+        usage: { inputTokens: 1, outputTokens: 1 },
+        warnings: [],
+      };
+    },
+  });
+  const wired = deps(model);
+  const result = await createOpenAIClient(
+    { providerId: "openai", apiKeyRef: "vault-ref" },
+    wired.deps,
+  ).generate({
+    model: echoRequest.model,
+    messages: [systemMessage("You are Tessera."), userText("Add a cube.")],
+  });
+  expect(isOk(result)).toBe(true);
+  expect(promptJson.includes("You are Tessera.")).toBe(true);
+});
+
+test("stream with a system message ends with done", async () => {
+  const model = new MockLanguageModelV3({
+    doStream: {
+      stream: convertArrayToReadableStream([
+        { type: "stream-start", warnings: [] },
+        { type: "text-start", id: "t" },
+        { type: "text-delta", id: "t", delta: "ok" },
+        { type: "text-end", id: "t" },
+        {
+          type: "finish",
+          finishReason: { unified: "stop", raw: "stop" },
+          usage: {
+            inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 },
+            outputTokens: { total: 1, text: 1, reasoning: 0 },
+          },
+        },
+      ]),
+    },
+  });
+  const wired = deps(model);
+  const events = [];
+  for await (const event of createOpenAIClient(
+    { providerId: "openai", apiKeyRef: "vault-ref" },
+    wired.deps,
+  ).stream({
+    model: echoRequest.model,
+    messages: [systemMessage("You are Tessera."), userText("Add a cube.")],
+    tools: echoRequest.tools,
+  })) {
     events.push(event);
   }
   expect(events.at(-1)?.type).toBe("done");

@@ -1,6 +1,6 @@
 # 07 — Providers: language models and generation models
 
-Status: Accepted · Last updated: 2026-09-06 · Packages: `@tessera/llm`, `@tessera/providers-llm`, `@tessera/generation`, `@tessera/providers-generation` · Phase: 2 (LLM), 3 (generation)
+Status: Accepted · Last updated: 2026-09-11 · Packages: `@tessera/llm`, `@tessera/providers-llm`, `@tessera/generation`, `@tessera/providers-generation` · Phase: 2 (LLM), 3 (generation)
 
 ## 1. Purpose and scope
 
@@ -121,7 +121,7 @@ Probing runs once per `ModelRef` (cached 7 days in settings; re-run on demand) u
 
 ## 4. AI SDK adapter (`@tessera/providers-llm`)
 
-- One adapter module per provider kind, each exporting `createXxxClient(config, deps): LlmClient`. All share `src/internal/ai-sdk-bridge.ts` which maps `LlmRequest` ↔ AI SDK calls (`streamText`/`generateText` with `tools` built from `ToolSpec.inputSchema` via `jsonSchema()`), and maps AI SDK stream parts to `LlmStreamEvent`.
+- One adapter module per provider kind, each exporting `createXxxClient(config, deps): LlmClient`. All share `src/internal/ai-sdk-bridge.ts` which maps `LlmRequest` ↔ AI SDK calls (`streamText`/`generateText` with `tools` built from `ToolSpec.inputSchema` via `jsonSchema()`), and maps AI SDK stream parts to `LlmStreamEvent`. Tessera `role: "system"` messages are passed as the AI SDK `system` option, not as `messages[]` rows (Q-0162).
 - The AI SDK version is pinned; the bridge is the only file allowed to change on SDK upgrades. Adapter tests run against recorded HTTP fixtures (`@tessera/testing` recorder) and never against live endpoints in CI.
 - Provider specifics:
   - **OpenAI**: `@ai-sdk/openai`; Responses API; lists models.
