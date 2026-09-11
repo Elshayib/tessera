@@ -27,7 +27,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0219 | Abort in-flight `LlmClient.stream` on cancel | agent | T-0218 | `done` ([#57](https://github.com/Elshayib/tessera/pull/57)) |
 | T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `done` ([#58](https://github.com/Elshayib/tessera/pull/58)) |
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
-| T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `in-progress` |
+| T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
 
 ## Specs
 
