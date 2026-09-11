@@ -29,6 +29,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
 | T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
 | T-0223 | Persist chat transcripts in IndexedDB from editor bootstrap | web | T-0210 | `done` ([#62](https://github.com/Elshayib/tessera/pull/62)) |
+| T-0224 | Seed AgentRuntime messages from transcript.recent | agent, web | T-0207, T-0210 | `in-progress` |
 
 ## Specs
 
@@ -1686,5 +1687,71 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Hydrating chat UI from `recent`. Usage ledger persistence. Git-tag `m2-agent-v1`. Claiming the human trial is done.
+
+# T-0224 — Seed AgentRuntime messages from transcript.recent
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/agent`, `apps/web` |
+| Size | S |
+| Depends on | T-0207 (`done`), T-0210 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+Each `AgentRuntime.run` prefixes the LLM request with `transcript.recent(conversationId, tokenBudget)` before the current user turn (`06` §4), so later prompts in the same conversation see prior turns.
+
+## Context
+
+- Spec: `docs/06-agent-runtime.md` §3 (`AgentRuntime.transcripts`), §4 (`messages = transcript.recent(...) + [user(prompt + context)]`)
+- T-0207 implemented the loop with `[system, user]` only; T-0210/T-0223 persist entries the loop never reads
+- Q-0169 (chat also appends the user turn), Q-0170 (default memory store when not injected)
+
+## Touches
+
+```
+packages/agent/src/loop.ts
+packages/agent/src/loop.test.ts
+packages/agent/src/runtime.ts
+packages/agent/README.md
+apps/web/src/create-agent-runtime.ts
+apps/web/src/create-agent-runtime.test.ts
+apps/web/src/app.tsx
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] `createAgentRuntime` exposes `transcripts` (memory default)
+- [ ] Loop seeds from `recent` before the current user payload
+- [ ] Editor passes `editor.transcripts` into `createWebAgentRuntime`
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Inject `TranscriptStore` into the loop; wire the web factory.
+3. Run gates.
+
+## Acceptance criteria
+
+1. A prior user message in the store for the same `conversationId` appears in the first `llm.stream` request, before the current prompt payload.
+2. When `recent` fails, the run still proceeds with system + current user only.
+3. `createWebAgentRuntime` uses the injected store (editor IndexedDB façade).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'run seeds messages from transcript.recent'` | `packages/agent/src/loop.test.ts` |
+| `'run proceeds when transcript.recent fails'` | `packages/agent/src/loop.test.ts` |
+| `'createWebAgentRuntime streams prior transcript turns'` | `apps/web/src/create-agent-runtime.test.ts` |
+
+## Non-goals
+
+Hydrating chat UI from `recent`. Loop `transcript.append`. Usage ledger persistence. Live probe. Git-tag `m2-agent-v1`. Claiming the human trial is done.
 
 

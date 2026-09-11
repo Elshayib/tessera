@@ -683,6 +683,20 @@ Options: (a) keep memory (b) a sync `TranscriptStore` façade that opens Indexed
 Conservative choice implemented: (b) T-0223. Chat UI still does not hydrate `recent` into the panel.
 Answer: —
 
+### Q-0169 — Chat appends the user turn before the loop adds user(prompt+context)
+Raised by: T-0224 · Spec: `06` §4 `messages = transcript.recent + [user(prompt + context)]`; T-0210 ChatPanel `append` · Status: open
+Question: ChatPanel writes the bare user prompt into the store, then `run()` starts. Literal `recent + [user(prompt+context)]` can send that prompt twice (bare, then with scene context).
+Options: (a) drop the last stored user message when it equals `request.prompt` (b) stop ChatPanel from appending before run (c) keep both
+Conservative choice implemented: (c) T-0224. The loop does not rewrite ChatPanel persistence.
+Answer: —
+
+### Q-0170 — AgentRuntime.transcripts was omitted
+Raised by: T-0224 · Spec: `06` §3 `readonly transcripts: TranscriptStore` · Status: open
+Question: T-0207's `createAgentRuntime` had no `transcripts` field, so tests and the editor never injected a store into the loop.
+Options: (a) required argument, no default (b) optional inject, default `createMemoryTranscriptStore()`
+Conservative choice implemented: (b) T-0224 so existing harnesses keep working; the editor passes the IndexedDB façade.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
