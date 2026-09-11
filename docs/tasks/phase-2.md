@@ -25,6 +25,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `done` ([#54](https://github.com/Elshayib/tessera/pull/54)) |
 | T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `done` ([#55](https://github.com/Elshayib/tessera/pull/55)) |
 | T-0219 | Abort in-flight `LlmClient.stream` on cancel | agent | T-0218 | `done` ([#57](https://github.com/Elshayib/tessera/pull/57)) |
+| T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `in-progress` |
 
 ## Specs
 
@@ -1419,5 +1420,68 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Chat UI. IndexedDB vault. Hydrating settings. Turning on `agentVerifyLoop` / `agentDryRun`. Git-tag `m2-agent-v1`. Claiming the human trial is done. `AbortSignal.timeout` for `timeoutMs` (still checked between steps).
+
+---
+
+# T-0220 — Hydrate Settings roles and budgets from localStorage
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/ui` |
+| Size | S |
+| Depends on | T-0211 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+Provider Settings that were written to `tessera.ui.settings` are restored on load so role `ModelRef`s and budgets survive reload (`02` §9).
+
+## Context
+
+- Spec: `docs/02-architecture.md` §9 provider settings persist; `docs/07-providers.md` §4–§7; T-0211 persist without read
+- Q-0165
+- Live trial: reload reset planner/executor/critic to `openai/` even though `setRoleModel` had written localStorage
+
+## Touches
+
+```
+packages/ui/src/settings/settings-store.ts
+packages/ui/src/settings/settings-store.test.ts
+packages/ui/src/index.ts
+packages/ui/README.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Store initializes from `tessera.ui.settings` when the JSON is valid
+- [ ] Invalid JSON keeps defaults
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Read localStorage in the same shape `persist` writes (layout-store pattern).
+3. Run gates.
+
+## Acceptance criteria
+
+1. After `setRoleModel` / `setBudget` / `setCompatibleOrigin`, `readStoredProviderSettings` returns those values from localStorage.
+2. Malformed or missing storage yields `emptyRoleModels()` and `SETTINGS_RUN_POLICY_DEFAULTS` numeric fields.
+3. Keys are still not in the snapshot (`INV-ARCH-04`); this ticket does not persist secrets.
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'provider settings round-trip through localStorage'` | `packages/ui/src/settings/settings-store.test.ts` |
+| `'malformed settings storage keeps defaults'` | `packages/ui/src/settings/settings-store.test.ts` |
+
+## Non-goals
+
+IndexedDB vault. Chat UI. List models / test connection. Turning on verify flags. Git-tag `m2-agent-v1`. Claiming the human trial is done.
 
 

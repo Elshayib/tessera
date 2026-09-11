@@ -655,6 +655,13 @@ Options: (a) leave abort to the next inter-step `haltRun` (b) pass the run signa
 Conservative choice implemented: (b) T-0219. No `AbortSignal.timeout` for `timeoutMs` in this ticket (budget still checked between steps).
 Answer: —
 
+### Q-0165 — Settings persist without hydrate
+Raised by: T-0220 · Spec: `02` §9 provider settings persist; T-0211 store · Status: open
+Question: `useProviderSettingsStore` wrote `tessera.ui.settings` on every setter but initialized from `emptyRoleModels()` / policy defaults. Reload showed `openai/` roles. `02` §9 says the settings store is persisted. Keys stay in `KeyVault` (T-0216 memory vault is a separate gap).
+Options: (a) drop persist (b) read the same JSON on store create, like `useLayoutStore`
+Conservative choice implemented: (b) T-0220. Invalid JSON uses defaults. Secrets are not stored in this key.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
