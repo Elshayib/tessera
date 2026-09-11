@@ -12,6 +12,7 @@ test("bootstrap empty document validates", () => {
   expect(ctx.agentVerify).toBe("none");
   expect(ctx.engine).toBeUndefined();
   expect(ctx.queries.list().length).toBeGreaterThan(0);
+  expect(typeof Reflect.get(ctx.queries, "query")).toBe("function");
 });
 
 test("bootstrap includes KeyVault for Settings", () => {

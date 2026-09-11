@@ -1,6 +1,7 @@
-import { SettingsPanel, Shell, useSelectionStore } from "@tessera/ui";
+import { SettingsPanel, Shell, useProviderSettingsStore, useSelectionStore } from "@tessera/ui";
 import type { ReactElement } from "react";
 import { AssetPanel } from "./asset-panel/asset-panel.js";
+import { createWebAgentRuntime } from "./create-agent-runtime.js";
 import { CreateMenu } from "./create-menu/create-menu.js";
 import type { EditorContext } from "./editor-context.js";
 import { EditorProvider, useEditor } from "./editor-context.js";
@@ -41,8 +42,30 @@ function EditorShell(): ReactElement {
         projectId: "p_local00000",
         conversationId: "c_editor",
         selection,
+        verify: editor.agentVerify,
+        createRuntime: () => resolveEditorRuntime(editor),
         ...(focusedId === null ? {} : { focusedEntity: focusedId }),
       }}
     />
   );
+}
+
+async function resolveEditorRuntime(editor: EditorContext) {
+  const settings = useProviderSettingsStore.getState();
+  const created = await createWebAgentRuntime({
+    bus: editor.commands,
+    queries: editor.queries,
+    jobs: editor.jobs,
+    logger: editor.logger,
+    clock: editor.clock,
+    vault: editor.keyVault,
+    executor: settings.roles.executor,
+    planner: settings.roles.planner,
+    critic: settings.roles.critic,
+    compatibleOrigin: settings.compatibleOrigin,
+  });
+  if (!created.ok) {
+    return undefined;
+  }
+  return created.value;
 }

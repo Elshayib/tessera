@@ -87,6 +87,9 @@ importers:
       '@tessera/llm':
         specifier: workspace:*
         version: link:../../packages/llm
+      '@tessera/providers-llm':
+        specifier: workspace:*
+        version: link:../../packages/providers-llm
       '@tessera/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -112,6 +115,9 @@ importers:
       '@size-limit/file':
         specifier: 11.2.0
         version: 11.2.0(size-limit@11.2.0)
+      '@tessera/testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@types/react':
         specifier: 19.2.18
         version: 19.2.18

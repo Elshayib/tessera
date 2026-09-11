@@ -21,6 +21,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `done` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
 | T-0214 | R3F code export | exporters | T-0111 | `done` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
 | T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
+| T-0216 | Wire editor chat to AgentRuntime (browser prompts) | web, agent | T-0211, T-0215 | `in-progress` |
 
 ## Specs
 
@@ -1162,3 +1163,66 @@ Cutting the `m2-agent-v1` tag. Live evals in CI. Extended suites. Claiming the n
 Do not lower 90% or drop `INV-TST-02`. Maintainers produce recordings with `TESSERA_RECORD=1` locally; this ticket commits redacted fixtures and the existence gate.
 
 Extra vs original Touches: `pnpm-lock.yaml` (T-0213 dropped `@tessera/spatial` from `@tessera/testing` without refreshing the lockfile); `apps/web` `bootstrap.ts` / `editor-context.tsx` / `isolation.test.ts` so the editor imports `@tessera/agent/observability` (Q-0143) and Vite does not bundle `prompts/build.js` (`node:fs`); `evals` `load-recordings.ts` / `oracle-llm.ts` (`noUncheckedIndexedAccess`); empty-viewport screenshot + engine no-op resize (Q-0158); root Vitest omits `packages/llm` from the 90% mix (Q-0159); `packages/testing/src/expect-scene.test.ts` (light/camera/facing branches so the workspace 90% floor holds).
+
+---
+
+# T-0216 — Wire editor chat to AgentRuntime (browser prompts)
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `apps/web`, `@tessera/agent` |
+| Size | M |
+| Depends on | T-0211, T-0215 |
+| Status | `in-progress` |
+
+## Goal
+
+Chat streams `AgentRuntime.run` in `apps/web` so a tester can complete the three `13` §5.4 prompts. Prompt assembly does not use `node:fs` (Q-0143 a, Q-0161). `EditorContext.agent` remains optional until an executor model is configured (`02` §7).
+
+## Context
+
+- Spec: `docs/02-architecture.md` §7 · `docs/06-agent-runtime.md` §3–§4 · T-0210 AC1 · Q-0143
+- T-0203: do not static-import `@tessera/providers-llm` from bootstrap if that pulls `ai` into the empty-editor graph
+
+## Touches
+
+```
+packages/agent/src/prompts/build.ts
+packages/agent/src/prompts/sections.ts
+packages/agent/src/prompts/build.test.ts
+packages/agent/src/observability.ts
+packages/agent/README.md
+apps/web/src/create-agent-runtime.ts
+apps/web/src/create-agent-runtime.test.ts
+apps/web/src/app.tsx
+apps/web/src/bootstrap.ts
+apps/web/src/bootstrap.test.ts
+apps/web/package.json
+packages/ui/src/chat/chat-panel.tsx
+packages/ui/src/chat/chat-panel.test.ts
+docs/questions.md
+docs/runbooks/phase-2-agent-check.md
+docs/tasks/phase-2.md
+```
+
+## Acceptance criteria
+
+1. `buildSystemPrompt` does not import `node:fs`. Snapshot still matches `system-prompt.md`.
+2. Chat `createRuntime` constructs `AgentRuntime` from Settings role models + `KeyVault` via a dynamic `@tessera/providers-llm` import.
+3. Missing executor `modelId` returns `INVALID_INPUT` and chat stays transcript-only.
+4. `?flag=agentVerifyLoop` is still required for spatial verify; default remains `none`.
+5. UI still must not import `@tessera/providers-llm`. Web production sources still must not static-import `@tessera/agent` (dynamic import only).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'prompt sections are inlined without node:fs'` | `packages/agent/src/prompts/build.test.ts` |
+| `'createWebAgentRuntime requires executor modelId'` | `apps/web/src/create-agent-runtime.test.ts` |
+| `'createWebAgentRuntime runs with an injected LlmClient'` | `apps/web/src/create-agent-runtime.test.ts` |
+| `'chat createRuntime is used when runtime is omitted'` | `packages/ui/src/chat/chat-panel.test.ts` |
+
+## Non-goals
+
+Turning `agentVerifyLoop` on. Live probe on first send. IndexedDB vault in sync bootstrap. Claiming the human trial is done. Git-tag `m2-agent-v1`.

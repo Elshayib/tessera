@@ -7,6 +7,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` Â
 | Export | Description |
 | --- | --- |
 | `bootstrap` | Empty project + command bus, queries, undo, jobs, storage, assets. |
+| `createWebAgentRuntime` | Lazy `AgentRuntime` for chat (dynamic providers-llm import, Q-0161). |
 | `parseFlags` / `defaultFlags` | Typed flags; `?flag=` only in development. |
 | `EditorProvider` / `useEditor` | React context for the composition root. |
 | `CreateMenu` | Command-bus create actions, gated by `flags.createMenu`. |

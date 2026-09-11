@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import type { CapabilityProfile } from "../types.js";
 import { buildSystemPrompt, describeMaxChars } from "./build.js";
+import { PROMPT_SECTIONS } from "./sections.js";
 
 const profile: CapabilityProfile = {
   ref: { providerId: "test", modelId: "m" },
@@ -21,4 +22,9 @@ test("prompt snapshots", async () => {
   expect(describeMaxChars(32_000)).toBe(2_560);
   expect(describeMaxChars(8_000)).toBe(2_048);
   expect(describeMaxChars(1_000_000)).toBe(24_576);
+});
+
+test("prompt sections are inlined without node:fs", () => {
+  expect(PROMPT_SECTIONS["01-identity.md"].includes("tools")).toBe(true);
+  expect(PROMPT_SECTIONS["json-mode.md"].includes("tool")).toBe(true);
 });

@@ -21,7 +21,7 @@ Recordings live at `evals/fixtures/recordings/<providerId>/core/<case>.<modelId>
 
 ## Three scripted prompt-only tasks
 
-Use only these prompts from `13` §5.4. Do not invent capabilities.
+In Settings, save a BYOK key and set the executor (and optionally planner) to `providerId/modelId` (for example `openai/gpt-4o`). Then use only these prompts from `13` §5.4. Do not invent capabilities.
 
 1. "Add a red cube 1 m on each side at the origin."
 2. "Create a table with four chairs around it."

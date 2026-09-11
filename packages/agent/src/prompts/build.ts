@@ -1,10 +1,6 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import type { ToolDefinition } from "../tools/types.js";
 import type { CapabilityProfile } from "../types.js";
-
-const PROMPT_DIR = fileURLToPath(new URL(".", import.meta.url));
+import { PROMPT_SECTIONS } from "./sections.js";
 
 /**
  * Outline `maxChars` = 8% of the context window, min 2 KB, max 24 KB (`06` §4).
@@ -57,6 +53,6 @@ export function buildSystemPrompt(input: {
   return sections.join("\n\n");
 }
 
-function readSection(name: string): string {
-  return readFileSync(join(PROMPT_DIR, name), "utf8").trim();
+function readSection(name: keyof typeof PROMPT_SECTIONS): string {
+  return PROMPT_SECTIONS[name].trim();
 }

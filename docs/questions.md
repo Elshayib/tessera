@@ -630,6 +630,12 @@ Question: V8 counts `??` as separate `null` and `undefined` branches. Callers ar
 Options: (a) force `null` through `as` in tests (b) keep 85% lines/functions/statements and 80% branches on the package config
 Conservative choice implemented: (b) T-0215. Root mix still omits llm (Q-0159).
 
+### Q-0161 — Browser AgentRuntime vs `node:fs` prompts
+Raised by: T-0216 · Spec: `02` §7 `agent?`, T-0210 AC1, Q-0143 · Status: open
+Question: T-0210 deferred rewriting prompt files (Q-0143 a) and mounted chat without `AgentRuntime`, so prompt-only tasks cannot run. `02` §7 says `agent` is absent only when no provider is configured.
+Options: (a) keep chat as a transcript-only stub (b) inline prompt sections and construct `AgentRuntime` in `apps/web` via a dynamic `@tessera/providers-llm` import
+Conservative choice implemented: (b) T-0216. No live capability probe on first send; loop `profileOf` uses the conservative fallback. `agentVerifyLoop` stays off.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
