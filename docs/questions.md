@@ -588,6 +588,18 @@ Question: §5.1’s category union omits `components`.
 Options: (a) map to `composition` (b) add `components` to the union
 Conservative choice implemented: (b) spec §5.4 names it.
 
+### Q-0154 — `code-r3f` `Canvas` wrapper
+Raised by: T-0214 · Spec: `09` §6 · Status: open
+Question: `useGLTF` and `Environment` require a React Three Fiber canvas, but the spec only names `Scene.tsx`.
+Options: (a) export a canvas-free body (b) wrap `Canvas` in `Scene` and keep hooks in a child
+Conservative choice implemented: (b) T-0214. Hooks live in `SceneContent`.
+
+### Q-0155 — Punctual lights in `Scene.tsx`
+Raised by: T-0214 · Spec: `09` §6 vs `code-three` · Status: open
+Question: Punctual lights are already in the glTF graph that `useGLTF` loads. `code-three` only extra-emits area lights.
+Options: (a) duplicate punctual lights in JSX (b) emit `ambientLight` plus area `rectAreaLight` only
+Conservative choice implemented: (b) T-0214, matching `code-three`.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
