@@ -1045,7 +1045,7 @@ Extended suites (`13` §5.5). Live CI. Implementing `checkScene`. Phase-3 genera
 
 ## Notes for the implementing agent
 
-`INV-TST-02` two-provider recordings are demonstrated in T-0215; this ticket must make the layout and case ids ready. Extra Touches: `evals/src/cli.ts`, `evals/tsconfig.json`, `evals/vitest.config.ts`, `evals/src/types.ts`, workspace/tsconfig/knip/vitest, Q-0149–Q-0153.
+`INV-TST-02` two-provider recordings are demonstrated in T-0215; this ticket must make the layout and case ids ready. Extra Touches: `evals/src/cli.ts`, `evals/tsconfig.json`, `evals/vitest.config.ts`, `evals/src/types.ts`, workspace/tsconfig/knip/vitest, Q-0149–Q-0153. `packages/testing/src/expect-scene.test.ts` covers light/camera/facing so the workspace 95% line floor holds.
 
 ---
 
