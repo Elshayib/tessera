@@ -33,6 +33,8 @@ export { createMemoryTranscriptStore } from "./transcript/memory.js";
 export type { ConversationSummary, TranscriptEntry, TranscriptStore } from "./transcript/store.js";
 export type { CapabilityProfile, ResolvedRoles, Role, RoleSources } from "./types.js";
 export { wrapUntrusted } from "./untrusted.js";
+export type { IndexedDbUsageLedger } from "./usage-idb.js";
+export { createIndexedDbUsageLedger } from "./usage-idb.js";
 export type { UsageLedger, UsageRecord, UsageTotals } from "./usage-ledger.js";
 export { createUsageLedger } from "./usage-ledger.js";
 export type { Verifier, VerifyInput } from "./verifier.js";

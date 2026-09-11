@@ -29,7 +29,8 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
 | T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
 | T-0223 | Persist chat transcripts in IndexedDB from editor bootstrap | web | T-0210 | `done` ([#62](https://github.com/Elshayib/tessera/pull/62)) |
-| T-0224 | Seed AgentRuntime messages from transcript.recent | agent, web | T-0207, T-0210 | `in-progress` |
+| T-0224 | Seed AgentRuntime messages from transcript.recent | agent, web | T-0207, T-0210 | `done` ([#64](https://github.com/Elshayib/tessera/pull/64)) |
+| T-0225 | Persist UsageLedger with transcripts in IndexedDB | agent, web | T-0210, T-0223 | `in-progress` |
 
 ## Specs
 
@@ -1696,7 +1697,7 @@ Hydrating chat UI from `recent`. Usage ledger persistence. Git-tag `m2-agent-v1`
 | Package | `@tessera/agent`, `apps/web` |
 | Size | S |
 | Depends on | T-0207 (`done`), T-0210 (`done`) |
-| Status | `in-progress` |
+| Status | `done` ([#64](https://github.com/Elshayib/tessera/pull/64)) |
 
 ## Goal
 
@@ -1753,5 +1754,75 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Hydrating chat UI from `recent`. Loop `transcript.append`. Usage ledger persistence. Live probe. Git-tag `m2-agent-v1`. Claiming the human trial is done.
+
+# T-0225 — Persist UsageLedger with transcripts in IndexedDB
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/agent`, `apps/web` |
+| Size | S |
+| Depends on | T-0210 (`done`), T-0223 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+Settings monthly usage and chat run counters survive reload because `UsageLedger` is persisted with transcripts (`07` §7) in IndexedDB `tessera-transcripts`.
+
+## Context
+
+- Spec: `docs/07-providers.md` §7 (`UsageLedger` persisted with transcripts); `docs/15-observability.md` §3
+- T-0210 shipped an in-memory ledger; bootstrap still calls `createUsageLedger()`
+- Q-0171 (sync `record`/`forRun` vs async IDB), Q-0172 (same DB, version 2)
+
+## Touches
+
+```
+packages/agent/src/transcript/idb.ts
+packages/agent/src/transcript/idb.test.ts
+packages/agent/src/usage-idb.ts
+packages/agent/src/usage-idb.test.ts
+packages/agent/src/observability.ts
+packages/agent/src/index.ts
+packages/agent/README.md
+apps/web/src/browser-usage-ledger.ts
+apps/web/src/browser-usage-ledger.test.ts
+apps/web/src/bootstrap.ts
+apps/web/src/bootstrap.test.ts
+apps/web/README.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] IndexedDB usage store on `tessera-transcripts` (DB version 2)
+- [ ] Sync editor façade with memory fallback
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Add the usage store and bootstrap façade.
+3. Run gates.
+
+## Acceptance criteria
+
+1. Two IndexedDB usage ledgers that open the same database see a row recorded by the first.
+2. When `open` fails, `record`/`forProject` still work against the in-memory fallback (same instance).
+3. Bootstrap assigns the façade, not a throwaway memory ledger.
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'indexeddb usage ledger persists across open'` | `packages/agent/src/usage-idb.test.ts` |
+| `'browser usage persists across façade instances'` | `apps/web/src/browser-usage-ledger.test.ts` |
+| `'browser usage falls back to memory when open fails'` | `apps/web/src/browser-usage-ledger.test.ts` |
+
+## Non-goals
+
+Calendar-month filtering (T-0210 `monthlyByProvider` is all-time). Chat UI hydrate. Passphrase UI. Git-tag `m2-agent-v1`. Claiming the human trial is done.
 
 

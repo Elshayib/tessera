@@ -16,7 +16,7 @@ Capability probing, role assignment, the agent `ToolRegistry`, `AgentRuntime.run
 | `createSceneVerifier` / `createSkipVerifier` | Spatial then optional vision critic |
 | `createMemoryTranscriptStore` / `createIndexedDbTranscriptStore` | Project-local transcripts; never synced (`06` §13) |
 | `buildRunTrace` | Root `run` span plus one `step` span per model call (`INV-OBS-03`) |
-| `createUsageLedger` | Per run / conversation / project token and cost totals (`07` §7) |
+| `createUsageLedger` / `createIndexedDbUsageLedger` | Per run / conversation / project token and cost totals (`07` §7); IDB rows live on `tessera-transcripts` |
 | `@tessera/agent/observability` | Transcripts, traces, and ledger without importing the run loop (for `@tessera/ui`) |
 | `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
