@@ -24,7 +24,11 @@ export { BUILTIN_DESCRIPTORS, BUILTIN_PROVIDER_IDS } from "./settings/providers.
 export type { SettingsPanelProps } from "./settings/settings.js";
 export { SettingsPanel, UNENCRYPTED_VAULT_WARNING } from "./settings/settings.js";
 export type { ProviderSettingsState } from "./settings/settings-store.js";
-export { useProviderSettingsStore } from "./settings/settings-store.js";
+export {
+  readStoredProviderSettings,
+  SETTINGS_STORAGE_KEY,
+  useProviderSettingsStore,
+} from "./settings/settings-store.js";
 export { Shell } from "./shell.js";
 export { TOKEN_ACCENT, TOKENS_CSS } from "./tokens.js";
 export { ViewportHost } from "./viewport-host.js";
