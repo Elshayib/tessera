@@ -7,10 +7,11 @@ import {
   createQueryHost,
   createUndoService,
 } from "@tessera/core";
+import type { KeyVault } from "@tessera/llm";
 import { createLogger, systemClock } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
 import { MemoryProjectStore } from "@tessera/storage";
-import { createMemoryKeyVault } from "@tessera/ui";
+import { createBrowserKeyVault } from "./browser-key-vault.js";
 import type { EditorContext } from "./editor-context.js";
 import { bootstrapVerifyMode, parseFlags } from "./flags.js";
 
@@ -23,6 +24,7 @@ export interface BootstrapOptions {
   readonly storage?: ProjectStore;
   readonly search?: string;
   readonly isDev?: boolean;
+  readonly keyVault?: KeyVault;
 }
 
 /**
@@ -63,7 +65,7 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     agentVerify: bootstrapVerifyMode(flags),
     transcripts: createMemoryTranscriptStore(),
     usage: createUsageLedger(),
-    keyVault: createMemoryKeyVault(),
+    keyVault: options.keyVault ?? createBrowserKeyVault({ clock, logger }),
   };
   return context;
 }

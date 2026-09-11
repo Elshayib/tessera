@@ -662,6 +662,13 @@ Options: (a) drop persist (b) read the same JSON on store create, like `useLayou
 Conservative choice implemented: (b) T-0220. Invalid JSON uses defaults. Secrets are not stored in this key.
 Answer: —
 
+### Q-0166 — IndexedDB vault deferred from sync bootstrap
+Raised by: T-0221 · Spec: `07` §6 `tessera-vault`; `02` §9 keys persist; T-0203 AC5; T-0216 non-goal · Status: open
+Question: T-0203 forbids a static `@tessera/providers-llm` import from bootstrap (it would pull `ai` into the empty-editor graph). T-0216 used `createMemoryKeyVault()`, so BYOK keys died on reload. `createIndexedDbKeyVault` is async.
+Options: (a) keep the memory vault (b) a sync `KeyVault` façade that `await import("@tessera/providers-llm")` on the first `get`/`set`/`delete`/`list`/`unlock`, falling back to memory if IndexedDB is missing
+Conservative choice implemented: (b) T-0221. No passphrase UI change (`vaultEncrypted` stays false until a later ticket). `locked` is accurate only after the inner vault has opened.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
