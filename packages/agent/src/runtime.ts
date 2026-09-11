@@ -7,6 +7,8 @@ import type { LoopDeps } from "./loop.js";
 import { runLoop } from "./loop.js";
 import type { RunEvent, RunRequest } from "./run-types.js";
 import type { ToolRegistry } from "./tools/types.js";
+import { createMemoryTranscriptStore } from "./transcript/memory.js";
+import type { TranscriptStore } from "./transcript/store.js";
 import type { CapabilityProfile, ResolvedRoles } from "./types.js";
 import { createSkipVerifier, type Verifier } from "./verifier.js";
 
@@ -19,6 +21,7 @@ export interface AgentRuntime {
   run(request: RunRequest, signal?: AbortSignal): AsyncIterable<RunEvent>;
   cancel(runId: string): void;
   readonly tools: ToolRegistry;
+  readonly transcripts: TranscriptStore;
 }
 
 /**
@@ -45,6 +48,7 @@ export function createAgentRuntime(input: {
   readonly verifier?: Verifier;
   readonly newRunId?: () => string;
   readonly reader?: CheckSceneReader;
+  readonly transcripts?: TranscriptStore;
 }): AgentRuntime {
   const cancelled = new Set<string>();
   const controllers = new Map<string, AbortController>();
@@ -52,8 +56,10 @@ export function createAgentRuntime(input: {
   const verifier = input.verifier ?? createSkipVerifier();
   const clock = input.clock ?? systemClock;
   const newRunId = input.newRunId ?? (() => newId("r"));
+  const transcripts = input.transcripts ?? createMemoryTranscriptStore();
   return {
     tools: input.tools,
+    transcripts,
     cancel(runId) {
       cancelled.add(runId);
       controllers.get(runId)?.abort();
@@ -75,6 +81,7 @@ export function createAgentRuntime(input: {
         verifier,
         profiles: input.profiles,
         roles: input.roles,
+        transcripts,
         ...(input.reader === undefined ? {} : { reader: input.reader }),
       };
       return endRun(

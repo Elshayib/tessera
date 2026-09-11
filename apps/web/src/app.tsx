@@ -74,6 +74,7 @@ async function resolveEditorRuntime(editor: EditorContext) {
     planner: settings.roles.planner,
     critic: settings.roles.critic,
     compatibleOrigin: settings.compatibleOrigin,
+    transcripts: editor.transcripts,
   });
   if (!created.ok) {
     return undefined;

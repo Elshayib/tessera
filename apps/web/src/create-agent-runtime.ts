@@ -1,4 +1,4 @@
-import type { RunEvent, RunRequest } from "@tessera/agent/observability";
+import type { RunEvent, RunRequest, TranscriptStore } from "@tessera/agent/observability";
 import type { CommandBus, JobQueue, QueryRegistry } from "@tessera/core";
 import type { KeyVault, LlmClient, ModelRef, ProviderConfig } from "@tessera/llm";
 import type { Clock, Logger, Result, TesseraError } from "@tessera/std";
@@ -32,6 +32,7 @@ export interface CreateWebAgentRuntimeInput {
   readonly critic?: ModelRef;
   readonly compatibleOrigin?: string;
   readonly llm?: LlmClient;
+  readonly transcripts: TranscriptStore;
 }
 
 /**
@@ -44,7 +45,7 @@ export interface CreateWebAgentRuntimeInput {
  * @example
  * ```ts
  * const created = await createWebAgentRuntime({
- *   bus, queries, jobs, logger, clock, vault, executor,
+ *   bus, queries, jobs, logger, clock, vault, executor, transcripts,
  * });
  * ```
  *
@@ -103,6 +104,7 @@ export async function createWebAgentRuntime(
     logger: input.logger,
     clock: input.clock,
     verifier: agent.createSkipVerifier(),
+    transcripts: input.transcripts,
   });
   return ok(runtime);
 }

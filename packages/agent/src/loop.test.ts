@@ -6,13 +6,16 @@ import {
   createUndoService,
 } from "@tessera/core";
 import type { LlmClient, LlmRequest, LlmResponse, ToolCallPart } from "@tessera/llm";
+import { userText } from "@tessera/llm";
 import { canonicalize, emptyDocument } from "@tessera/schema";
-import { abortError, createLogger, ok } from "@tessera/std";
+import { abortError, createLogger, err, ok, tesseraError } from "@tessera/std";
 import { docBuilder, FakeClock } from "@tessera/testing";
 import { expect, test } from "vitest";
 import type { RunEvent } from "./run-types.js";
 import { createAgentRuntime } from "./runtime.js";
 import { createToolRegistry } from "./tools/registry.js";
+import { createMemoryTranscriptStore } from "./transcript/memory.js";
+import type { TranscriptStore } from "./transcript/store.js";
 import type { CapabilityProfile } from "./types.js";
 
 const authorUser = { kind: "user" as const, id: "tester" };
@@ -31,7 +34,7 @@ const profile: CapabilityProfile = {
   maxOutputTokens: 4_000,
 };
 
-function scriptedClient(script: readonly LlmResponse[]): LlmClient {
+function scriptedClient(script: readonly LlmResponse[], captured?: LlmRequest[]): LlmClient {
   let index = 0;
   const provider = {
     id: "script",
@@ -47,7 +50,7 @@ function scriptedClient(script: readonly LlmResponse[]): LlmClient {
     listModels: async () => ok([]),
     testConnection: async () => ok({ latencyMs: 1 }),
     async generate(request: LlmRequest) {
-      void request;
+      captured?.push(request);
       const response = script[index];
       index += 1;
       if (response === undefined) {
@@ -99,7 +102,11 @@ function assistantDone(text: string): LlmResponse {
   };
 }
 
-function harness(script: readonly LlmResponse[], clock = new FakeClock()) {
+function harness(
+  script: readonly LlmResponse[],
+  clock = new FakeClock(),
+  extra?: { readonly transcripts?: TranscriptStore; readonly captured?: LlmRequest[] },
+) {
   const created = createDocument({ snapshot: emptyDocument(), clock });
   const undo = createUndoService(created.doc);
   const bus = createCommandBus(created.doc, { undo: undo.capture });
@@ -108,7 +115,7 @@ function harness(script: readonly LlmResponse[], clock = new FakeClock()) {
   const jobs = createJobQueue(bus, { logger: created.doc.logger });
   const tools = createToolRegistry();
   tools.deriveFromRegistries(bus.registry, queries);
-  const llm = scriptedClient(script);
+  const llm = scriptedClient(script, extra?.captured);
   const runtime = createAgentRuntime({
     bus,
     queries,
@@ -120,6 +127,7 @@ function harness(script: readonly LlmResponse[], clock = new FakeClock()) {
     logger: createLogger([]),
     clock,
     newRunId: () => "r_testrun001",
+    ...(extra?.transcripts === undefined ? {} : { transcripts: extra.transcripts }),
   });
   return { runtime, reader: created.reader, undo, bus };
 }
@@ -418,4 +426,58 @@ test("two consecutive empty steps remainingIssues", async () => {
     return;
   }
   expect(done.report.remainingIssues).toContain("model produced no actions");
+});
+
+test("run seeds messages from transcript.recent", async () => {
+  const transcripts = createMemoryTranscriptStore();
+  const stored = await transcripts.append("c1", [
+    {
+      id: "e_prior",
+      conversationId: "c1",
+      projectId: "p_local00000",
+      message: userText("earlier turn about the red cube"),
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ]);
+  expect(stored.ok).toBe(true);
+  const captured: LlmRequest[] = [];
+  const { runtime } = harness([assistantDone("Noted.")], new FakeClock(), {
+    transcripts,
+    captured,
+  });
+  const events = await collect(runtime, { prompt: "what color was it?" });
+  expect(events.some((event) => event.type === "run.completed")).toBe(true);
+  const serialized = JSON.stringify(captured[0]?.messages ?? []);
+  expect(serialized).toContain("earlier turn about the red cube");
+  expect(serialized).toContain("what color was it?");
+});
+
+test("run proceeds when transcript.recent fails", async () => {
+  const transcripts: TranscriptStore = {
+    async append() {
+      return ok(undefined);
+    },
+    async recent() {
+      return err(tesseraError("IO_ERROR", "transcripts unavailable"));
+    },
+    async listConversations() {
+      return ok([]);
+    },
+    async recordTrace() {
+      return ok(undefined);
+    },
+    async exportRun() {
+      return err(tesseraError("NOT_FOUND", "no run"));
+    },
+  };
+  const captured: LlmRequest[] = [];
+  const { runtime } = harness([assistantDone("ok")], new FakeClock(), {
+    transcripts,
+    captured,
+  });
+  const events = await collect(runtime, { prompt: "hello" });
+  expect(events.some((event) => event.type === "run.completed")).toBe(true);
+  const serialized = JSON.stringify(captured[0]?.messages ?? []);
+  expect(serialized).not.toContain("transcripts unavailable");
+  expect(serialized).toContain("hello");
 });

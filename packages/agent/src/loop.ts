@@ -42,6 +42,7 @@ import type {
 } from "./run-types.js";
 import { selectTools } from "./tools/select.js";
 import type { RunPolicy, ToolDefinition, ToolRegistry } from "./tools/types.js";
+import type { TranscriptStore } from "./transcript/store.js";
 import type { CapabilityProfile, ResolvedRoles } from "./types.js";
 import { type Verifier, verificationFeedbackMessage, verificationHasIssues } from "./verifier.js";
 
@@ -69,6 +70,7 @@ export interface LoopDeps {
   readonly verifier: Verifier;
   readonly profiles: Readonly<Record<string, CapabilityProfile>>;
   readonly roles: ResolvedRoles;
+  readonly transcripts: TranscriptStore;
   readonly reader?: CheckSceneReader;
 }
 
@@ -111,7 +113,10 @@ export async function* runLoop(
   });
   const outline = sceneOutline(deps.queries, executorProfile.contextTokens);
   const user = userPayload(request, outline);
-  let messages: LlmMessage[] = [systemMessage(system), userText(user)];
+  const tokenBudget = contextBudget(executorProfile.contextTokens, executorProfile.maxOutputTokens);
+  const history = await deps.transcripts.recent(request.conversationId, tokenBudget);
+  const prior = history.ok ? history.value.filter((message) => message.role !== "system") : [];
+  let messages: LlmMessage[] = [systemMessage(system), ...prior, userText(user)];
   const budget = createBudget({
     policy,
     clock: deps.clock,
