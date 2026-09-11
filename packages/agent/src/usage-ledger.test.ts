@@ -37,5 +37,10 @@ test("UsageLedger per run conversation project", () => {
     costUsd: 0.03,
   });
   expect(ledger.forProject("p_1")).toEqual({ inputTokens: 15, outputTokens: 3, costUsd: 0.03 });
-  expect(ledger.forProject("p_2").inputTokens).toBe(100);
+  const monthly = ledger.monthlyByProvider();
+  expect(monthly["openai"]).toEqual({
+    inputTokens: 115,
+    outputTokens: 3,
+    costUsd: 1.03,
+  });
 });

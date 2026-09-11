@@ -16,7 +16,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
 | T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `in-progress` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
 | T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `in-progress` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
-| T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `todo` |
+| T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `in-progress` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
 | T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `todo` |
 | T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `todo` |
 | T-0214 | R3F code export | exporters | T-0111 | `todo` |
@@ -865,7 +865,7 @@ Settings BYOK (T-0211). Eval runner. Diagnostics ZIP (`15` §5). MCP. Desktop fi
 | Package | `@tessera/ui` |
 | Size | M |
 | Depends on | T-0203 |
-| Status | `todo` |
+| Status | `in-progress` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
 
 ## Goal
 
@@ -885,6 +885,8 @@ packages/ui/src/index.ts
 packages/ui/README.md
 docs/questions.md
 ```
+
+Extra vs original Touches: `packages/agent/src/usage-ledger.ts` (`monthlyByProvider`, Q-0144); `apps/web` bootstrap/App/`EditorContext.keyVault` so Settings can be injected; empty-viewport Linux PNG + canvas mask (`apps/web/e2e`) because Settings chrome is in the page screenshot.
 
 ## Acceptance criteria
 

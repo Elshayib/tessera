@@ -39,6 +39,7 @@ export interface UsageLedger {
   forRun(runId: string): UsageTotals;
   forConversation(conversationId: string): UsageTotals;
   forProject(projectId: string): UsageTotals;
+  monthlyByProvider(): Readonly<Record<string, UsageTotals>>;
 }
 
 const EMPTY: UsageTotals = { inputTokens: 0, outputTokens: 0, costUsd: 0 };
@@ -62,6 +63,18 @@ export function createUsageLedger(): UsageLedger {
     },
     forProject(projectId) {
       return sum(rows.filter((row) => row.projectId === projectId));
+    },
+    monthlyByProvider() {
+      const byProvider: Record<string, UsageTotals> = {};
+      for (const row of rows) {
+        const previous = byProvider[row.providerId] ?? EMPTY;
+        byProvider[row.providerId] = {
+          inputTokens: previous.inputTokens + row.inputTokens,
+          outputTokens: previous.outputTokens + row.outputTokens,
+          costUsd: previous.costUsd + row.costUsd,
+        };
+      }
+      return byProvider;
     },
   };
 }

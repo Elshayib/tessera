@@ -528,6 +528,18 @@ Options: (a) lower the global branch threshold (b) add missing branch tests and 
 Conservative choice implemented: (b). Do not lower coverage thresholds. Linux snapshot still uses the OS suffix (Q-0079). Follow-up: Ubuntu Chrome still differed from the committed Linux PNG by ~1% of pixels after a stable capture; this test uses `maxDiffPixelRatio: 0.02` instead of the global 0.002.
 Answer: —
 
+### Q-0144 — Monthly usage without timestamps
+Raised by: T-0211 · Spec: `07` §7 · Status: open
+Question: Settings must show monthly totals per provider, but `UsageRecord` has no timestamp (Q-0130).
+Options: (a) invent `recordedAt` on every T-0210 row (b) `monthlyByProvider` sums all recorded rows per provider until timestamps exist
+Conservative choice implemented: (b) T-0211.
+
+### Q-0145 — Built-in base URLs vs SEC-02
+Raised by: T-0211 · Spec: `14` SEC-02 vs `ProviderDescriptor.baseUrl.configurable` · Status: open
+Question: Descriptors mark built-in `baseUrl.configurable: true`, but SEC-02 forbids re-pointing built-in keys without a new entry.
+Options: (a) allow editing every configurable URL (b) only `openai-compatible` may set origin; built-in entries keep their default origin
+Conservative choice implemented: (b) T-0211.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.
