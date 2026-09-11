@@ -636,6 +636,12 @@ Question: T-0210 deferred rewriting prompt files (Q-0143 a) and mounted chat wit
 Options: (a) keep chat as a transcript-only stub (b) inline prompt sections and construct `AgentRuntime` in `apps/web` via a dynamic `@tessera/providers-llm` import
 Conservative choice implemented: (b) T-0216. No live capability probe on first send; loop `profileOf` uses the conservative fallback. `agentVerifyLoop` stays off. `AgentRuntime` is not re-exported from `observability` (Vite followed `export type` from `runtime.ts` into the initial graph). The web entry file is `entry-[hash].js` so size-limit does not sum lazy `index-*.js` chunks from `@tessera/agent` / `@tessera/providers-llm`.
 
+### Q-0162 — AI SDK rejects system rows in `messages`
+Raised by: T-0217 · Spec: `07` §2 `LlmMessage` system role, `07` §4 bridge · Status: open
+Question: The agent loop sends `systemMessage(buildSystemPrompt(…))` plus a user turn. AI SDK / `@openrouter/ai-sdk-provider` throw `AI_InvalidPromptError`: system messages are not allowed in `messages` (use `system` / `instructions`). The bridge mapped that to `PROVIDER_ERROR` “provider network error”, so chat failed before any HTTP.
+Options: (a) keep system rows in `messages` and require a proxy that rewrites prompts (b) lift Tessera system rows onto the AI SDK `system` option in the bridge
+Conservative choice implemented: (b) T-0217. `LlmMessage` is unchanged. Chat also renders `run.failed` `error.message`.
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

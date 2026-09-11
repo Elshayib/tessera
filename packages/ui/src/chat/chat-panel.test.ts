@@ -1,5 +1,6 @@
 import type { RunRequest } from "@tessera/agent/observability";
 import { createMemoryTranscriptStore, createUsageLedger } from "@tessera/agent/observability";
+import { tesseraError } from "@tessera/std";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, test } from "vitest";
@@ -159,6 +160,58 @@ test("chat streams run events and cancel", async () => {
     showTrace.click();
   });
   expect(host.textContent?.includes("run")).toBe(true);
+  await act(async () => {
+    root.unmount();
+  });
+});
+
+test("chat surfaces run.failed", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => {
+    root.render(
+      createElement(ChatPanel, {
+        transcripts: createMemoryTranscriptStore(),
+        usage: createUsageLedger(),
+        projectId: "p_local00000",
+        conversationId: "c_local",
+        runtime: {
+          cancel() {
+            return;
+          },
+          async *run() {
+            yield {
+              type: "run.failed" as const,
+              error: tesseraError("PROVIDER_ERROR", "provider network error"),
+              usage: { inputTokens: 0, outputTokens: 0 },
+            };
+          },
+        },
+      }),
+    );
+  });
+  const textarea = host.querySelector("textarea");
+  expect(textarea !== null).toBe(true);
+  if (textarea === null) {
+    return;
+  }
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+    setter?.call(textarea, "Add a red cube 1 m on each side at the origin.");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const send = [...host.querySelectorAll("button")].find(
+    (node) => node.textContent === en.chat.send,
+  );
+  expect(send !== undefined).toBe(true);
+  if (send === undefined) {
+    return;
+  }
+  await act(async () => {
+    send.click();
+  });
+  expect(host.textContent?.includes("provider network error")).toBe(true);
   await act(async () => {
     root.unmount();
   });

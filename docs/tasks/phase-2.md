@@ -22,6 +22,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0214 | R3F code export | exporters | T-0111 | `done` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
 | T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 | T-0216 | Wire editor chat to AgentRuntime (browser prompts) | web, agent | T-0211, T-0215 | `done` ([#52](https://github.com/Elshayib/tessera/pull/52)) |
+| T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `in-progress` |
 
 ## Specs
 
@@ -1228,3 +1229,69 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Turning `agentVerifyLoop` on. Live probe on first send. IndexedDB vault in sync bootstrap. Claiming the human trial is done. Git-tag `m2-agent-v1`.
+
+---
+
+# T-0217 — Map system messages to the AI SDK `system` option
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/providers-llm`, `@tessera/ui` |
+| Size | S |
+| Depends on | T-0216 |
+| Status | `in-progress` |
+
+## Goal
+
+Agent chat can call a live provider: Tessera `LlmMessage` system rows are not placed in AI SDK `messages`, which OpenRouter (and the AI SDK prompt converter) reject.
+
+## Context
+
+- Spec: `docs/07-providers.md` §2 `LlmMessage` system role, §4 adapter mapping
+- Q-0162
+- Live trial: `run.failed` `PROVIDER_ERROR` / `provider network error` with zero HTTP when tools + system prompt were used together
+
+## Touches
+
+```
+packages/providers-llm/src/internal/ai-sdk-bridge.ts
+packages/providers-llm/src/llm-client-contract.test.ts
+packages/providers-llm/README.md
+packages/ui/src/chat/chat-panel.tsx
+packages/ui/src/chat/chat-panel.test.ts
+docs/07-providers.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] System messages mapped to AI SDK `system`
+- [ ] Chat shows `run.failed` error message
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Implement the mapping and chat surface.
+3. Run gates.
+
+## Acceptance criteria
+
+1. `generate` / `stream` with a system message + user message succeed against `MockLanguageModelV3` (no `InvalidPromptError`).
+2. Chat panel text includes `run.failed` `error.message`.
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'system messages use the AI SDK system option'` | `packages/providers-llm/src/llm-client-contract.test.ts` |
+| `'stream with a system message ends with done'` | `packages/providers-llm/src/llm-client-contract.test.ts` |
+| `'chat surfaces run.failed'` | `packages/ui/src/chat/chat-panel.test.ts` |
+
+## Non-goals
+
+Live probe. IndexedDB vault. Git-tag `m2-agent-v1`. Claiming the human trial is done. Changing `LlmMessage`.
+
