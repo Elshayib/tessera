@@ -121,7 +121,7 @@ Probing runs once per `ModelRef` (cached 7 days in settings; re-run on demand) u
 
 ## 4. AI SDK adapter (`@tessera/providers-llm`)
 
-- One adapter module per provider kind, each exporting `createXxxClient(config, deps): LlmClient`. All share `src/internal/ai-sdk-bridge.ts` which maps `LlmRequest` ↔ AI SDK calls (`streamText`/`generateText` with `tools` built from `ToolSpec.inputSchema` via `jsonSchema()`), and maps AI SDK stream parts to `LlmStreamEvent`. Tessera `role: "system"` messages are passed as the AI SDK `system` option, not as `messages[]` rows (Q-0162).
+- One adapter module per provider kind, each exporting `createXxxClient(config, deps): LlmClient`. All share `src/internal/ai-sdk-bridge.ts` which maps `LlmRequest` ↔ AI SDK calls (`streamText`/`generateText` with `tools` built from `ToolSpec.inputSchema` via `jsonSchema()`), and maps AI SDK stream parts to `LlmStreamEvent`. Tessera `role: "system"` messages are passed as the AI SDK `system` option, not as `messages[]` rows (Q-0162). Tessera `role: "tool"` results are `tool-result` parts so a later step is not missing tool output (Q-0163).
 - The AI SDK version is pinned; the bridge is the only file allowed to change on SDK upgrades. Adapter tests run against recorded HTTP fixtures (`@tessera/testing` recorder) and never against live endpoints in CI.
 - Provider specifics:
   - **OpenAI**: `@ai-sdk/openai`; Responses API; lists models.

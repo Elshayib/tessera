@@ -32,7 +32,7 @@ const client = createOpenAIClient({ providerId: "openai", apiKeyRef: "openai-key
 
 ## Testing notes
 
-Colocated Vitest. HTTP list-model bodies live in `fixtures/`. Generate/stream map Tessera `role: "system"` messages to the AI SDK `system` option (Q-0162). Generate/stream use `languageModel` mocks (`ai/test`) so CI never hits live endpoints (Q-0116). Package coverage ≥ 85% lines (75% branches; Q-0134). Browser vault tests use `fake-indexeddb`. Desktop OS keychain is T-0505, not this package.
+Colocated Vitest. HTTP list-model bodies live in `fixtures/`. Generate/stream map Tessera `role: "system"` messages to the AI SDK `system` option (Q-0162) and `role: "tool"` results to `tool-result` parts (Q-0163). Generate/stream use `languageModel` mocks (`ai/test`) so CI never hits live endpoints (Q-0116). Package coverage ≥ 85% lines (75% branches; Q-0134). Browser vault tests use `fake-indexeddb`. Desktop OS keychain is T-0505, not this package.
 
 ## Related specs
 
