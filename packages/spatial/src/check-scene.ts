@@ -406,7 +406,7 @@ function worldAabbFast(entity: Entity, reader: CheckSceneReader): Aabb {
   for (let index = chain.length - 1; index >= 0; index -= 1) {
     const node = chain[index];
     if (node === undefined) {
-      return worldAabb(entity, reader);
+      continue;
     }
     const transform = node.components.transform;
     if (

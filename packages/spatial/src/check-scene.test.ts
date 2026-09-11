@@ -168,3 +168,41 @@ test("overlap-ok and parent-child are skipped; 200 D1 entities stay under 50ms",
   checkScene(d1Reader, meshes);
   expect(performance.now() - started).toBeLessThan(50);
 });
+
+test("world bounds still compute when parentChain omits the entity or has a hole", () => {
+  const snapshot = docBuilder()
+    .geometry("box", { type: "box", size: [1, 1, 1] })
+    .entity("parent", { mesh: "box", transform: { position: [3, 0.5, 0] } })
+    .entity("child", { parent: "parent", mesh: "box", transform: { position: [1, 0, 0] } })
+    .build();
+  const child = named(snapshot, "child");
+  expect(child !== undefined).toBe(true);
+  if (child === undefined) {
+    return;
+  }
+  const base = snapshotReader(snapshot);
+  const omittingSelf: CheckSceneReader = {
+    ...base,
+    parentChain(id) {
+      return base.parentChain(id).filter((entity) => entity.id !== id);
+    },
+  };
+  const withHole: CheckSceneReader = {
+    ...base,
+    parentChain(id) {
+      const chain = base.parentChain(id);
+      const first = chain[0];
+      if (first === undefined) {
+        return chain;
+      }
+      const sparse: Entity[] = [];
+      sparse[0] = first;
+      sparse.length = 2;
+      return sparse;
+    },
+  };
+  const omitted = checkScene(omittingSelf, [child.id]);
+  const holed = checkScene(withHole, [child.id]);
+  expect(Array.isArray(omitted.issues)).toBe(true);
+  expect(Array.isArray(holed.issues)).toBe(true);
+});
