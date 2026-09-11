@@ -5,22 +5,22 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
-| T-0200 | Freeze phase-2 tickets | docs | T-0122 | `in-progress` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
-| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `in-progress` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
-| T-0202 | `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama | providers-llm | T-0201 | `in-progress` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
-| T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `in-progress` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
-| T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `in-progress` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
-| T-0205 | ToolRegistry derived from command/query catalogs + tiers 0–2 | agent | T-0204, T-0004 | `in-progress` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
-| T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `in-progress` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
-| T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
-| T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
-| T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `in-progress` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
-| T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `in-progress` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
-| T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `in-progress` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
-| T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `in-progress` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
-| T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `in-progress` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
-| T-0214 | R3F code export | exporters | T-0111 | `in-progress` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
-| T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `in-progress` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
+| T-0200 | Freeze phase-2 tickets | docs | T-0122 | `done` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
+| T-0201 | `@tessera/llm`: LlmClient, capabilities, KeyVault interface | llm | T-0200 | `done` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
+| T-0202 | `@tessera/providers-llm`: AI SDK providers + OpenAI-compatible + Ollama | providers-llm | T-0201 | `done` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
+| T-0203 | Key vault: WebCrypto + IndexedDB; desktop keychain later | providers-llm / web | T-0202 | `done` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
+| T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `done` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
+| T-0205 | ToolRegistry derived from command/query catalogs + tiers 0–2 | agent | T-0204, T-0004 | `done` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
+| T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `done` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
+| T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `done` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
+| T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `done` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
+| T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `done` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
+| T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `done` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
+| T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `done` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
+| T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `done` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
+| T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `done` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
+| T-0214 | R3F code export | exporters | T-0111 | `done` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
+| T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 
 ## Specs
 
@@ -42,7 +42,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | Package | `docs/tasks` |
 | Size | M |
 | Depends on | T-0122 |
-| Status | `in-progress` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
+| Status | `done` ([#35](https://github.com/Elshayib/tessera/pull/35)) |
 
 ## Goal
 
@@ -94,7 +94,7 @@ Phase-1 tickets remain `in-progress` until PR links exist (Q-0025). This freeze 
 | Package | `@tessera/llm` |
 | Size | M |
 | Depends on | T-0200 |
-| Status | `in-progress` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
+| Status | `done` ([#36](https://github.com/Elshayib/tessera/pull/36)) |
 
 ## Goal
 
@@ -176,7 +176,7 @@ Extra vs original Touches: omit `packages/llm` from the root Vitest 90% mix (Q-0
 | Package | `@tessera/providers-llm` |
 | Size | L |
 | Depends on | T-0201 |
-| Status | `in-progress` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
+| Status | `done` ([#37](https://github.com/Elshayib/tessera/pull/37)) |
 
 ## Goal
 
@@ -266,7 +266,7 @@ IndexedDB vault (T-0203). Capability probing (T-0204). `FakeLlmClient` in `@tess
 | Package | `@tessera/providers-llm` / `apps/web` |
 | Size | M |
 | Depends on | T-0202 |
-| Status | `in-progress` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
+| Status | `done` ([#39](https://github.com/Elshayib/tessera/pull/39)) |
 
 ## Goal
 
@@ -331,7 +331,7 @@ Passphrase enters via factory options. Do not auto-migrate plaintext vaults to e
 | Package | `@tessera/agent` |
 | Size | M |
 | Depends on | T-0202 |
-| Status | `in-progress` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
+| Status | `done` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
 
 ## Goal
 
@@ -403,7 +403,7 @@ Tests must not hit the network. Inject `Clock` / `FakeClock`.
 | Package | `@tessera/agent` |
 | Size | L |
 | Depends on | T-0204, T-0004 |
-| Status | `in-progress` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
+| Status | `done` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
 
 ## Goal
 
@@ -477,7 +477,7 @@ Mutating `execute` must not call `Y.Map.set`. Layout macros derive only after T-
 | Package | `@tessera/spatial` (schemas `@tessera/schema`, handlers `@tessera/core`) |
 | Size | L |
 | Depends on | T-0103 |
-| Status | `in-progress` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
+| Status | `done` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
 
 ## Goal
 
@@ -546,7 +546,7 @@ Spec names are `layout.snapToGround` and `layout.arrangeGrid`, not `snap` / `gri
 | Package | `@tessera/agent` |
 | Size | L |
 | Depends on | T-0205, T-0206 |
-| Status | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
+| Status | `done` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
 
 ## Goal
 
@@ -635,7 +635,7 @@ Use T-0212 `FakeLlmClient` if `done`; otherwise a scripted `LlmClient` in tests.
 | Package | `@tessera/agent` (`checkScene` in `@tessera/spatial`) |
 | Size | M |
 | Depends on | T-0207, T-0107 |
-| Status | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
+| Status | `done` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
 
 ## Goal
 
@@ -711,7 +711,7 @@ Rapier. Changing T-0107 screenshot implementation. Chat UI. Turning `agentVerify
 | Package | `@tessera/ui`, `@tessera/agent` |
 | Size | M |
 | Depends on | T-0207 |
-| Status | `in-progress` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
+| Status | `done` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
 
 ## Goal
 
@@ -777,7 +777,7 @@ The panel uses the same `UndoService` as the rest of the UI. Do not import `thre
 | Package | `@tessera/ui`, `@tessera/agent` |
 | Size | L |
 | Depends on | T-0209 |
-| Status | `in-progress` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
+| Status | `done` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
 
 ## Goal
 
@@ -865,7 +865,7 @@ Settings BYOK (T-0211). Eval runner. Diagnostics ZIP (`15` §5). MCP. Desktop fi
 | Package | `@tessera/ui` |
 | Size | M |
 | Depends on | T-0203 |
-| Status | `in-progress` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
+| Status | `done` ([#47](https://github.com/Elshayib/tessera/pull/47)) |
 
 ## Goal
 
@@ -926,7 +926,7 @@ Inject `KeyVault` / `ProviderRegistry` / `UsageLedger`. Copy for the unencrypted
 | Package | `@tessera/testing` |
 | Size | M |
 | Depends on | T-0201 |
-| Status | `in-progress` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
+| Status | `done` ([#48](https://github.com/Elshayib/tessera/pull/48)) |
 
 ## Goal
 
@@ -988,7 +988,7 @@ Depend on `@tessera/llm` types only. Do not import `ai`. Extra Touches: `package
 | Package | `evals` |
 | Size | L |
 | Depends on | T-0207, T-0212 |
-| Status | `in-progress` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
+| Status | `done` ([#49](https://github.com/Elshayib/tessera/pull/49)) |
 
 ## Goal
 
@@ -1057,7 +1057,7 @@ Extended suites (`13` §5.5). Live CI. Implementing `checkScene`. Phase-3 genera
 | Package | `@tessera/exporters` |
 | Size | M |
 | Depends on | T-0111 |
-| Status | `in-progress` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
+| Status | `done` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
 
 ## Goal
 
@@ -1113,7 +1113,7 @@ Reuse glTF bundle + options from `code-three`. Named export factory; no default 
 | Package | `evals` / `docs` |
 | Size | S |
 | Depends on | T-0213 |
-| Status | `in-progress` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
+| Status | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 
 ## Goal
 
