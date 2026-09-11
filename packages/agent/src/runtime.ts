@@ -1,5 +1,6 @@
 import type { BlobPresence, CommandBus, JobQueue, QueryRegistry } from "@tessera/core";
 import type { LlmClient } from "@tessera/llm";
+import type { CheckSceneReader } from "@tessera/spatial";
 import type { Clock, Logger } from "@tessera/std";
 import { newId, systemClock } from "@tessera/std";
 import type { LoopDeps } from "./loop.js";
@@ -43,6 +44,7 @@ export function createAgentRuntime(input: {
   readonly blobs?: BlobPresence;
   readonly verifier?: Verifier;
   readonly newRunId?: () => string;
+  readonly reader?: CheckSceneReader;
 }): AgentRuntime {
   const cancelled = new Set<string>();
   const blobs = input.blobs ?? { has: () => true };
@@ -68,6 +70,7 @@ export function createAgentRuntime(input: {
         verifier,
         profiles: input.profiles,
         roles: input.roles,
+        ...(input.reader === undefined ? {} : { reader: input.reader }),
       };
       return runLoop(
         request,

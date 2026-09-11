@@ -10,7 +10,7 @@ import { createLogger, systemClock } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
 import { MemoryProjectStore } from "@tessera/storage";
 import type { EditorContext } from "./editor-context.js";
-import { parseFlags } from "./flags.js";
+import { bootstrapVerifyMode, parseFlags } from "./flags.js";
 
 /**
  * Options for {@link bootstrap}.
@@ -55,6 +55,7 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     logger,
     clock,
     flags,
+    agentVerify: bootstrapVerifyMode(flags),
   };
   return context;
 }

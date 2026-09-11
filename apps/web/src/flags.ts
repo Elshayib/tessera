@@ -20,6 +20,20 @@ export function defaultFlags(): Flags {
   return { polyhaven: true, agentVerifyLoop: false, createMenu: false };
 }
 
+/**
+ * Bootstrap `RunPolicy.verify` from flags (`06` §8, T-0208).
+ *
+ * @example
+ * ```ts
+ * bootstrapVerifyMode(defaultFlags()) === "none";
+ * ```
+ *
+ * @public
+ */
+export function bootstrapVerifyMode(flags: Flags): "none" | "spatial" | "spatial+vision" {
+  return flags.agentVerifyLoop ? "spatial" : "none";
+}
+
 function enableKnown(flags: Flags, name: string): Flags {
   if (name === "polyhaven") {
     return { ...flags, polyhaven: true };

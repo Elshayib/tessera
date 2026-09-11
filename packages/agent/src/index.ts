@@ -28,5 +28,11 @@ export type {
 } from "./tools/types.js";
 export type { CapabilityProfile, ResolvedRoles, Role, RoleSources } from "./types.js";
 export { wrapUntrusted } from "./untrusted.js";
-export type { Verifier } from "./verifier.js";
-export { createSkipVerifier } from "./verifier.js";
+export type { Verifier, VerifyInput } from "./verifier.js";
+export {
+  createSceneVerifier,
+  createSkipVerifier,
+  verificationFeedbackMessage,
+} from "./verifier.js";
+export { captureVerificationScreenshots } from "./verify/screenshots.js";
+export { parseVerdict } from "./verify/vision.js";

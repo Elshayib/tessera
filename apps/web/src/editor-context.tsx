@@ -41,6 +41,7 @@ export interface EditorContext {
   readonly logger: Logger;
   readonly clock: Clock;
   readonly flags: Flags;
+  readonly agentVerify: "none" | "spatial" | "spatial+vision";
 }
 
 const EditorReactContext = createContext<EditorContext | undefined>(undefined);

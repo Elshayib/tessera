@@ -497,11 +497,11 @@ Options: (a) add an undocumented `seed` input (b) derive a deterministic RNG fro
 Conservative choice implemented: (b) T-0206. Same document + input stays deterministic (`INV-CMD-08`).
 Answer: —
 
-### Q-0139 — Failing `tx.run` vs `06` §7.1 step atomicity
-Raised by: T-0207 · Spec: `06` §7.1 · Status: open
-Question: Core `tx.run` throws `TransactionAbort` on handler `Err`, which would roll back the whole step, but §7.1 says a failing mutating call does not abort the step.
-Options: (a) change the command bus (out of T-0207 Touches) (b) catch abort errors inside the step callback and continue
-Conservative choice implemented: (b) T-0207. Failed calls are reported as tool results; the step transaction still commits remaining mutations.
+### Q-0140 — R1 fixture vs D1 for `checkScene` 50 ms budget
+Raised by: T-0208 · Spec: `06` §8.1, `01` §8 · Status: open
+Question: Spatial verification must be ≤ 50 ms on R1 for ≤ 200 changed entities, but `@tessera/testing` only ships `fixtures.D1()` (10k entities).
+Options: (a) generate R1 in T-0208 (out of Touches) (b) assert the budget on an R1-sized subset of D1 (~1,200 entities, 200 changed)
+Conservative choice implemented: (b) T-0208. Warm-up plus ~250-entity subset so the assertion is stable under parallel Vitest.
 Answer: —
 
 ### Q-0092 — CI unit coverage and unstable empty viewport screenshot
