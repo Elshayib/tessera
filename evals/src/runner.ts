@@ -17,10 +17,11 @@ import {
   createUndoService,
   fromYDoc,
 } from "@tessera/core";
-import type { ModelRef } from "@tessera/llm";
+import type { LlmClient, ModelRef } from "@tessera/llm";
 import { createLogger, type TesseraError } from "@tessera/std";
 import { docBuilder, FakeClock, type LlmRecording, ReplayLlmClient } from "@tessera/testing";
 import { CORE_EVAL_CASES } from "../suites/core/core-20.eval.js";
+import { installSeededCrypto, seedFromKey } from "./seed-crypto.js";
 import type { EvalCase, EvalContext } from "./types.js";
 
 /**
@@ -176,7 +177,7 @@ export async function runEvals(options: {
   readonly cases?: readonly EvalCase[];
   readonly recordings?: readonly LlmRecording[];
   readonly writeLeaderboard?: (text: string) => void;
-  readonly llm?: ReplayLlmClient;
+  readonly llm?: LlmClient;
 }): Promise<{ readonly results: readonly CaseResult[]; readonly leaderboardWritten: boolean }> {
   if (options.cli.mode === "live" && options.cli.ci === true) {
     throw new Error("live mode is not invoked by CI");
@@ -203,7 +204,23 @@ export async function runEvals(options: {
 
 async function runOne(
   evalCase: EvalCase,
-  llm: ReplayLlmClient,
+  llm: LlmClient,
+  model: ModelRef,
+  variant: Partial<{ confirmDestructive: boolean }>,
+): Promise<CaseResult> {
+  const restore = installSeededCrypto(
+    seedFromKey(`${evalCase.id}|${model.providerId}|${model.modelId}`),
+  );
+  try {
+    return await runOneUnseeded(evalCase, llm, model, variant);
+  } finally {
+    restore();
+  }
+}
+
+async function runOneUnseeded(
+  evalCase: EvalCase,
+  llm: LlmClient,
   model: ModelRef,
   variant: Partial<{ confirmDestructive: boolean }>,
 ): Promise<CaseResult> {

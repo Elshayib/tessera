@@ -9,7 +9,8 @@
       "!**/.turbo",
       "!**/generated",
       "!**/node_modules",
-      "!**/packages/exporters/fixtures"
+      "!**/packages/exporters/fixtures",
+      "!**/evals/fixtures"
     ]
   },
   "formatter": {

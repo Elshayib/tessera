@@ -88,3 +88,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @tessera/evals test
+      - run: pnpm eval:replay -- --model openai/gpt-4o
+      - run: pnpm eval:replay -- --model anthropic/claude-sonnet

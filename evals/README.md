@@ -15,7 +15,10 @@ Headless agent evaluation runner (`docs/13-testing-and-evals.md` §5). Replay us
 
 ```
 pnpm eval:replay
+pnpm eval:replay -- --model openai/gpt-4o
+pnpm eval:replay -- --model anthropic/claude-sonnet
 pnpm --filter @tessera/evals eval --mode replay --suite core
+pnpm --filter @tessera/evals record:oracle
 ```
 
 Live mode is for maintainers (`TESSERA_LIVE`); CI must not invoke it.
@@ -26,7 +29,7 @@ Layer 4. May import non-UI packages and `@tessera/testing`. Must not import `@te
 
 ## Testing notes
 
-`pnpm --filter @tessera/evals test`. Replay misses mention `TESSERA_RECORD=1`. Two-provider recordings are T-0215.
+`pnpm --filter @tessera/evals test`. Replay misses mention `TESSERA_RECORD=1`. Two-provider recordings: `evals/fixtures/recordings/{openai,anthropic}/core/*.json`. Replay mean ≥ 90% is T-0215.
 
 ## Related specs
 

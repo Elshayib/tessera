@@ -19,7 +19,8 @@
     "build": "tsc -b",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "eval": "tsx src/cli.ts"
+    "eval": "tsx --conditions=development src/cli.ts",
+    "record:oracle": "tsx --conditions=development src/write-oracle-recordings.ts"
   },
   "dependencies": {
     "@tessera/agent": "workspace:*",

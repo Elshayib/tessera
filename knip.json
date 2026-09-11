@@ -5,6 +5,7 @@
     "**/dist/**",
     "docs/templates/**",
     "packages/exporters/fixtures/**",
+    "evals/fixtures/**",
     "apps/web/src/engine-entry.ts",
     "packages/agent/src/prompts/*.md"
   ],
@@ -19,6 +20,7 @@
       "project": ["src/**"]
     },
     "evals": {
+      "entry": ["src/cli.ts", "src/write-oracle-recordings.ts"],
       "project": ["src/**", "suites/**"]
     }
   }
