@@ -26,7 +26,13 @@ function stubClient(): LlmClient {
       docsUrl: "https://example.invalid",
     },
     async listModels() {
-      return ok([]);
+      return ok([
+        {
+          ref: { providerId: "openai-compatible", modelId: "stub-model" },
+          displayName: "stub-model",
+          declared: {},
+        },
+      ]);
     },
     async generate() {
       return ok({
@@ -163,6 +169,58 @@ test("keys not present in rendered text after set", async () => {
     save.click();
   });
   expect(host.textContent?.includes(CANARY)).toBe(false);
+  await act(async () => {
+    root.unmount();
+  });
+});
+
+test("listModels and testConnection use resolveClient", async () => {
+  useProviderSettingsStore.setState({
+    roles: emptyRoleModels(),
+    compatibleOrigin: "",
+    maxSteps: SETTINGS_RUN_POLICY_DEFAULTS.maxSteps,
+    maxToolCallsPerStep: SETTINGS_RUN_POLICY_DEFAULTS.maxToolCallsPerStep,
+    maxInputTokens: SETTINGS_RUN_POLICY_DEFAULTS.maxInputTokens,
+    timeoutMs: SETTINGS_RUN_POLICY_DEFAULTS.timeoutMs,
+    temperature: SETTINGS_RUN_POLICY_DEFAULTS.temperature,
+    maxRepairRounds: SETTINGS_RUN_POLICY_DEFAULTS.maxRepairRounds,
+  });
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => {
+    root.render(
+      createElement(SettingsPanel, {
+        vault: createMemoryKeyVault(),
+        vaultEncrypted: true,
+        usage: createUsageLedger(),
+        resolveClient: async () => ok(stubClient()),
+      }),
+    );
+  });
+  const list = [...host.querySelectorAll("button")].find(
+    (node) => node.textContent === en.settings.listModels,
+  );
+  expect(list !== undefined).toBe(true);
+  if (list === undefined) {
+    return;
+  }
+  await act(async () => {
+    list.click();
+  });
+  expect(host.textContent?.includes("stub-model")).toBe(true);
+  const ping = [...host.querySelectorAll("button")].find(
+    (node) => node.textContent === en.settings.testConnection,
+  );
+  expect(ping !== undefined).toBe(true);
+  if (ping === undefined) {
+    return;
+  }
+  await act(async () => {
+    ping.click();
+  });
+  expect(host.textContent?.includes(en.settings.latency)).toBe(true);
+  expect(host.textContent?.includes("1")).toBe(true);
   await act(async () => {
     root.unmount();
   });

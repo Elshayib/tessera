@@ -78,7 +78,13 @@ export async function createWebAgentRuntime(
   if (input.llm !== undefined) {
     llm = input.llm;
   } else {
-    const created = await clientFromVault(input);
+    const created = await createWebLlmClient({
+      vault: input.vault,
+      logger: input.logger,
+      clock: input.clock,
+      providerId: input.executor.providerId,
+      ...(input.compatibleOrigin === undefined ? {} : { compatibleOrigin: input.compatibleOrigin }),
+    });
     if (!created.ok) {
       return created;
     }
@@ -101,11 +107,36 @@ export async function createWebAgentRuntime(
   return ok(runtime);
 }
 
-async function clientFromVault(
-  input: CreateWebAgentRuntimeInput,
+/**
+ * Inputs for {@link createWebLlmClient}.
+ *
+ * @public
+ */
+export interface CreateWebLlmClientInput {
+  readonly vault: KeyVault;
+  readonly logger: Logger;
+  readonly clock: Clock;
+  readonly providerId: string;
+  readonly compatibleOrigin?: string;
+}
+
+/**
+ * Builds an {@link LlmClient} from Settings + {@link KeyVault} (`07` §2).
+ *
+ * Loads `@tessera/providers-llm` dynamically (T-0203).
+ *
+ * @example
+ * ```ts
+ * const created = await createWebLlmClient({ vault, logger, clock, providerId: "openrouter" });
+ * ```
+ *
+ * @public
+ */
+export async function createWebLlmClient(
+  input: CreateWebLlmClientInput,
 ): Promise<Result<LlmClient, TesseraError>> {
   const providers = await import("@tessera/providers-llm");
-  const providerId = input.executor.providerId;
+  const providerId = input.providerId;
   const origin = input.compatibleOrigin ?? "";
   const config: ProviderConfig = {
     providerId,

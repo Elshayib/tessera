@@ -8,6 +8,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` Â
 | --- | --- |
 | `bootstrap` | Empty project + command bus, queries, undo, jobs, storage, assets. Keys use IndexedDB `tessera-vault` via a deferred import (Q-0166). |
 | `createWebAgentRuntime` | Lazy `AgentRuntime` for chat (dynamic providers-llm import, Q-0161). |
+| `createWebLlmClient` | Same lazy client for Settings listModels / testConnection (Q-0167). |
 | `parseFlags` / `defaultFlags` | Typed flags; `?flag=` only in development. |
 | `EditorProvider` / `useEditor` | React context for the composition root. |
 | `CreateMenu` | Command-bus create actions, gated by `flags.createMenu`. |
