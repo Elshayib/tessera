@@ -455,6 +455,9 @@ importers:
 
   packages/testing:
     dependencies:
+      '@tessera/llm':
+        specifier: workspace:*
+        version: link:../llm
       '@tessera/schema':
         specifier: workspace:*
         version: link:../schema

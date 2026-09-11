@@ -3,9 +3,15 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "lib": ["ES2023", "DOM"]
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"],
-  "references": [{ "path": "../std" }, { "path": "../schema" }, { "path": "../storage" }]
+  "references": [
+    { "path": "../std" },
+    { "path": "../llm" },
+    { "path": "../schema" },
+    { "path": "../storage" }
+  ]
 }
