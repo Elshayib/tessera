@@ -676,6 +676,13 @@ Options: (a) preload `@tessera/providers-llm` at Settings mount (b) optional asy
 Conservative choice implemented: (b) T-0222. UI still must not import `providers-llm`.
 Answer: —
 
+### Q-0168 — Editor transcripts used the memory store
+Raised by: T-0223 · Spec: `06` §13 IndexedDB; T-0210 AC2 · Status: open
+Question: T-0210 shipped `createIndexedDbTranscriptStore`, but bootstrap assigned `createMemoryTranscriptStore()`, so chat traces vanished on reload. The IDB factory is async; bootstrap is sync.
+Options: (a) keep memory (b) a sync `TranscriptStore` façade that opens IndexedDB on first method, falling back to memory if IndexedDB is missing
+Conservative choice implemented: (b) T-0223. Chat UI still does not hydrate `recent` into the panel.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

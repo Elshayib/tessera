@@ -20,3 +20,9 @@ test("bootstrap includes KeyVault for Settings", () => {
   expect("keyVault" in ctx).toBe(true);
   expect(typeof ctx.keyVault.get).toBe("function");
 });
+
+test("bootstrap includes TranscriptStore for chat persistence", () => {
+  const ctx = bootstrap({ storage: new MemoryProjectStore() });
+  expect(typeof ctx.transcripts.append).toBe("function");
+  expect(typeof ctx.transcripts.recent).toBe("function");
+});
