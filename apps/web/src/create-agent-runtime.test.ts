@@ -2,7 +2,7 @@ import { FakeLlmClient } from "@tessera/testing";
 import { createMemoryKeyVault } from "@tessera/ui";
 import { expect, test } from "vitest";
 import { bootstrap } from "./bootstrap.js";
-import { createWebAgentRuntime } from "./create-agent-runtime.js";
+import { createWebAgentRuntime, createWebLlmClient } from "./create-agent-runtime.js";
 
 test("createWebAgentRuntime requires executor modelId", async () => {
   const ctx = bootstrap();
@@ -57,6 +57,17 @@ test("createWebAgentRuntime rejects unknown provider when no llm is injected", a
     clock: ctx.clock,
     vault: ctx.keyVault,
     executor: { providerId: "not-a-provider", modelId: "x" },
+  });
+  expect(created.ok).toBe(false);
+});
+
+test("createWebLlmClient rejects unknown provider", async () => {
+  const ctx = bootstrap();
+  const created = await createWebLlmClient({
+    vault: ctx.keyVault,
+    logger: ctx.logger,
+    clock: ctx.clock,
+    providerId: "not-a-provider",
   });
   expect(created.ok).toBe(false);
 });

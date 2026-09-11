@@ -22,6 +22,17 @@ export function App(props: { readonly context: EditorContext }): ReactElement {
         vault={props.context.keyVault}
         vaultEncrypted={false}
         usage={props.context.usage}
+        resolveClient={async (providerId) => {
+          const settings = useProviderSettingsStore.getState();
+          const { createWebLlmClient } = await import("./create-agent-runtime.js");
+          return createWebLlmClient({
+            vault: props.context.keyVault,
+            logger: props.context.logger,
+            clock: props.context.clock,
+            providerId,
+            compatibleOrigin: settings.compatibleOrigin,
+          });
+        }}
       />
       <EditorShell />
     </EditorProvider>

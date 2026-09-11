@@ -6,7 +6,7 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 | Export | Description |
 | --- | --- |
-| `SettingsPanel` | BYOK keys via `KeyVault`, role `ModelRef`s, `RunPolicy` budgets (`07` §4–§7). Roles and budgets hydrate from `tessera.ui.settings`. |
+| `SettingsPanel` | BYOK keys via `KeyVault`, role `ModelRef`s, `RunPolicy` budgets (`07` §4–§7). Roles and budgets hydrate from `tessera.ui.settings`. `resolveClient` lists models and tests the connection without a sync `ProviderRegistry`. |
 | `ReviewPanel` / `groupAgentRuns` | Live agent run groups; Accept no-op; Revert run uses `undo.revertRun` (`06` §9). |
 | `Outliner` | Accessible entity tree; reparent/reorder via `CommandBus`. |
 | `ViewportHost` | `aria-hidden` canvas for the engine (`01` a11y). |

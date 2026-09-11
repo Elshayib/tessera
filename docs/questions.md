@@ -669,6 +669,13 @@ Options: (a) keep the memory vault (b) a sync `KeyVault` façade that `await imp
 Conservative choice implemented: (b) T-0221. No passphrase UI change (`vaultEncrypted` stays false until a later ticket). `locked` is accurate only after the inner vault has opened.
 Answer: —
 
+### Q-0167 — Settings `ProviderRegistry.client` is synchronous
+Raised by: T-0222 · Spec: `07` §2 `ProviderRegistry.client`; T-0211 AC3 listModels/testConnection; T-0203 AC5 · Status: open
+Question: App never passed `registry`, so List models / Test connection no-op. `client()` is sync and cannot `import()` the AI SDK. Changing `ProviderRegistry` would be a spec edit.
+Options: (a) preload `@tessera/providers-llm` at Settings mount (b) optional async `resolveClient` on Settings, leaving `ProviderRegistry` unchanged
+Conservative choice implemented: (b) T-0222. UI still must not import `providers-llm`.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

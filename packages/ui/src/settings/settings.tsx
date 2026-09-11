@@ -1,5 +1,6 @@
 import type { UsageLedger } from "@tessera/agent/observability";
 import type { KeyVault, LlmClient, ProviderDescriptor, ProviderRegistry } from "@tessera/llm";
+import type { Result, TesseraError } from "@tessera/std";
 import type { FormEvent, ReactElement } from "react";
 import { useState } from "react";
 import { en } from "../i18n/en.js";
@@ -26,6 +27,7 @@ export interface SettingsPanelProps {
   readonly usage: UsageLedger;
   readonly descriptors?: readonly ProviderDescriptor[];
   readonly registry?: ProviderRegistry;
+  readonly resolveClient?: (providerId: string) => Promise<Result<LlmClient, TesseraError>>;
 }
 
 /**
@@ -136,7 +138,12 @@ export function SettingsPanel(props: SettingsPanelProps): ReactElement {
             <button
               type="button"
               onClick={() => {
-                void listFromRegistry(props.registry, descriptor.id, setModels);
+                void listFromRegistry(
+                  props.registry,
+                  props.resolveClient,
+                  descriptor.id,
+                  setModels,
+                );
               }}
             >
               {en.settings.listModels}
@@ -145,7 +152,12 @@ export function SettingsPanel(props: SettingsPanelProps): ReactElement {
           <button
             type="button"
             onClick={() => {
-              void testFromRegistry(props.registry, descriptor.id, setLatencyMs);
+              void testFromRegistry(
+                props.registry,
+                props.resolveClient,
+                descriptor.id,
+                setLatencyMs,
+              );
             }}
           >
             {en.settings.testConnection}
@@ -249,10 +261,11 @@ function splitRef(value: string): readonly [string, string] {
 
 async function listFromRegistry(
   registry: ProviderRegistry | undefined,
+  resolveClient: SettingsPanelProps["resolveClient"],
   providerId: string,
   setModels: (ids: readonly string[]) => void,
 ): Promise<void> {
-  const client = clientOf(registry, providerId);
+  const client = await clientOf(registry, resolveClient, providerId);
   if (client === undefined) {
     return;
   }
@@ -265,10 +278,11 @@ async function listFromRegistry(
 
 async function testFromRegistry(
   registry: ProviderRegistry | undefined,
+  resolveClient: SettingsPanelProps["resolveClient"],
   providerId: string,
   setLatencyMs: (ms: number) => void,
 ): Promise<void> {
-  const client = clientOf(registry, providerId);
+  const client = await clientOf(registry, resolveClient, providerId);
   if (client === undefined) {
     return;
   }
@@ -279,16 +293,23 @@ async function testFromRegistry(
   setLatencyMs(tested.value.latencyMs);
 }
 
-function clientOf(
+async function clientOf(
   registry: ProviderRegistry | undefined,
+  resolveClient: SettingsPanelProps["resolveClient"],
   providerId: string,
-): LlmClient | undefined {
-  if (registry === undefined) {
+): Promise<LlmClient | undefined> {
+  if (registry !== undefined) {
+    const client = registry.client(providerId);
+    if (client.ok) {
+      return client.value;
+    }
+  }
+  if (resolveClient === undefined) {
     return undefined;
   }
-  const client = registry.client(providerId);
-  if (!client.ok) {
+  const created = await resolveClient(providerId);
+  if (!created.ok) {
     return undefined;
   }
-  return client.value;
+  return created.value;
 }

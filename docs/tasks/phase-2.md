@@ -27,6 +27,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0219 | Abort in-flight `LlmClient.stream` on cancel | agent | T-0218 | `done` ([#57](https://github.com/Elshayib/tessera/pull/57)) |
 | T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `done` ([#58](https://github.com/Elshayib/tessera/pull/58)) |
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
+| T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `in-progress` |
 
 ## Specs
 
@@ -1551,5 +1552,73 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Passphrase Settings UI. Changing `vaultEncrypted`. Chat panel. Git-tag `m2-agent-v1`. Claiming the human trial is done. Turning on verify flags.
+
+---
+
+# T-0222 — Wire Settings listModels and testConnection through a lazy LLM client
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `apps/web`, `@tessera/ui` |
+| Size | S |
+| Depends on | T-0211 (`done`), T-0216 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+Settings **List models** and **Test connection** call the provider (`07` §2 / T-0211 AC3) without a static `@tessera/providers-llm` import (`T-0203` AC5).
+
+## Context
+
+- Spec: `docs/07-providers.md` §2 `listModels` / `testConnection`; T-0211 AC3
+- Q-0167
+- `ProviderRegistry.client` is synchronous, so the editor cannot implement it behind `import()`. Settings already no-ops when `registry` is omitted; App never passed one.
+
+## Touches
+
+```
+packages/ui/src/settings/settings.tsx
+packages/ui/src/settings/settings.test.ts
+apps/web/src/create-agent-runtime.ts
+apps/web/src/create-agent-runtime.test.ts
+apps/web/src/app.tsx
+apps/web/src/isolation.test.ts
+packages/ui/README.md
+apps/web/README.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Settings `resolveClient` used when `registry` is omitted
+- [ ] App passes a dynamic `createWebLlmClient`
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Add `resolveClient`; extract `createWebLlmClient`; pass it from App.
+3. Run gates.
+
+## Acceptance criteria
+
+1. Clicking List models with `resolveClient` (no `registry`) shows returned `modelId`s.
+2. Clicking Test connection with `resolveClient` shows latency.
+3. `app.tsx` still has no `from "./create-agent-runtime.js"` (dynamic import only).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'listModels and testConnection use resolveClient'` | `packages/ui/src/settings/settings.test.ts` |
+| `'createWebLlmClient rejects unknown provider'` | `apps/web/src/create-agent-runtime.test.ts` |
+| `'web production sources import agent observability, not the runtime barrel'` | `apps/web/src/isolation.test.ts` |
+
+## Non-goals
+
+Live HTTP in unit tests. Probe-on-first-send. Passphrase UI. Git-tag `m2-agent-v1`. Claiming the human trial is done.
 
 
