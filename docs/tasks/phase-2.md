@@ -1563,7 +1563,7 @@ Passphrase Settings UI. Changing `vaultEncrypted`. Chat panel. Git-tag `m2-agent
 | Package | `apps/web`, `@tessera/ui` |
 | Size | S |
 | Depends on | T-0211 (`done`), T-0216 (`done`) |
-| Status | `in-progress` |
+| Status | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
 
 ## Goal
 
