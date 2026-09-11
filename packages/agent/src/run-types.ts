@@ -1,5 +1,6 @@
 import type { ChangeSet, TransactionRecord } from "@tessera/core";
 import type { ModelRef } from "@tessera/llm";
+import type { BlobRef } from "@tessera/schema";
 import type { TesseraError } from "@tessera/std";
 import type { RunPolicy } from "./tools/types.js";
 import type { CapabilityProfile, Role } from "./types.js";
@@ -23,6 +24,7 @@ export interface ViewportCamera {
 export interface RunRequest {
   readonly conversationId: string;
   readonly prompt: string;
+  readonly attachments?: readonly { readonly kind: "image"; readonly blob: BlobRef }[];
   readonly context: {
     readonly selection: readonly string[];
     readonly viewportCamera?: ViewportCamera;

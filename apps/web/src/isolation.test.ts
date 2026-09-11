@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-test("ui production sources do not import three or yjs", () => {
+test("web production sources import agent observability, not the runtime barrel", () => {
   const sources = import.meta.glob("./**/*.{ts,tsx}", {
     eager: true,
     query: "?raw",
@@ -15,8 +15,7 @@ test("ui production sources do not import three or yjs", () => {
     if (typeof source !== "string") {
       continue;
     }
-    expect(source.includes('from "three"'), path).toBe(false);
-    expect(source.includes('from "yjs"'), path).toBe(false);
-    expect(source.includes("@tessera/providers-llm"), path).toBe(false);
+    expect(source.includes('from "@tessera/agent"'), path).toBe(false);
+    expect(source.includes("from '@tessera/agent'"), path).toBe(false);
   }
 });

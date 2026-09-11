@@ -11,6 +11,12 @@
       "development": "./src/index.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./observability": {
+      "types": "./dist/observability.d.ts",
+      "development": "./src/observability.ts",
+      "import": "./dist/observability.js",
+      "default": "./dist/observability.js"
     }
   },
   "main": "./dist/index.js",
@@ -33,6 +39,7 @@
   },
   "devDependencies": {
     "@tessera/testing": "workspace:*",
+    "fake-indexeddb": "6.2.5",
     "typescript": "5.9.2",
     "vitest": "3.2.4"
   }

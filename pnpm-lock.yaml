@@ -72,6 +72,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@tessera/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@tessera/assets':
         specifier: workspace:*
         version: link:../../packages/assets
@@ -155,6 +158,9 @@ importers:
       '@tessera/testing':
         specifier: workspace:*
         version: link:../testing
+      fake-indexeddb:
+        specifier: 6.2.5
+        version: 6.2.5
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -468,6 +474,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@tessera/agent':
+        specifier: workspace:*
+        version: link:../agent
       '@tessera/core':
         specifier: workspace:*
         version: link:../core

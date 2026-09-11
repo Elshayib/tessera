@@ -1,9 +1,9 @@
-import { Shell } from "@tessera/ui";
+import { Shell, useSelectionStore } from "@tessera/ui";
 import type { ReactElement } from "react";
 import { AssetPanel } from "./asset-panel/asset-panel.js";
 import { CreateMenu } from "./create-menu/create-menu.js";
 import type { EditorContext } from "./editor-context.js";
-import { EditorProvider } from "./editor-context.js";
+import { EditorProvider, useEditor } from "./editor-context.js";
 import { ProjectIo } from "./project-io/project-io-bar.js";
 import { Viewport } from "./viewport/viewport.js";
 
@@ -18,7 +18,26 @@ export function App(props: { readonly context: EditorContext }): ReactElement {
       <CreateMenu />
       <AssetPanel />
       <ProjectIo />
-      <Shell viewport={<Viewport />} />
+      <EditorShell />
     </EditorProvider>
+  );
+}
+
+function EditorShell(): ReactElement {
+  const editor = useEditor();
+  const selection = useSelectionStore((state) => state.ids);
+  const focusedId = useSelectionStore((state) => state.focusedId);
+  return (
+    <Shell
+      viewport={<Viewport />}
+      chat={{
+        transcripts: editor.transcripts,
+        usage: editor.usage,
+        projectId: "p_local00000",
+        conversationId: "c_editor",
+        selection,
+        ...(focusedId === null ? {} : { focusedEntity: focusedId }),
+      }}
+    />
   );
 }

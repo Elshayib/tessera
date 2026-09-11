@@ -1,3 +1,4 @@
+import type { TranscriptStore, UsageLedger } from "@tessera/agent/observability";
 import type { AssetService } from "@tessera/assets";
 import type {
   CommandBus,
@@ -42,6 +43,8 @@ export interface EditorContext {
   readonly clock: Clock;
   readonly flags: Flags;
   readonly agentVerify: "none" | "spatial" | "spatial+vision";
+  readonly transcripts: TranscriptStore;
+  readonly usage: UsageLedger;
 }
 
 const EditorReactContext = createContext<EditorContext | undefined>(undefined);

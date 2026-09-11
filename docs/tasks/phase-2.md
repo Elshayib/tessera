@@ -15,7 +15,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
 | T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `in-progress` ([#44](https://github.com/Elshayib/tessera/pull/44)) |
 | T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `in-progress` ([#45](https://github.com/Elshayib/tessera/pull/45)) |
-| T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `todo` |
+| T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `in-progress` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
 | T-0211 | Settings: BYOK providers, model picker, budgets | ui | T-0203 | `todo` |
 | T-0212 | `@tessera/testing` FakeLlmClient + Replay/Recording | testing | T-0201 | `todo` |
 | T-0213 | `evals/` runner + core-20 cases (`13` §5.4) | evals | T-0207, T-0212 | `todo` |
@@ -777,7 +777,7 @@ The panel uses the same `UndoService` as the rest of the UI. Do not import `thre
 | Package | `@tessera/ui`, `@tessera/agent` |
 | Size | L |
 | Depends on | T-0209 |
-| Status | `todo` |
+| Status | `in-progress` ([#46](https://github.com/Elshayib/tessera/pull/46)) |
 
 ## Goal
 
@@ -812,8 +812,17 @@ packages/ui/src/i18n/en.ts
 packages/ui/src/shell.tsx
 packages/ui/src/index.ts
 apps/web/src/bootstrap.ts
+apps/web/src/app.tsx
+apps/web/src/editor-context.tsx
+packages/agent/src/run-types.ts
+packages/agent/src/transcript/export.ts
+packages/agent/src/observability.ts
+packages/agent/package.json
+packages/agent/tsconfig.json
 docs/questions.md
 ```
+
+Extra vs original Touches: `run-types.ts` (spec `RunRequest.attachments`), `transcript/export.ts` (shared redaction), `observability.ts` + package `exports` (UI imports without loading `node:fs` prompt assembly), `editor-context.tsx` / `app.tsx` (mount chat; Q-0142).
 
 ## Acceptance criteria
 
@@ -1149,3 +1158,5 @@ Cutting the `m2-agent-v1` tag. Live evals in CI. Extended suites. Claiming the n
 ## Notes for the implementing agent
 
 Do not lower 90% or drop `INV-TST-02`. Maintainers produce recordings with `TESSERA_RECORD=1` locally; this ticket commits redacted fixtures and the existence gate.
+
+Extra vs original Touches: `pnpm-lock.yaml` (T-0213 dropped `@tessera/spatial` from `@tessera/testing` without refreshing the lockfile); `apps/web` `bootstrap.ts` / `editor-context.tsx` / `isolation.test.ts` so the editor imports `@tessera/agent/observability` (Q-0143) and Vite does not bundle `prompts/build.js` (`node:fs`).
