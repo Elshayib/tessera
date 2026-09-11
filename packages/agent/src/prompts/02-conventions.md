@@ -1,0 +1,1 @@
+Conventions: meters, Y-up, right-handed, local −Z forward, Euler degrees XYZ. Light units are physical (lux, candela, nits). Colors are hex. Typical sizes: chair ~0.9 m, table ~0.75 m high, door ~2.1 m, adult ~1.7 m.

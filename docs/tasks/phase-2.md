@@ -12,7 +12,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0204 | Capability probing + role assignment (planner/executor/critic) | agent | T-0202 | `in-progress` ([#40](https://github.com/Elshayib/tessera/pull/40)) |
 | T-0205 | ToolRegistry derived from command/query catalogs + tiers 0–2 | agent | T-0204, T-0004 | `in-progress` ([#41](https://github.com/Elshayib/tessera/pull/41)) |
 | T-0206 | `@tessera/spatial` macros: placeOn, snap, align, distribute, grid, lookAt, fit | spatial | T-0103 | `in-progress` ([#42](https://github.com/Elshayib/tessera/pull/42)) |
-| T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `todo` |
+| T-0207 | AgentRuntime loop: observe → plan → act → verify → repair → report | agent | T-0205, T-0206 | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
 | T-0208 | Verification: spatial checks then screenshots (vision critic optional) | agent | T-0207, T-0107 | `todo` |
 | T-0209 | Review panel + revertRun; live apply (ADR-0016) | ui, agent | T-0207 | `todo` |
 | T-0210 | Chat panel, transcripts, traces (`15`) | ui, agent | T-0209 | `todo` |
@@ -546,7 +546,7 @@ Spec names are `layout.snapToGround` and `layout.arrangeGrid`, not `snap` / `gri
 | Package | `@tessera/agent` |
 | Size | L |
 | Depends on | T-0205, T-0206 |
-| Status | `todo` |
+| Status | `in-progress` ([#43](https://github.com/Elshayib/tessera/pull/43)) |
 
 ## Goal
 
@@ -565,6 +565,8 @@ packages/agent/src/runtime.ts
 packages/agent/src/runtime.test.ts
 packages/agent/src/loop.ts
 packages/agent/src/loop.test.ts
+packages/agent/src/execute-step.ts
+packages/agent/src/errors.ts
 packages/agent/src/prompts/*.md
 packages/agent/src/prompts/build.ts
 packages/agent/src/prompts/build.test.ts
@@ -577,8 +579,11 @@ packages/agent/src/budget.test.ts
 packages/agent/src/untrusted.ts
 packages/agent/src/untrusted.test.ts
 packages/agent/src/verifier.ts
+packages/agent/src/policy.ts
+packages/agent/src/run-types.ts
 packages/agent/src/index.ts
 packages/agent/README.md
+knip.json
 docs/questions.md
 ```
 

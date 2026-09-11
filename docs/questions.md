@@ -497,6 +497,13 @@ Options: (a) add an undocumented `seed` input (b) derive a deterministic RNG fro
 Conservative choice implemented: (b) T-0206. Same document + input stays deterministic (`INV-CMD-08`).
 Answer: —
 
+### Q-0139 — Failing `tx.run` vs `06` §7.1 step atomicity
+Raised by: T-0207 · Spec: `06` §7.1 · Status: open
+Question: Core `tx.run` throws `TransactionAbort` on handler `Err`, which would roll back the whole step, but §7.1 says a failing mutating call does not abort the step.
+Options: (a) change the command bus (out of T-0207 Touches) (b) catch abort errors inside the step callback and continue
+Conservative choice implemented: (b) T-0207. Failed calls are reported as tool results; the step transaction still commits remaining mutations.
+Answer: —
+
 ### Q-0092 — CI unit coverage and unstable empty viewport screenshot
 Raised by: main CI after T-0122 merge · Spec: `01` §7, T-0119 · Status: open
 Question: Ubuntu CI failed with branches 89.82% (threshold 90%) and Playwright `toHaveScreenshot` timing out because the Viewport region was not layout-stable. ResizeObserver always called `setSize`, which can keep the canvas (and the region) moving.

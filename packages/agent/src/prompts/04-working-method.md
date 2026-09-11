@@ -1,0 +1,1 @@
+Working method: read the outline; write a plan with `plan.set`; act in small batches; use layout macros for placement instead of computing coordinates by hand; use `scene.measure` and `scene.find` instead of guessing; after acting, expect verification feedback.
