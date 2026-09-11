@@ -1,8 +1,19 @@
-import type { AgentRuntime } from "@tessera/agent/observability";
+import type { RunEvent, RunRequest } from "@tessera/agent/observability";
 import type { CommandBus, JobQueue, QueryRegistry } from "@tessera/core";
 import type { KeyVault, LlmClient, ModelRef, ProviderConfig } from "@tessera/llm";
 import type { Clock, Logger, Result, TesseraError } from "@tessera/std";
 import { err, ok, tesseraError } from "@tessera/std";
+
+/**
+ * Chat-facing runtime surface (`06` §3). Defined here so `@tessera/agent/observability`
+ * does not re-export types from `runtime.ts` (Vite followed that into initial JS).
+ *
+ * @public
+ */
+export interface WebAgentRuntime {
+  run(request: RunRequest, signal?: AbortSignal): AsyncIterable<RunEvent>;
+  cancel(runId: string): void;
+}
 
 /**
  * Inputs for {@link createWebAgentRuntime} (`02` §7).
@@ -24,7 +35,7 @@ export interface CreateWebAgentRuntimeInput {
 }
 
 /**
- * Builds {@link AgentRuntime} for the editor chat panel.
+ * Builds {@link WebAgentRuntime} for the editor chat panel.
  *
  * Uses an injected {@link LlmClient} in tests. Production loads
  * `@tessera/providers-llm` with a dynamic import so the empty editor graph
@@ -41,7 +52,7 @@ export interface CreateWebAgentRuntimeInput {
  */
 export async function createWebAgentRuntime(
   input: CreateWebAgentRuntimeInput,
-): Promise<Result<AgentRuntime, TesseraError>> {
+): Promise<Result<WebAgentRuntime, TesseraError>> {
   if (input.executor.modelId.length === 0) {
     return err(tesseraError("INVALID_INPUT", "executor model is required"));
   }

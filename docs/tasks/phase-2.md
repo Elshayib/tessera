@@ -1198,6 +1198,8 @@ apps/web/src/create-agent-runtime.test.ts
 apps/web/src/app.tsx
 apps/web/src/bootstrap.ts
 apps/web/src/bootstrap.test.ts
+apps/web/vite.config.ts
+apps/web/.size-limit.json
 apps/web/package.json
 packages/ui/src/chat/chat-panel.tsx
 packages/ui/src/chat/chat-panel.test.ts

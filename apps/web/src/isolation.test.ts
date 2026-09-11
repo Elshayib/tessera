@@ -17,5 +17,8 @@ test("web production sources import agent observability, not the runtime barrel"
     }
     expect(source.includes('from "@tessera/agent"'), path).toBe(false);
     expect(source.includes("from '@tessera/agent'"), path).toBe(false);
+    if (path.endsWith("/app.tsx") || path.endsWith("\\app.tsx")) {
+      expect(source.includes('from "./create-agent-runtime.js"'), path).toBe(false);
+    }
   }
 });

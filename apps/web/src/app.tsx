@@ -1,7 +1,6 @@
 import { SettingsPanel, Shell, useProviderSettingsStore, useSelectionStore } from "@tessera/ui";
 import type { ReactElement } from "react";
 import { AssetPanel } from "./asset-panel/asset-panel.js";
-import { createWebAgentRuntime } from "./create-agent-runtime.js";
 import { CreateMenu } from "./create-menu/create-menu.js";
 import type { EditorContext } from "./editor-context.js";
 import { EditorProvider, useEditor } from "./editor-context.js";
@@ -52,6 +51,7 @@ function EditorShell(): ReactElement {
 
 async function resolveEditorRuntime(editor: EditorContext) {
   const settings = useProviderSettingsStore.getState();
+  const { createWebAgentRuntime } = await import("./create-agent-runtime.js");
   const created = await createWebAgentRuntime({
     bus: editor.commands,
     queries: editor.queries,

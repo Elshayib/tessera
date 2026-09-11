@@ -6,6 +6,7 @@ const config = defineConfig({
   build: {
     rollupOptions: {
       output: {
+        entryFileNames: "assets/entry-[hash].js",
         manualChunks(id) {
           if (id.includes("packages/engine") || id.includes("@tessera/engine")) {
             return "engine";

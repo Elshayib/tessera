@@ -634,7 +634,7 @@ Conservative choice implemented: (b) T-0215. Root mix still omits llm (Q-0159).
 Raised by: T-0216 · Spec: `02` §7 `agent?`, T-0210 AC1, Q-0143 · Status: open
 Question: T-0210 deferred rewriting prompt files (Q-0143 a) and mounted chat without `AgentRuntime`, so prompt-only tasks cannot run. `02` §7 says `agent` is absent only when no provider is configured.
 Options: (a) keep chat as a transcript-only stub (b) inline prompt sections and construct `AgentRuntime` in `apps/web` via a dynamic `@tessera/providers-llm` import
-Conservative choice implemented: (b) T-0216. No live capability probe on first send; loop `profileOf` uses the conservative fallback. `agentVerifyLoop` stays off.
+Conservative choice implemented: (b) T-0216. No live capability probe on first send; loop `profileOf` uses the conservative fallback. `agentVerifyLoop` stays off. `AgentRuntime` is not re-exported from `observability` (Vite followed `export type` from `runtime.ts` into the initial graph). The web entry file is `entry-[hash].js` so size-limit does not sum lazy `index-*.js` chunks from `@tessera/agent` / `@tessera/providers-llm`.
 
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open

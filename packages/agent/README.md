@@ -17,7 +17,7 @@ Capability probing, role assignment, the agent `ToolRegistry`, `AgentRuntime.run
 | `createMemoryTranscriptStore` / `createIndexedDbTranscriptStore` | Project-local transcripts; never synced (`06` §13) |
 | `buildRunTrace` | Root `run` span plus one `step` span per model call (`INV-OBS-03`) |
 | `createUsageLedger` | Per run / conversation / project token and cost totals (`07` §7) |
-| `@tessera/agent/observability` | Transcripts, traces, ledger, and the `AgentRuntime` type without value-importing the run loop (for `@tessera/ui`) |
+| `@tessera/agent/observability` | Transcripts, traces, and ledger without importing the run loop (for `@tessera/ui`) |
 | `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
 ## Dependency rules

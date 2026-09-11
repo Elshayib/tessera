@@ -16,7 +16,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` Â
 
 ## Dependency rules
 
-Layer 3 app. May import packages and React. Engine is a lazy chunk (`engine-entry.ts`).
+Layer 3 app. May import packages and React. Engine is a lazy chunk (`engine-entry.ts`). Chat loads `@tessera/agent` and `@tessera/providers-llm` only through `createWebAgentRuntime`.
 
 ## Testing notes
 
