@@ -23,7 +23,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 | T-0216 | Wire editor chat to AgentRuntime (browser prompts) | web, agent | T-0211, T-0215 | `done` ([#52](https://github.com/Elshayib/tessera/pull/52)) |
 | T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `done` ([#54](https://github.com/Elshayib/tessera/pull/54)) |
-| T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `in-progress` |
+| T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `done` ([#55](https://github.com/Elshayib/tessera/pull/55)) |
 
 ## Specs
 
@@ -1305,8 +1305,7 @@ Live probe. IndexedDB vault. Git-tag `m2-agent-v1`. Claiming the human trial is 
 | Phase | 2 |
 | Package | `@tessera/providers-llm` |
 | Size | S |
-| Depends on | T-0217 |
-| Status | `in-progress` |
+| Status | `done` ([#55](https://github.com/Elshayib/tessera/pull/55)) |
 
 ## Goal
 
