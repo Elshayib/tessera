@@ -5,6 +5,8 @@ export type {
   TransformBuild,
 } from "./doc-builder.js";
 export { docBuilder } from "./doc-builder.js";
+export type { Assertion, SceneExpect } from "./expect-scene.js";
+export { expectScene } from "./expect-scene.js";
 export { FakeClock } from "./fake-clock.js";
 export type { FakeLlmPreset, FakeLlmStep } from "./fake-llm-client.js";
 export { FakeLlmClient } from "./fake-llm-client.js";

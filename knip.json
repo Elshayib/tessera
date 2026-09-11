@@ -17,6 +17,9 @@
     "apps/web": {
       "entry": ["src/main.tsx", "src/flags.ts", "src/bootstrap.ts", "e2e/**/*.ts"],
       "project": ["src/**"]
+    },
+    "evals": {
+      "project": ["src/**", "suites/**"]
     }
   }
 }

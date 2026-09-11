@@ -1,0 +1,39 @@
+{
+  "name": "@tessera/evals",
+  "version": "0.0.0",
+  "description": "Tessera agent eval runner and core-20 suite (replay in CI).",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/runner.d.ts",
+      "development": "./src/runner.ts",
+      "import": "./dist/src/runner.js",
+      "default": "./dist/src/runner.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "eval": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@tessera/agent": "workspace:*",
+    "@tessera/core": "workspace:*",
+    "@tessera/llm": "workspace:*",
+    "@tessera/schema": "workspace:*",
+    "@tessera/spatial": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "@tessera/testing": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.3.1",
+    "tsx": "4.20.5",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": ["node"]
+  },
+  "include": ["src", "suites"],
+  "exclude": ["**/*.test.ts"],
+  "references": [
+    { "path": "../packages/std" },
+    { "path": "../packages/schema" },
+    { "path": "../packages/llm" },
+    { "path": "../packages/core" },
+    { "path": "../packages/spatial" },
+    { "path": "../packages/testing" },
+    { "path": "../packages/agent" }
+  ]
+}
