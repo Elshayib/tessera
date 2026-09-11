@@ -13,3 +13,9 @@ test("flags default off", () => {
   expect(parseFlags("?flag=polyhaven", true).polyhaven).toBe(true);
   expect(parseFlags("?flag=unknown", true).polyhaven).toBe(true);
 });
+
+test("agentDryRun default false", () => {
+  expect(defaultFlags().agentDryRun).toBe(false);
+  expect(parseFlags("?flag=agentDryRun", true).agentDryRun).toBe(true);
+  expect(parseFlags("?flag=agentDryRun", false).agentDryRun).toBe(false);
+});

@@ -6,7 +6,7 @@ React editor chrome: `--t-…` tokens, resizable panel layout (Zustand + localSt
 
 | Export | Description |
 | --- | --- |
-| `Shell` | Landmarks for viewport, outliner, inspector, chat. |
+| `ReviewPanel` / `groupAgentRuns` | Live agent run groups; Accept no-op; Revert run uses `undo.revertRun` (`06` §9). |
 | `Outliner` | Accessible entity tree; reparent/reorder via `CommandBus`. |
 | `ViewportHost` | `aria-hidden` canvas for the engine (`01` a11y). |
 | `useSelectionStore` | UI-only selection (`INV-ARCH-04`). |
