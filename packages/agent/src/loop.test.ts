@@ -7,7 +7,7 @@ import {
 } from "@tessera/core";
 import type { LlmClient, LlmRequest, LlmResponse, ToolCallPart } from "@tessera/llm";
 import { canonicalize, emptyDocument } from "@tessera/schema";
-import { createLogger, ok } from "@tessera/std";
+import { abortError, createLogger, ok } from "@tessera/std";
 import { docBuilder, FakeClock } from "@tessera/testing";
 import { expect, test } from "vitest";
 import type { RunEvent } from "./run-types.js";
@@ -298,6 +298,115 @@ test("INV-AGT-08 identical script identical transactions", async () => {
     );
   };
   expect(await fingerprint()).toBe(await fingerprint());
+});
+
+function waitForAbort(signal: AbortSignal | undefined): Promise<never> {
+  return new Promise((_resolve, reject) => {
+    const fail = (): void => {
+      reject(abortError());
+    };
+    if (signal === undefined) {
+      return;
+    }
+    if (signal.aborted) {
+      fail();
+      return;
+    }
+    signal.addEventListener("abort", fail, { once: true });
+  });
+}
+
+function hangingHarness() {
+  const created = createDocument({ snapshot: emptyDocument(), clock: new FakeClock() });
+  const undo = createUndoService(created.doc);
+  const bus = createCommandBus(created.doc, { undo: undo.capture });
+  const host = createQueryHost(created.doc, { history: () => undo.committed() });
+  const queries = Object.assign(host.registry, { query: host.query.bind(host) });
+  const jobs = createJobQueue(bus, { logger: created.doc.logger });
+  const tools = createToolRegistry();
+  tools.deriveFromRegistries(bus.registry, queries);
+  let lastStreamSignal: AbortSignal | undefined;
+  let reportEntered: ((signal: AbortSignal | undefined) => void) | undefined;
+  const enteredStream = new Promise<AbortSignal | undefined>((resolve) => {
+    reportEntered = resolve;
+  });
+  const llm: LlmClient = {
+    provider: {
+      id: "script",
+      displayName: "script",
+      auth: "none",
+      baseUrl: { configurable: false },
+      browserDirect: "no",
+      listsModels: false,
+      docsUrl: "https://example.invalid",
+    },
+    listModels: async () => ok([]),
+    testConnection: async () => ok({ latencyMs: 1 }),
+    generate: async () => ok(assistantDone("unused")),
+    async *stream(_request: LlmRequest, signal?: AbortSignal) {
+      lastStreamSignal = signal;
+      reportEntered?.(signal);
+      await waitForAbort(signal);
+      yield { type: "done" as const, response: assistantDone("unused") };
+    },
+  };
+  const runtime = createAgentRuntime({
+    bus,
+    queries,
+    jobs,
+    tools,
+    llm,
+    roles: { models: { planner: executor, executor }, criticEnabled: false },
+    profiles: { "script:exec": profile },
+    logger: createLogger([]),
+    clock: new FakeClock(),
+    newRunId: () => "r_testrun001",
+  });
+  return { runtime, lastSignal: () => lastStreamSignal, enteredStream };
+}
+
+test("INV-AGT-04 cancel aborts an in-flight stream", async () => {
+  const { runtime, lastSignal, enteredStream } = hangingHarness();
+  const events: RunEvent[] = [];
+  const consuming = (async () => {
+    for await (const event of runtime.run({
+      conversationId: "c1",
+      prompt: "go",
+      context: { selection: [] },
+      policy: { verify: "none", maxSteps: 8 },
+    })) {
+      events.push(event);
+    }
+  })();
+  const streamSignal = await enteredStream;
+  expect(streamSignal !== undefined).toBe(true);
+  expect(lastSignal() !== undefined).toBe(true);
+  runtime.cancel("r_testrun001");
+  await consuming;
+  expect(events[events.length - 1]?.type).toBe("run.cancelled");
+});
+
+test("INV-AGT-04 run signal aborts an in-flight stream", async () => {
+  const { runtime, enteredStream } = hangingHarness();
+  const controller = new AbortController();
+  const events: RunEvent[] = [];
+  const consuming = (async () => {
+    for await (const event of runtime.run(
+      {
+        conversationId: "c1",
+        prompt: "go",
+        context: { selection: [] },
+        policy: { verify: "none", maxSteps: 8 },
+      },
+      controller.signal,
+    )) {
+      events.push(event);
+    }
+  })();
+  await enteredStream;
+  controller.abort();
+  await consuming;
+  expect(events[events.length - 1]?.type).toBe("run.cancelled");
 });
 
 test("two consecutive empty steps remainingIssues", async () => {

@@ -648,6 +648,13 @@ Question: `toModelMessages` left `role: "tool"` empty. After a native tool round
 Options: (a) strip assistant tool-calls from history (b) map Tessera tool rows to AI SDK `tool-result` parts
 Conservative choice implemented: (b) T-0218. Error results use `error-text`; success uses `text` of `JSON.stringify` (or the string itself).
 
+### Q-0164 — Cancel does not abort in-flight `LlmClient.stream`
+Raised by: T-0219 · Spec: `06` §3 `run`/`cancel`, `INV-AGT-04`; `LlmClient.stream(request, signal?)` · Status: open
+Question: `modelStep` called `llm.stream(request, undefined)`. `cancel(runId)` only added the run to a set checked between steps (`haltRun`). Chat Cancel could not stop a hung OpenRouter stream after `run.started`. Spec already requires `AbortSignal` on `run` and on `stream`.
+Options: (a) leave abort to the next inter-step `haltRun` (b) pass the run signal into `stream` and abort it from `cancel(runId)` (and from the caller `signal`)
+Conservative choice implemented: (b) T-0219. No `AbortSignal.timeout` for `timeoutMs` in this ticket (budget still checked between steps).
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

@@ -144,6 +144,7 @@ export async function* runLoop(
       deps.roles.models.planner,
       stepIndex,
       budget,
+      signal,
     );
     if (!planned.ok) {
       yield failOrCancel(planned.error, budget.snapshot(), cancelled);
@@ -189,6 +190,7 @@ export async function* runLoop(
         deps.roles.models.executor,
         stepIndex,
         budget,
+        signal,
       );
       if (!stepped.ok) {
         if (stepped.error.code === "INVALID_INPUT" && jsonMode) {
@@ -453,6 +455,7 @@ async function modelStep(
   model: { providerId: string; modelId: string },
   stepIndex: number,
   budget: ReturnType<typeof createBudget>,
+  signal: AbortSignal | undefined,
 ): Promise<Result<ModelStepOk, TesseraError>> {
   const specs = jsonMode ? undefined : toSpecs(tools);
   let last: TesseraError | undefined;
@@ -475,7 +478,7 @@ async function modelStep(
               temperature: policy.temperature,
               metadata: { runId: "", stepIndex },
             };
-      for await (const event of llm.stream(request, undefined)) {
+      for await (const event of llm.stream(request, signal)) {
         const mapped = onStream(event, stepIndex);
         if (mapped.delta !== undefined) {
           deltas.push(mapped.delta);

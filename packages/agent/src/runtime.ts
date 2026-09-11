@@ -2,7 +2,7 @@ import type { BlobPresence, CommandBus, JobQueue, QueryRegistry } from "@tessera
 import type { LlmClient } from "@tessera/llm";
 import type { CheckSceneReader } from "@tessera/spatial";
 import type { Clock, Logger } from "@tessera/std";
-import { newId, systemClock } from "@tessera/std";
+import { combineSignals, newId, systemClock } from "@tessera/std";
 import type { LoopDeps } from "./loop.js";
 import { runLoop } from "./loop.js";
 import type { RunEvent, RunRequest } from "./run-types.js";
@@ -47,6 +47,7 @@ export function createAgentRuntime(input: {
   readonly reader?: CheckSceneReader;
 }): AgentRuntime {
   const cancelled = new Set<string>();
+  const controllers = new Map<string, AbortController>();
   const blobs = input.blobs ?? { has: () => true };
   const verifier = input.verifier ?? createSkipVerifier();
   const clock = input.clock ?? systemClock;
@@ -55,9 +56,13 @@ export function createAgentRuntime(input: {
     tools: input.tools,
     cancel(runId) {
       cancelled.add(runId);
+      controllers.get(runId)?.abort();
     },
     run(request, signal) {
       const runId = newRunId();
+      const local = new AbortController();
+      controllers.set(runId, local);
+      const combined = signal === undefined ? local.signal : combineSignals(local.signal, signal);
       const deps: LoopDeps = {
         bus: input.bus,
         queries: input.queries,
@@ -72,13 +77,23 @@ export function createAgentRuntime(input: {
         roles: input.roles,
         ...(input.reader === undefined ? {} : { reader: input.reader }),
       };
-      return runLoop(
-        request,
-        runId,
-        () => cancelled.has(runId) || (signal?.aborted ?? false),
-        signal,
-        deps,
+      return endRun(
+        runLoop(request, runId, () => cancelled.has(runId) || combined.aborted, combined, deps),
+        () => {
+          controllers.delete(runId);
+        },
       );
     },
   };
+}
+
+async function* endRun(
+  events: AsyncIterable<RunEvent>,
+  onDone: () => void,
+): AsyncIterable<RunEvent> {
+  try {
+    yield* events;
+  } finally {
+    onDone();
+  }
 }

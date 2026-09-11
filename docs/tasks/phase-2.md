@@ -24,6 +24,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0216 | Wire editor chat to AgentRuntime (browser prompts) | web, agent | T-0211, T-0215 | `done` ([#52](https://github.com/Elshayib/tessera/pull/52)) |
 | T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `done` ([#54](https://github.com/Elshayib/tessera/pull/54)) |
 | T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `done` ([#55](https://github.com/Elshayib/tessera/pull/55)) |
+| T-0219 | Abort in-flight `LlmClient.stream` on cancel | agent | T-0218 | `in-progress` |
 
 ## Specs
 
@@ -1354,5 +1355,69 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Live probe. Chat UI. Git-tag `m2-agent-v1`. Claiming the human trial is done. Changing `LlmMessage`.
+
+---
+
+# T-0219 — Abort in-flight `LlmClient.stream` on cancel
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/agent` |
+| Size | S |
+| Depends on | T-0218 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+`AgentRuntime.cancel(runId)` and `run(request, signal)` abort the in-flight `LlmClient.stream` so a hung provider call can terminate with `run.cancelled` (`INV-AGT-04`).
+
+## Context
+
+- Spec: `docs/06-agent-runtime.md` §3 `run`/`cancel`, §14 `INV-AGT-04`; `LlmClient.stream(request, signal?)`
+- Q-0164
+- Live trial after T-0218: `run.started` then empty `model.delta` while `working`; Cancel did not stop HTTP because `modelStep` passed `undefined` as the stream signal and `cancel` only set a flag checked between steps.
+
+## Touches
+
+```
+packages/agent/src/loop.ts
+packages/agent/src/loop.test.ts
+packages/agent/src/runtime.ts
+packages/agent/README.md
+docs/06-agent-runtime.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Stream receives the run `AbortSignal`
+- [ ] `cancel(runId)` aborts that signal
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Thread the run signal into `llm.stream`; abort it from `cancel`.
+3. Run gates.
+
+## Acceptance criteria
+
+1. A stream that waits on `AbortSignal` ends with `run.cancelled` when `cancel(runId)` is called after `run.started`.
+2. The same hanging stream ends with `run.cancelled` when the `run` `AbortSignal` is aborted after `run.started`.
+3. `llm.stream` is invoked with a defined `AbortSignal` (not `undefined`).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'INV-AGT-04 cancel aborts an in-flight stream'` | `packages/agent/src/loop.test.ts` |
+| `'INV-AGT-04 run signal aborts an in-flight stream'` | `packages/agent/src/loop.test.ts` |
+
+## Non-goals
+
+Chat UI. IndexedDB vault. Hydrating settings. Turning on `agentVerifyLoop` / `agentDryRun`. Git-tag `m2-agent-v1`. Claiming the human trial is done. `AbortSignal.timeout` for `timeoutMs` (still checked between steps).
 
 
