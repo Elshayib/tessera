@@ -26,6 +26,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `done` ([#55](https://github.com/Elshayib/tessera/pull/55)) |
 | T-0219 | Abort in-flight `LlmClient.stream` on cancel | agent | T-0218 | `done` ([#57](https://github.com/Elshayib/tessera/pull/57)) |
 | T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `done` ([#58](https://github.com/Elshayib/tessera/pull/58)) |
+| T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
 
 ## Specs
 
@@ -1483,5 +1484,72 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 IndexedDB vault. Chat UI. List models / test connection. Turning on verify flags. Git-tag `m2-agent-v1`. Claiming the human trial is done.
+
+---
+
+# T-0221 — Wire IndexedDB KeyVault in the editor without a static providers-llm import
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `apps/web` |
+| Size | S |
+| Depends on | T-0203 (`done`), T-0216 (`done`) |
+| Status | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
+
+## Goal
+
+Editor BYOK keys persist in IndexedDB `tessera-vault` (`07` §6) without a static `@tessera/providers-llm` import in bootstrap (`T-0203` AC5).
+
+## Context
+
+- Spec: `docs/07-providers.md` §6; `docs/02-architecture.md` §9
+- Q-0166
+- T-0216 non-goal: IndexedDB vault in sync bootstrap
+- Live trial: memory vault dropped the OpenRouter key on reload
+
+## Touches
+
+```
+apps/web/src/browser-key-vault.ts
+apps/web/src/browser-key-vault.test.ts
+apps/web/src/bootstrap.ts
+apps/web/src/bootstrap.test.ts
+apps/web/src/isolation.test.ts
+apps/web/README.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Sync `KeyVault` façade opens `createIndexedDbKeyVault` via dynamic import
+- [ ] Memory fallback when IndexedDB/open fails
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Implement the façade; pass it from `bootstrap`.
+3. Run gates (include size-limit if initial JS is in doubt).
+
+## Acceptance criteria
+
+1. Two façades that open the same IndexedDB see a secret written by the first (`INV-PRV-02`).
+2. `bootstrap.ts` does not contain `from "@tessera/providers-llm"`.
+3. When `open` fails, `set`/`get` still work against the in-memory fallback (same instance).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'INV-PRV-02 browser vault persists across façade instances'` | `apps/web/src/browser-key-vault.test.ts` |
+| `'bootstrap does not static-import providers-llm'` | `apps/web/src/isolation.test.ts` |
+| `'browser vault falls back to memory when open fails'` | `apps/web/src/browser-key-vault.test.ts` |
+
+## Non-goals
+
+Passphrase Settings UI. Changing `vaultEncrypted`. Chat panel. Git-tag `m2-agent-v1`. Claiming the human trial is done. Turning on verify flags.
 
 

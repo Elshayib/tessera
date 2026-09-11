@@ -18,4 +18,5 @@ test("bootstrap empty document validates", () => {
 test("bootstrap includes KeyVault for Settings", () => {
   const ctx = bootstrap({ storage: new MemoryProjectStore() });
   expect("keyVault" in ctx).toBe(true);
+  expect(typeof ctx.keyVault.get).toBe("function");
 });
