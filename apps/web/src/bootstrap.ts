@@ -1,4 +1,4 @@
-import { createMemoryTranscriptStore, createUsageLedger } from "@tessera/agent/observability";
+import { createUsageLedger } from "@tessera/agent/observability";
 import { createAssetService } from "@tessera/assets";
 import {
   createCommandBus,
@@ -12,6 +12,7 @@ import { createLogger, systemClock } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
 import { MemoryProjectStore } from "@tessera/storage";
 import { createBrowserKeyVault } from "./browser-key-vault.js";
+import { createBrowserTranscriptStore } from "./browser-transcript-store.js";
 import type { EditorContext } from "./editor-context.js";
 import { bootstrapVerifyMode, parseFlags } from "./flags.js";
 
@@ -63,7 +64,7 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     clock,
     flags,
     agentVerify: bootstrapVerifyMode(flags),
-    transcripts: createMemoryTranscriptStore(),
+    transcripts: createBrowserTranscriptStore(),
     usage: createUsageLedger(),
     keyVault: options.keyVault ?? createBrowserKeyVault({ clock, logger }),
   };

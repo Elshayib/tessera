@@ -28,6 +28,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `done` ([#58](https://github.com/Elshayib/tessera/pull/58)) |
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
 | T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
+| T-0223 | Persist chat transcripts in IndexedDB from editor bootstrap | web | T-0210 | `in-progress` |
 
 ## Specs
 
@@ -1620,5 +1621,70 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Live HTTP in unit tests. Probe-on-first-send. Passphrase UI. Git-tag `m2-agent-v1`. Claiming the human trial is done.
+
+---
+
+# T-0223 — Persist chat transcripts in IndexedDB from editor bootstrap
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `apps/web` |
+| Size | S |
+| Depends on | T-0210 (`done`) |
+| Status | `in-progress` |
+
+## Goal
+
+Editor chat transcripts and traces persist in IndexedDB `tessera-transcripts` (`06` §13, T-0210 AC2) without a static `@tessera/agent` runtime import.
+
+## Context
+
+- Spec: `docs/06-agent-runtime.md` §13; `docs/02-architecture.md` §9
+- Q-0168
+- T-0210 implemented `createIndexedDbTranscriptStore`; bootstrap still used `createMemoryTranscriptStore()`
+
+## Touches
+
+```
+apps/web/src/browser-transcript-store.ts
+apps/web/src/browser-transcript-store.test.ts
+apps/web/src/bootstrap.ts
+apps/web/src/bootstrap.test.ts
+apps/web/README.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Sync `TranscriptStore` façade opens IndexedDB on first use
+- [ ] Memory fallback when open fails
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Implement the façade; pass it from `bootstrap`.
+3. Run gates.
+
+## Acceptance criteria
+
+1. Two façades that open the same IndexedDB see an entry written by the first.
+2. When `open` fails, `append`/`recent` still work against the in-memory fallback (same instance).
+3. Bootstrap still does not `from "@tessera/agent"` (observability only).
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'browser transcripts persist across façade instances'` | `apps/web/src/browser-transcript-store.test.ts` |
+| `'browser transcripts fall back to memory when open fails'` | `apps/web/src/browser-transcript-store.test.ts` |
+| `'web production sources import agent observability, not the runtime barrel'` | `apps/web/src/isolation.test.ts` |
+
+## Non-goals
+
+Hydrating chat UI from `recent`. Usage ledger persistence. Git-tag `m2-agent-v1`. Claiming the human trial is done.
 
 
