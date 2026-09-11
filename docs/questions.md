@@ -697,6 +697,20 @@ Options: (a) required argument, no default (b) optional inject, default `createM
 Conservative choice implemented: (b) T-0224 so existing harnesses keep working; the editor passes the IndexedDB façade.
 Answer: —
 
+### Q-0171 — UsageLedger methods are synchronous
+Raised by: T-0225 · Spec: `07` §7 persist with transcripts; T-0210 `record`/`forRun` are sync · Status: open
+Question: IndexedDB is async; changing `UsageLedger` to async would break ChatPanel and Settings.
+Options: (a) make ledger methods async (b) keep the T-0210 sync surface; persist via an async store plus a web façade that hydrates on first use
+Conservative choice implemented: (b) T-0225. Settings may read zeros until hydrate finishes.
+Answer: —
+
+### Q-0172 — Where to store persisted usage rows
+Raised by: T-0225 · Spec: `07` §7 "persisted with transcripts" · Status: open
+Question: Same IndexedDB as transcripts vs a new `tessera-usage` database.
+Options: (a) `tessera-transcripts` object store `usage`, DB version 2 (b) separate database
+Conservative choice implemented: (a) T-0225.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

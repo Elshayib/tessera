@@ -6,7 +6,7 @@ Vite composition root. Builds {@link EditorContext} (`docs/02-architecture.md` Â
 
 | Export | Description |
 | --- | --- |
-| `bootstrap` | Empty project + command bus, queries, undo, jobs, storage, assets. Keys use IndexedDB `tessera-vault` via a deferred import (Q-0166). Transcripts use IndexedDB `tessera-transcripts` (Q-0168). |
+| `bootstrap` | Empty project + command bus, queries, undo, jobs, storage, assets. Keys use IndexedDB `tessera-vault` via a deferred import (Q-0166). Transcripts and usage use IndexedDB `tessera-transcripts` (Q-0168, Q-0172). |
 | `createWebAgentRuntime` | Lazy `AgentRuntime` for chat (dynamic providers-llm import, Q-0161). |
 | `createWebLlmClient` | Same lazy client for Settings listModels / testConnection (Q-0167). |
 | `parseFlags` / `defaultFlags` | Typed flags; `?flag=` only in development. |

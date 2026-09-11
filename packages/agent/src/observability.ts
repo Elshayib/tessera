@@ -7,5 +7,7 @@ export { createIndexedDbTranscriptStore, TRANSCRIPT_DB_NAME } from "./transcript
 export { createMemoryTranscriptStore } from "./transcript/memory.js";
 export type { ConversationSummary, TranscriptEntry, TranscriptStore } from "./transcript/store.js";
 export type { CapabilityProfile } from "./types.js";
+export type { IndexedDbUsageLedger } from "./usage-idb.js";
+export { createIndexedDbUsageLedger } from "./usage-idb.js";
 export type { UsageLedger, UsageRecord, UsageTotals } from "./usage-ledger.js";
 export { createUsageLedger } from "./usage-ledger.js";

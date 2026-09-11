@@ -12,10 +12,17 @@ import { recentMessages } from "./store.js";
  */
 export const TRANSCRIPT_DB_NAME = "tessera-transcripts" as const;
 
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const ENTRY_STORE = "entries";
 const TRACE_STORE = "traces";
 const CONV_INDEX = "conversationId";
+
+/**
+ * Object store for persisted usage rows (`07` §7, Q-0172).
+ *
+ * @public
+ */
+export const USAGE_STORE = "usage" as const;
 
 /**
  * Browser {@link TranscriptStore}. Never synced.
@@ -34,7 +41,7 @@ export async function createIndexedDbTranscriptStore(
   if (indexedDb === undefined) {
     return err(tesseraError("UNSUPPORTED", "IndexedDB is not available"));
   }
-  const opened = await openDb(indexedDb);
+  const opened = await openTranscriptDatabase(indexedDb);
   if (!opened.ok) {
     return opened;
   }
@@ -89,7 +96,14 @@ export async function createIndexedDbTranscriptStore(
   });
 }
 
-function openDb(factory: IDBFactory): Promise<Result<IDBDatabase, TesseraError>> {
+/**
+ * Opens IndexedDB `tessera-transcripts` (entries, traces, usage).
+ *
+ * @public
+ */
+export function openTranscriptDatabase(
+  factory: IDBFactory,
+): Promise<Result<IDBDatabase, TesseraError>> {
   return new Promise((resolve) => {
     const request = factory.open(TRANSCRIPT_DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
@@ -100,6 +114,9 @@ function openDb(factory: IDBFactory): Promise<Result<IDBDatabase, TesseraError>>
       }
       if (!db.objectStoreNames.contains(TRACE_STORE)) {
         db.createObjectStore(TRACE_STORE, { keyPath: "runId" });
+      }
+      if (!db.objectStoreNames.contains(USAGE_STORE)) {
+        db.createObjectStore(USAGE_STORE, { keyPath: "id" });
       }
     };
     request.onsuccess = () => {

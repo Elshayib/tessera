@@ -26,3 +26,9 @@ test("bootstrap includes TranscriptStore for chat persistence", () => {
   expect(typeof ctx.transcripts.append).toBe("function");
   expect(typeof ctx.transcripts.recent).toBe("function");
 });
+
+test("bootstrap includes UsageLedger for Settings", () => {
+  const ctx = bootstrap({ storage: new MemoryProjectStore() });
+  expect(typeof ctx.usage.record).toBe("function");
+  expect(typeof ctx.usage.monthlyByProvider).toBe("function");
+});
