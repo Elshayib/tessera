@@ -616,7 +616,7 @@ Conservative choice implemented: (b) T-0215. Live re-record remains `TESSERA_REC
 Raised by: T-0215 · Spec: `13` T-0119 visual · Status: open
 Question: Chromium on Ubuntu GitHub runners diffs the empty viewport from the Windows baseline (GPU/font/subpixel), and Settings/chat chrome also changed the page.
 Options: (a) lower the global `maxDiffPixelRatio` (b) screenshot the page, mask `canvas`, allow 2% on that assertion, commit a Linux snapshot
-Conservative choice implemented: (b) T-0215, matching the earlier CI-gates approach.
+Conservative choice implemented: (b) T-0215, matching the earlier CI-gates approach. Phase-2 Settings/chat chrome is in the page snapshot; Ubuntu Chrome PNG is committed from a Linux capture, not the Windows file. CI uploads `test-results/` on e2e failure so the Linux actual can be refreshed.
 
 ### Q-0159 — Root coverage mix vs `@tessera/llm` 85%
 Raised by: T-0215 · Spec: `01` §7, Q-0133 · Status: open
