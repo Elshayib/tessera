@@ -28,7 +28,7 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0220 | Hydrate Settings roles and budgets from localStorage | ui | T-0211 | `done` ([#58](https://github.com/Elshayib/tessera/pull/58)) |
 | T-0221 | Wire IndexedDB KeyVault in the editor without a static providers-llm import | web | T-0203, T-0216 | `done` ([#59](https://github.com/Elshayib/tessera/pull/59)) |
 | T-0222 | Wire Settings listModels and testConnection through a lazy LLM client | web, ui | T-0211, T-0216 | `done` ([#60](https://github.com/Elshayib/tessera/pull/60)) |
-| T-0223 | Persist chat transcripts in IndexedDB from editor bootstrap | web | T-0210 | `in-progress` |
+| T-0223 | Persist chat transcripts in IndexedDB from editor bootstrap | web | T-0210 | `done` ([#62](https://github.com/Elshayib/tessera/pull/62)) |
 
 ## Specs
 
@@ -1632,7 +1632,7 @@ Live HTTP in unit tests. Probe-on-first-send. Passphrase UI. Git-tag `m2-agent-v
 | Package | `apps/web` |
 | Size | S |
 | Depends on | T-0210 (`done`) |
-| Status | `in-progress` |
+| Status | `done` ([#62](https://github.com/Elshayib/tessera/pull/62)) |
 
 ## Goal
 
