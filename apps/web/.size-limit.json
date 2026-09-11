@@ -1,7 +1,7 @@
 [
   {
     "name": "initial JS (gz)",
-    "path": "dist/assets/index-*.js",
+    "path": "dist/assets/entry-*.js",
     "gzip": true,
     "limit": "350 KB"
   },

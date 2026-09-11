@@ -17,12 +17,12 @@ Capability probing, role assignment, the agent `ToolRegistry`, `AgentRuntime.run
 | `createMemoryTranscriptStore` / `createIndexedDbTranscriptStore` | Project-local transcripts; never synced (`06` §13) |
 | `buildRunTrace` | Root `run` span plus one `step` span per model call (`INV-OBS-03`) |
 | `createUsageLedger` | Per run / conversation / project token and cost totals (`07` §7) |
-| `@tessera/agent/observability` | Transcripts, traces, and ledger without the run loop (for `@tessera/ui`) |
+| `@tessera/agent/observability` | Transcripts, traces, and ledger without importing the run loop (for `@tessera/ui`) |
 | `CapabilityProfile`, `Role`, `ResolvedRoles`, `ToolRegistry`, `RunPolicy`, `RunRequest` | Types |
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std`, `@tessera/llm`, `@tessera/schema`, `@tessera/core`, and `@tessera/spatial`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`).
+Layer 2. May import `@tessera/std`, `@tessera/llm`, `@tessera/schema`, `@tessera/core`, and `@tessera/spatial`. Must not import `ai`, `@ai-sdk/*`, `@openrouter/*`, `three`, or `@tessera/providers-llm` (`INV-AGT-02`). Prompt sections are inlined TypeScript strings so the run loop can load in the browser (Q-0143, Q-0161).
 
 Query tools call `QueryHost.query` when it is present on the `QueryRegistry` object (Q-0136). They never call `tx.run`.
 

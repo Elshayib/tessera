@@ -27,6 +27,8 @@ export interface ChatPanelProps {
     run(request: RunRequest, signal?: AbortSignal): AsyncIterable<RunEvent>;
     cancel(runId: string): void;
   };
+  readonly createRuntime?: () => Promise<ChatPanelProps["runtime"]>;
+  readonly verify?: "none" | "spatial" | "spatial+vision";
   readonly selection?: readonly string[];
   readonly focusedEntity?: string;
   readonly viewportCamera?: ViewportCamera;
@@ -59,6 +61,7 @@ const FALLBACK_PROFILE: CapabilityProfile = {
  */
 export function ChatPanel(props: ChatPanelProps): ReactElement {
   const [prompt, setPrompt] = useState("");
+  const [boundRuntime, setBoundRuntime] = useState<ChatPanelProps["runtime"]>(props.runtime);
   const [working, setWorking] = useState(false);
   const [runId, setRunId] = useState<string | undefined>(undefined);
   const [streamText, setStreamText] = useState("");
@@ -90,7 +93,11 @@ export function ChatPanel(props: ChatPanelProps): ReactElement {
         createdAt,
       },
     ]);
-    const runtime = props.runtime;
+    let runtime = props.runtime ?? boundRuntime;
+    if (runtime === undefined && props.createRuntime !== undefined) {
+      runtime = await props.createRuntime();
+      setBoundRuntime(runtime);
+    }
     if (runtime === undefined) {
       setWorking(false);
       setPrompt("");
@@ -105,7 +112,10 @@ export function ChatPanel(props: ChatPanelProps): ReactElement {
         ...(props.viewportCamera === undefined ? {} : { viewportCamera: props.viewportCamera }),
         ...(props.focusedEntity === undefined ? {} : { focusedEntity: props.focusedEntity }),
       },
-      policy: { confirmDestructive },
+      policy: {
+        confirmDestructive,
+        ...(props.verify === undefined ? {} : { verify: props.verify }),
+      },
       ...(attachments === undefined ? {} : { attachments }),
     };
     const events = [];
@@ -239,8 +249,11 @@ export function ChatPanel(props: ChatPanelProps): ReactElement {
         <button
           type="button"
           onClick={() => {
-            if (runId !== undefined && props.runtime !== undefined) {
-              props.runtime.cancel(runId);
+            if (runId !== undefined) {
+              const active = props.runtime ?? boundRuntime;
+              if (active !== undefined) {
+                active.cancel(runId);
+              }
             }
           }}
         >

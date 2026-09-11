@@ -43,12 +43,15 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
   const commands = createCommandBus(created.doc, { undo: undoCreated.capture });
   const jobs = createJobQueue(commands, { logger });
   const queryHost = createQueryHost(created.doc, { history: () => undoCreated.committed() });
+  const queries = Object.assign(queryHost.registry, {
+    query: queryHost.query.bind(queryHost),
+  });
   const storage = options.storage ?? new MemoryProjectStore({ clock });
   const flags = parseFlags(options.search ?? "", options.isDev === true);
   const context: EditorContext = {
     document: created.doc,
     commands,
-    queries: queryHost.registry,
+    queries,
     undo: undoCreated.undo,
     jobs,
     components: { names: [] },
