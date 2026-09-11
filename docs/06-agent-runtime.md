@@ -1,6 +1,6 @@
 # 06 — Agent runtime
 
-Status: Accepted · Last updated: 2026-09-06 · Package: `@tessera/agent` (runtime), `@tessera/llm` (model interface), `@tessera/spatial` (checks, macros) · Phase: 2 (v1), 3 (generation tools), 6 (collaboration), 7 (code tools)
+Status: Accepted · Last updated: 2026-09-11 · Package: `@tessera/agent` (runtime), `@tessera/llm` (model interface), `@tessera/spatial` (checks, macros) · Phase: 2 (v1), 3 (generation tools), 6 (collaboration), 7 (code tools)
 
 ## 1. Purpose and scope
 
@@ -26,7 +26,7 @@ The agent runtime turns a user prompt into reviewable, attributed transactions o
 ```ts
 export interface AgentRuntime {
   run(request: RunRequest, signal?: AbortSignal): AsyncIterable<RunEvent>;   // streams events; completes with run.completed | run.failed | run.cancelled
-  cancel(runId: string): void;
+  cancel(runId: string): void;              // aborts the in-flight LlmClient.stream for that run (INV-AGT-04)
   readonly tools: ToolRegistry;
   readonly transcripts: TranscriptStore;
 }

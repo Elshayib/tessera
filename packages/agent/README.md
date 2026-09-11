@@ -12,7 +12,7 @@ Capability probing, role assignment, the agent `ToolRegistry`, `AgentRuntime.run
 | `createToolRegistry` | Derive command/query tools for tiers 0–2 plus meta-tools |
 | `selectTools` | Progressive disclosure (`maxTools ≥ 40` vs catalog mode) |
 | `suggestionFor` | Fixed `(group, error code)` suggestion table (`06` §7.2) |
-| `createAgentRuntime` | Observe → plan → act → verify loop (`06` §4, §8) |
+| `createAgentRuntime` | Observe → plan → act → verify loop (`06` §4, §8); `cancel` aborts the in-flight `LlmClient.stream` |
 | `createSceneVerifier` / `createSkipVerifier` | Spatial then optional vision critic |
 | `createMemoryTranscriptStore` / `createIndexedDbTranscriptStore` | Project-local transcripts; never synced (`06` §13) |
 | `buildRunTrace` | Root `run` span plus one `step` span per model call (`INV-OBS-03`) |
