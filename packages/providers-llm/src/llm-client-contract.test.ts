@@ -1,5 +1,5 @@
 import type { KeyVault } from "@tessera/llm";
-import { systemMessage, userText } from "@tessera/llm";
+import { assistantToolCalls, systemMessage, toolResultMessage, userText } from "@tessera/llm";
 import type { TesseraError } from "@tessera/std";
 import { createLogger, createMemorySink, isOk, ok } from "@tessera/std";
 import { FakeClock } from "@tessera/testing";
@@ -369,6 +369,39 @@ test("stream with a system message ends with done", async () => {
     events.push(event);
   }
   expect(events.at(-1)?.type).toBe("done");
+});
+
+test("tool results follow assistant tool calls in the provider prompt", async () => {
+  let promptJson = "";
+  const model = new MockLanguageModelV3({
+    doGenerate: async ({ prompt }) => {
+      promptJson = JSON.stringify(prompt);
+      return {
+        content: [{ type: "text", text: "ok" }],
+        finishReason: "stop",
+        usage: { inputTokens: 2, outputTokens: 1 },
+        warnings: [],
+      };
+    },
+  });
+  const wired = deps(model);
+  const result = await createOpenAIClient(
+    { providerId: "openai", apiKeyRef: "vault-ref" },
+    wired.deps,
+  ).generate({
+    model: echoRequest.model,
+    tools: echoRequest.tools,
+    messages: [
+      userText("Call echo with value ok."),
+      assistantToolCalls([
+        { kind: "toolCall", callId: "c1", name: "echo", input: { value: "ok" } },
+      ]),
+      toolResultMessage([{ callId: "c1", name: "echo", result: { echoed: "ok" }, isError: false }]),
+    ],
+  });
+  expect(isOk(result)).toBe(true);
+  expect(promptJson.includes("c1")).toBe(true);
+  expect(promptJson.includes("echoed")).toBe(true);
 });
 
 test("missing apiKeyRef is PERMISSION_DENIED", async () => {

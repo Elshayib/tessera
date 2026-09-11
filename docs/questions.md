@@ -642,6 +642,12 @@ Question: The agent loop sends `systemMessage(buildSystemPrompt(…))` plus a us
 Options: (a) keep system rows in `messages` and require a proxy that rewrites prompts (b) lift Tessera system rows onto the AI SDK `system` option in the bridge
 Conservative choice implemented: (b) T-0217. `LlmMessage` is unchanged. Chat also renders `run.failed` `error.message`.
 
+### Q-0163 — Tool results omitted from AI SDK `messages`
+Raised by: T-0218 · Spec: `07` §2 tool `LlmMessage`, `07` §4 bridge · Status: open
+Question: `toModelMessages` left `role: "tool"` empty. After a native tool round, `appendTurn` adds `toolResultMessage` rows, then the next `stream` has assistant `tool-call` parts without matching results. AI SDK throws `MissingToolResultsError`, mapped to `PROVIDER_ERROR` “provider network error”.
+Options: (a) strip assistant tool-calls from history (b) map Tessera tool rows to AI SDK `tool-result` parts
+Conservative choice implemented: (b) T-0218. Error results use `error-text`; success uses `text` of `JSON.stringify` (or the string itself).
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

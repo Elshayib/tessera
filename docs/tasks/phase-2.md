@@ -22,7 +22,8 @@ Tickets below were frozen by **T-0200**. Do not implement T-0201 until T-0200 is
 | T-0214 | R3F code export | exporters | T-0111 | `done` ([#50](https://github.com/Elshayib/tessera/pull/50)) |
 | T-0215 | Phase 2 exit: core-20 ≥ 90% replay, two providers | evals | T-0213 | `done` ([#51](https://github.com/Elshayib/tessera/pull/51)) |
 | T-0216 | Wire editor chat to AgentRuntime (browser prompts) | web, agent | T-0211, T-0215 | `done` ([#52](https://github.com/Elshayib/tessera/pull/52)) |
-| T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `in-progress` |
+| T-0217 | Map system messages to AI SDK `system` option | providers-llm, ui | T-0216 | `done` ([#54](https://github.com/Elshayib/tessera/pull/54)) |
+| T-0218 | Map tool-result messages through the AI SDK bridge | providers-llm | T-0217 | `in-progress` |
 
 ## Specs
 
@@ -1240,7 +1241,7 @@ Turning `agentVerifyLoop` on. Live probe on first send. IndexedDB vault in sync 
 | Package | `@tessera/providers-llm`, `@tessera/ui` |
 | Size | S |
 | Depends on | T-0216 |
-| Status | `in-progress` |
+| Status | `done` ([#54](https://github.com/Elshayib/tessera/pull/54)) |
 
 ## Goal
 
@@ -1294,4 +1295,65 @@ docs/tasks/phase-2.md
 ## Non-goals
 
 Live probe. IndexedDB vault. Git-tag `m2-agent-v1`. Claiming the human trial is done. Changing `LlmMessage`.
+
+---
+
+# T-0218 — Map tool-result messages through the AI SDK bridge
+
+| Field | Value |
+| --- | --- |
+| Phase | 2 |
+| Package | `@tessera/providers-llm` |
+| Size | S |
+| Depends on | T-0217 |
+| Status | `in-progress` |
+
+## Goal
+
+After the executor's first native tool round, the next model step still includes Tessera `role: "tool"` results so the AI SDK does not throw `MissingToolResultsError`.
+
+## Context
+
+- Spec: `docs/07-providers.md` §2 `LlmMessage` tool role / `ToolResultPart`, §4 adapter
+- Q-0163
+- Live trial after T-0217: 4309 tokens then `provider network error` and an empty outliner — first stream succeeded; tool rows were dropped in `toModelMessages`
+
+## Touches
+
+```
+packages/providers-llm/src/internal/ai-sdk-bridge.ts
+packages/providers-llm/src/llm-client-contract.test.ts
+packages/providers-llm/README.md
+docs/07-providers.md
+docs/questions.md
+docs/tasks/phase-2.md
+```
+
+## Deliverables
+
+- [ ] Tool results mapped to AI SDK `tool-result` parts
+- [ ] Tests listed below
+- [ ] Changeset
+
+## Steps
+
+1. Write the tests so they fail.
+2. Fill the empty `role === "tool"` branch.
+3. Run gates.
+
+## Acceptance criteria
+
+1. `generate` with user + assistant tool-call + tool-result messages succeeds against `MockLanguageModelV3`.
+2. The language-model prompt includes the tool call id and the result payload.
+
+## Tests
+
+| Test | File |
+| --- | --- |
+| `'tool results follow assistant tool calls in the provider prompt'` | `packages/providers-llm/src/llm-client-contract.test.ts` |
+
+## Non-goals
+
+Live probe. Chat UI. Git-tag `m2-agent-v1`. Claiming the human trial is done. Changing `LlmMessage`.
+
 

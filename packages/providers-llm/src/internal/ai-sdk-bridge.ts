@@ -260,9 +260,33 @@ function toModelMessages(messages: readonly LlmMessage[]): ModelMessage[] {
       continue;
     }
     if (message.role === "tool") {
+      out.push({
+        role: "tool",
+        content: message.results.map((row) => ({
+          type: "tool-result" as const,
+          toolCallId: row.callId,
+          toolName: row.name,
+          output: row.isError
+            ? { type: "error-text" as const, value: resultText(row.result) }
+            : { type: "text" as const, value: resultText(row.result) },
+        })),
+      });
+      continue;
     }
   }
   return out;
+}
+
+function resultText(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  try {
+    const encoded = JSON.stringify(value);
+    return encoded === undefined ? "null" : encoded;
+  } catch {
+    return "unserializable";
+  }
 }
 
 function toolsFromSpec(specs: readonly ToolSpec[] | undefined): ToolSet | undefined {
