@@ -886,7 +886,7 @@ packages/ui/README.md
 docs/questions.md
 ```
 
-Extra vs original Touches: `packages/agent/src/usage-ledger.ts` (`monthlyByProvider`, Q-0144); `apps/web` bootstrap/App/`EditorContext.keyVault` so Settings can be injected.
+Extra vs original Touches: `packages/agent/src/usage-ledger.ts` (`monthlyByProvider`, Q-0144); `apps/web` bootstrap/App/`EditorContext.keyVault` so Settings can be injected; empty-viewport Linux PNG + canvas mask (`apps/web/e2e`) because Settings chrome is in the page screenshot.
 
 ## Acceptance criteria
 
