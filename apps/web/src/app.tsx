@@ -36,6 +36,7 @@ function EditorShell(): ReactElement {
   const selection = useSelectionStore((state) => state.ids);
   const focusedId = useSelectionStore((state) => state.focusedId);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const inspectId = selection[0] ?? (focusedId === null ? undefined : focusedId);
   return (
     <Shell
       toolbar={
@@ -82,9 +83,7 @@ function EditorShell(): ReactElement {
             reader={editor.reader}
             bus={editor.commands}
             author={UI_AUTHOR}
-            {...(selection[0] === undefined && focusedId === null
-              ? {}
-              : { entityId: selection[0] ?? focusedId ?? undefined })}
+            {...(inspectId === undefined ? {} : { entityId: inspectId })}
           />
         )
       }
