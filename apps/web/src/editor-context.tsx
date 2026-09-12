@@ -3,6 +3,7 @@ import type { AssetService } from "@tessera/assets";
 import type {
   CommandBus,
   DocumentHandle,
+  DocumentReader,
   JobQueue,
   QueryRegistry,
   UndoService,
@@ -32,6 +33,7 @@ export interface ComponentRegistry {
  */
 export interface EditorContext {
   readonly document: DocumentHandle;
+  readonly reader: DocumentReader;
   readonly commands: CommandBus;
   readonly queries: QueryRegistry;
   readonly undo: UndoService;

@@ -1,11 +1,22 @@
-import { SettingsPanel, Shell, useProviderSettingsStore, useSelectionStore } from "@tessera/ui";
+import {
+  en,
+  Inspector,
+  Outliner,
+  SettingsPanel,
+  Shell,
+  useProviderSettingsStore,
+  useSelectionStore,
+} from "@tessera/ui";
 import type { ReactElement } from "react";
+import { useState } from "react";
 import { AssetPanel } from "./asset-panel/asset-panel.js";
 import { CreateMenu } from "./create-menu/create-menu.js";
 import type { EditorContext } from "./editor-context.js";
 import { EditorProvider, useEditor } from "./editor-context.js";
 import { ProjectIo } from "./project-io/project-io-bar.js";
 import { Viewport } from "./viewport/viewport.js";
+
+const UI_AUTHOR = { kind: "user" as const, id: "ui" };
 
 /**
  * Editor chrome around {@link EditorContext}.
@@ -15,25 +26,6 @@ import { Viewport } from "./viewport/viewport.js";
 export function App(props: { readonly context: EditorContext }): ReactElement {
   return (
     <EditorProvider value={props.context}>
-      <CreateMenu />
-      <AssetPanel />
-      <ProjectIo />
-      <SettingsPanel
-        vault={props.context.keyVault}
-        vaultEncrypted={false}
-        usage={props.context.usage}
-        resolveClient={async (providerId) => {
-          const settings = useProviderSettingsStore.getState();
-          const { createWebLlmClient } = await import("./create-agent-runtime.js");
-          return createWebLlmClient({
-            vault: props.context.keyVault,
-            logger: props.context.logger,
-            clock: props.context.clock,
-            providerId,
-            compatibleOrigin: settings.compatibleOrigin,
-          });
-        }}
-      />
       <EditorShell />
     </EditorProvider>
   );
@@ -43,8 +35,59 @@ function EditorShell(): ReactElement {
   const editor = useEditor();
   const selection = useSelectionStore((state) => state.ids);
   const focusedId = useSelectionStore((state) => state.focusedId);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
     <Shell
+      toolbar={
+        <>
+          <ProjectIo />
+          <CreateMenu />
+          <button
+            type="button"
+            aria-pressed={settingsOpen}
+            onClick={() => {
+              setSettingsOpen((open) => !open);
+            }}
+          >
+            {en.shell.settings}
+          </button>
+        </>
+      }
+      outliner={
+        <>
+          <Outliner reader={editor.reader} bus={editor.commands} author={UI_AUTHOR} />
+          <AssetPanel />
+        </>
+      }
+      inspector={
+        settingsOpen ? (
+          <SettingsPanel
+            vault={editor.keyVault}
+            vaultEncrypted={false}
+            usage={editor.usage}
+            resolveClient={async (providerId) => {
+              const settings = useProviderSettingsStore.getState();
+              const { createWebLlmClient } = await import("./create-agent-runtime.js");
+              return createWebLlmClient({
+                vault: editor.keyVault,
+                logger: editor.logger,
+                clock: editor.clock,
+                providerId,
+                compatibleOrigin: settings.compatibleOrigin,
+              });
+            }}
+          />
+        ) : (
+          <Inspector
+            reader={editor.reader}
+            bus={editor.commands}
+            author={UI_AUTHOR}
+            {...(selection[0] === undefined && focusedId === null
+              ? {}
+              : { entityId: selection[0] ?? focusedId ?? undefined })}
+          />
+        )
+      }
       viewport={<Viewport />}
       jobs={{ jobs: editor.jobs }}
       chat={{

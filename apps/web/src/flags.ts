@@ -18,7 +18,7 @@ const FLAG_NAMES = ["polyhaven", "agentVerifyLoop", "createMenu", "agentDryRun"]
  * @public
  */
 export function defaultFlags(): Flags {
-  return { polyhaven: true, agentVerifyLoop: false, createMenu: false, agentDryRun: false };
+  return { polyhaven: true, agentVerifyLoop: false, createMenu: true, agentDryRun: false };
 }
 
 /**
