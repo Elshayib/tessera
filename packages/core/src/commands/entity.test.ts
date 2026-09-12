@@ -1,5 +1,6 @@
 import { emptyDocument } from "@tessera/schema";
 import { isErr, isOk } from "@tessera/std";
+import { docBuilder } from "@tessera/testing";
 import { expect, test } from "vitest";
 import { createCommandBus } from "../command-bus.js";
 import { createDocument } from "../create-document.js";
@@ -37,6 +38,18 @@ test("entity.create reject / success / change set", () => {
 
   const strict = bus.execute("entity.create", { name: "oak", strictName: true }, { author });
   expect(isErr(strict) && strict.error.code === "CONFLICT").toBe(true);
+});
+
+test("entity.create appends after a docBuilder sibling", () => {
+  const snapshot = docBuilder().entity("wall", { mesh: "box" }).build();
+  const createdDoc = createDocument({ snapshot });
+  const bus = createCommandBus(createdDoc.doc);
+  const created = bus.execute("entity.create", { name: "barrel" }, { author });
+  expect(isOk(created)).toBe(true);
+  if (!created.ok) {
+    return;
+  }
+  expect(createdDoc.reader.getEntity(created.value.output.id)?.name).toBe("barrel");
 });
 
 test("entity.delete reject / success / subtree", () => {

@@ -1,6 +1,7 @@
 import { Logger, WebIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
-import type { Entity, Document as TesseraDocument } from "@tessera/schema";
+import { isKtx2, KTX2_COLOR_MODEL_ETC1S, ktx2ColorModel, parseGlb } from "@tessera/assets";
+import type { Entity, Document as TesseraDocument, TextureAsset } from "@tessera/schema";
 import { ColliderSchema, SidecarSchema } from "@tessera/schema";
 import { isErr, isOk } from "@tessera/std";
 import { MemoryBlobStore } from "@tessera/storage";
@@ -97,21 +98,132 @@ test("cancelled export returns CANCELLED", async () => {
   expect(isErr(result) && result.error.code === "CANCELLED").toBe(true);
 });
 
-test("ktx2 and draco are UNSUPPORTED", async () => {
-  const document = primitiveDoc();
+test("export textures ktx2 encodes KTX2", async () => {
   const blobs = new MemoryBlobStore();
+  const png = Uint8Array.from([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+    0xde,
+  ]);
+  const written = await blobs.write(png, "image/png", "albedo.png");
+  expect(written.ok).toBe(true);
+  if (!written.ok) {
+    return;
+  }
+  const built = primitiveDoc();
+  const mat = Object.values(built.assets).find((asset) => asset.kind === "material");
+  if (mat === undefined || mat.kind !== "material") {
+    return;
+  }
+  const texId = "a_texktx0000";
+  const texture: TextureAsset = {
+    id: texId,
+    name: "albedo",
+    license: "CC0-1.0",
+    provenance: { source: "upload", importedAt: built.meta.createdAt },
+    createdAt: built.meta.createdAt,
+    kind: "texture",
+    blob: written.value,
+    colorSpace: "srgb",
+    wrapS: "repeat",
+    wrapT: "repeat",
+    size: [2, 2],
+    hasAlpha: false,
+  };
+  const document: TesseraDocument = {
+    ...built,
+    assets: {
+      ...built.assets,
+      [texId]: texture,
+      [mat.id]: {
+        ...mat,
+        baseColorTexture: {
+          texture: texId,
+          texCoord: 0,
+          scale: [1, 1],
+          offset: [0, 0],
+          rotation: 0,
+        },
+      },
+    },
+  };
   const ktx2 = await exporter.export({
     document,
     blobs,
     options: options({ textures: "ktx2" }),
   });
-  expect(isErr(ktx2) && ktx2.error.code === "UNSUPPORTED").toBe(true);
+  expect(isOk(ktx2)).toBe(true);
+  if (!ktx2.ok) {
+    return;
+  }
+  const glbFile = ktx2.value.files.find((file) => file.path.endsWith(".glb"));
+  expect(glbFile !== undefined).toBe(true);
+  if (glbFile === undefined) {
+    return;
+  }
+  const bytes = new Uint8Array(await glbFile.blob.arrayBuffer());
+  const parsed = parseGlb(bytes);
+  expect(parsed.json.extensionsUsed?.includes("KHR_texture_basisu")).toBe(true);
+  const image = parsed.json.images?.[0];
+  expect(image?.mimeType).toBe("image/ktx2");
+  const viewIndex = image?.bufferView;
+  expect(typeof viewIndex).toBe("number");
+  if (viewIndex === undefined) {
+    return;
+  }
+  const view = parsed.json.bufferViews?.[viewIndex];
+  expect(view !== undefined).toBe(true);
+  if (view === undefined) {
+    return;
+  }
+  const start = view.byteOffset ?? 0;
+  const imageBytes = parsed.bin.subarray(start, start + view.byteLength);
+  expect(isKtx2(imageBytes)).toBe(true);
+  expect(ktx2ColorModel(imageBytes)).toBe(KTX2_COLOR_MODEL_ETC1S);
+});
+
+test("export compression draco encodes Draco", async () => {
+  const document = primitiveDoc();
   const draco = await exporter.export({
     document,
-    blobs,
+    blobs: new MemoryBlobStore(),
     options: options({ compression: "draco" }),
   });
-  expect(isErr(draco) && draco.error.code === "UNSUPPORTED").toBe(true);
+  expect(isOk(draco)).toBe(true);
+  if (!draco.ok) {
+    return;
+  }
+  const glbFile = draco.value.files.find((file) => file.path.endsWith(".glb"));
+  expect(glbFile !== undefined).toBe(true);
+  if (glbFile === undefined) {
+    return;
+  }
+  const parsed = parseGlb(new Uint8Array(await glbFile.blob.arrayBuffer()));
+  expect(parsed.json.extensionsUsed?.includes("KHR_draco_mesh_compression")).toBe(true);
+  const primitive = parsed.json.meshes?.[0]?.primitives[0];
+  const ext = primitive?.extensions;
+  expect(ext !== undefined && Object.hasOwn(ext, "KHR_draco_mesh_compression")).toBe(true);
+  const payload =
+    ext === undefined
+      ? undefined
+      : (ext as { KHR_draco_mesh_compression?: { bufferView?: number } })
+          .KHR_draco_mesh_compression;
+  const viewIndex = payload?.bufferView;
+  expect(typeof viewIndex).toBe("number");
+  if (viewIndex === undefined) {
+    return;
+  }
+  expect(parsed.json.bufferViews?.[viewIndex] !== undefined).toBe(true);
+  expect(JSON.stringify(parsed.json).includes("tesseraCompression")).toBe(false);
+});
+
+test("meshopt remains UNSUPPORTED", async () => {
+  const meshopt = await exporter.export({
+    document: primitiveDoc(),
+    blobs: new MemoryBlobStore(),
+    options: options({ compression: "meshopt" }),
+  });
+  expect(isErr(meshopt) && meshopt.error.code === "UNSUPPORTED").toBe(true);
 });
 
 test("CC-BY attribution is included and CC0 is omitted", async () => {

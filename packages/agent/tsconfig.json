@@ -12,6 +12,7 @@
     { "path": "../llm" },
     { "path": "../schema" },
     { "path": "../spatial" },
-    { "path": "../core" }
+    { "path": "../core" },
+    { "path": "../assets" }
   ]
 }

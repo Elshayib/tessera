@@ -11,6 +11,7 @@
   "references": [
     { "path": "../std" },
     { "path": "../llm" },
+    { "path": "../generation" },
     { "path": "../schema" },
     { "path": "../storage" }
   ]

@@ -1,5 +1,5 @@
 import { createUsageLedger } from "@tessera/agent/observability";
-import { createAssetService } from "@tessera/assets";
+import { createAssetService, createFetchTransport, createPolyHavenSource } from "@tessera/assets";
 import {
   createCommandBus,
   createDocument,
@@ -10,7 +10,7 @@ import {
 import type { KeyVault } from "@tessera/llm";
 import { createLogger, systemClock } from "@tessera/std";
 import type { ProjectStore } from "@tessera/storage";
-import { MemoryProjectStore } from "@tessera/storage";
+import { MemoryBlobStore, MemoryProjectStore } from "@tessera/storage";
 import { createBrowserKeyVault } from "./browser-key-vault.js";
 import { createBrowserTranscriptStore } from "./browser-transcript-store.js";
 import type { EditorContext } from "./editor-context.js";
@@ -59,7 +59,14 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
     jobs,
     components: { names: [] },
     storage,
-    assets: createAssetService({ bus: commands }),
+    assets: createAssetService({
+      bus: commands,
+      jobs,
+      blobs: new MemoryBlobStore(),
+      clock,
+      sources: [createPolyHavenSource({ transport: createFetchTransport(), clock })],
+      reader: created.reader,
+    }),
     logger,
     clock,
     flags,

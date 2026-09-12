@@ -40,9 +40,7 @@ export const GltfExportOptionsSchema = z.object({
   textures: z
     .enum(["source", "png", "ktx2"])
     .default("source")
-    .meta(
-      field("Textures", "select", 50, "Texture encoding; ktx2 is not available in this ticket"),
-    ),
+    .meta(field("Textures", "select", 50, "Texture encoding: source, png, or ktx2")),
   compression: z
     .enum(["none", "draco", "meshopt"])
     .default("none")
@@ -51,7 +49,7 @@ export const GltfExportOptionsSchema = z.object({
         "Compression",
         "select",
         60,
-        "Mesh compression; draco and meshopt are not available in this ticket",
+        "Mesh compression: none, draco, or meshopt (meshopt unsupported)",
       ),
     ),
   includeColliders: z

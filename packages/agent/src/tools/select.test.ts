@@ -1,9 +1,12 @@
-import { createCommandBus, createDocument, createQueryHost } from "@tessera/core";
+import { createAssetService } from "@tessera/assets";
+import { createCommandBus, createDocument, createJobQueue, createQueryHost } from "@tessera/core";
 import type { ModelRef } from "@tessera/llm";
+import { FakeClock, MemoryBlobStore } from "@tessera/testing";
 import { expect, test } from "vitest";
 import type { CapabilityProfile } from "../types.js";
 import { createToolRegistry } from "./registry.js";
 import { selectTools } from "./select.js";
+import { createTier3Tools } from "./tier3.js";
 import type { RunPolicy } from "./types.js";
 
 const REF: ModelRef = { providerId: "openai", modelId: "gpt-test" };
@@ -70,4 +73,34 @@ test("selectTools includes all enabled 0-2 when maxTools >= 40", () => {
   expect(names.has("camera.setMain")).toBe(true);
   expect(names.has("environment.set")).toBe(true);
   expect(names.has("asset.import")).toBe(false);
+});
+
+test("selectTools exposes tier-3 asset/generate/jobs tools when enabledTiers includes 3", () => {
+  const { doc } = createDocument();
+  const bus = createCommandBus(doc);
+  const host = createQueryHost(doc, { history: () => [] });
+  const jobs = createJobQueue(bus, { logger: doc.logger });
+  const registry = createToolRegistry();
+  registry.deriveFromRegistries(bus.registry, host.registry);
+  const assets = createAssetService({
+    bus,
+    jobs,
+    blobs: new MemoryBlobStore(),
+    clock: new FakeClock(),
+  });
+  for (const tool of createTier3Tools(assets)) {
+    registry.register(tool);
+  }
+  const withTier3: RunPolicy = { ...policy(), enabledTiers: [0, 1, 2, 3] };
+  const selected = selectTools(registry, withTier3, profile(40));
+  const names = new Set(selected.map((tool) => tool.name));
+  expect(names.has("asset.search")).toBe(true);
+  expect(names.has("asset.add")).toBe(true);
+  expect(names.has("asset.generateMesh")).toBe(true);
+  expect(names.has("asset.generateTexture")).toBe(true);
+  expect(names.has("asset.generateEnvironment")).toBe(true);
+  expect(names.has("asset.import")).toBe(true);
+  expect(names.has("jobs.await")).toBe(true);
+  const omitted = selectTools(registry, policy(), profile(40));
+  expect(omitted.some((tool) => tool.name === "asset.search")).toBe(false);
 });

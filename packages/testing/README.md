@@ -12,6 +12,8 @@ Fixtures, document builder, `FakeClock`, `MemoryBlobStore`, `runCommands`, and s
 | `MemoryBlobStore` | Re-export of `@tessera/storage` `MemoryBlobStore` (Q-0009 / T-0101). |
 | `runCommands(bus, commands, options)` | Runs commands in order on a duck-typed bus (no `@tessera/core` import; Q-0019). |
 | `FakeLlmClient` | Scripted `LlmClient` (`13` §3): `script([{ expectPromptIncludes?, respond }])`, request log, presets `noTools` / `noVision` / `smallContext`. |
+| `FakeGenerationProvider` | Deterministic `GenerationProvider` (`13` §3) with configurable latency and failures. |
+| `FakeAssetSource` | Deterministic `AssetSource` (`13` §3) with configurable search/fetch failures. |
 | `RecordingLlmClient` | Wraps an `LlmClient`; with `TESSERA_RECORD=1` writes redacted `fixtures/recordings/<provider>/<suite>/<case>.<model>.json`. |
 | `ReplayLlmClient` | Matches generate requests by hash of model, stripped messages, and tool names (`13` §4). |
 | `installFetchGuard()` | Fails `fetch` to non-loopback hosts (`INV-TST-01`). |
@@ -19,7 +21,7 @@ Fixtures, document builder, `FakeClock`, `MemoryBlobStore`, `runCommands`, and s
 
 ## Dependency rules
 
-Layer 2, test-only. May import `@tessera/schema`, `@tessera/std`, `@tessera/storage`, and `@tessera/llm` (types + message builders only; no `ai` / `@ai-sdk/*`). Production `src` must not import this package (`docs/02-architecture.md` §5).
+Layer 2, test-only. May import `@tessera/schema`, `@tessera/std`, `@tessera/storage`, `@tessera/llm`, and `@tessera/generation` (types only; no vendor SDKs). Production `src` must not import this package (`docs/02-architecture.md` §5).
 
 ## Usage example
 

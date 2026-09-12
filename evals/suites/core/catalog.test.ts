@@ -7,11 +7,10 @@ test("core-20 suite lists exactly the 20 ids from 13 §5.4", () => {
   expect(CORE_EVAL_CASES.map((item) => item.id)).toEqual([...CORE_20_CASE_IDS]);
 });
 
-test("needs-generation tagged on core.generate-barrel and skipped in phase-2 replay scoring", () => {
+test("core.generate-barrel is scored and assertions match 13 §5.4", () => {
   const barrel = CORE_EVAL_CASES.find((item) => item.id === "core.generate-barrel");
-  expect(barrel?.tags).toContain("needs-generation");
   expect(barrel?.tags).toContain("core-20");
-  expect(barrel !== undefined && isScoredPhase2(barrel)).toBe(false);
-  const cube = CORE_EVAL_CASES.find((item) => item.id === "core.red-cube");
-  expect(cube !== undefined && isScoredPhase2(cube)).toBe(true);
+  expect(barrel?.tags?.includes("needs-generation") ?? false).toBe(false);
+  expect(barrel !== undefined && isScoredPhase2(barrel)).toBe(true);
+  expect(barrel?.prompt).toBe("Generate a low-poly barrel and place it by the wall.");
 });

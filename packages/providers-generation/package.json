@@ -1,0 +1,35 @@
+{
+  "name": "@tessera/providers-generation",
+  "version": "0.0.0",
+  "description": "Meshy, Tripo, Rodin, Hugging Face TRELLIS.2, and local-worker GenerationProvider adapters.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@tessera/generation": "workspace:*",
+    "@tessera/std": "workspace:*",
+    "@tessera/storage": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
+  }
+}

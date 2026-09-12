@@ -110,11 +110,33 @@ export function AssetPanel(): ReactElement | null {
       <p>
         {en.assetPanel.page} {page}
       </p>
+      <label>
+        {en.assetPanel.upload}
+        <input
+          type="file"
+          multiple
+          onChange={(event) => {
+            const list = event.currentTarget.files;
+            if (list === null || list.length === 0) {
+              return;
+            }
+            const files = Array.from(list);
+            void editor.assets
+              .importFiles(files, { author: AUTHOR }, new AbortController().signal)
+              .then((result) => {
+                if (!result.ok) {
+                  logFailure("web.asset_panel.upload", result);
+                }
+              });
+          }}
+        />
+      </label>
+      <p>{en.assetPanel.licenseNudge}</p>
       <ul>
         {items.map((item) => (
           <li key={item.id}>
             <span>{item.name}</span>
-            {item.kind === "hdri" || item.kind === "model" ? (
+            {item.kind === "hdri" || item.kind === "model" || item.kind === "texture" ? (
               <button
                 type="button"
                 onClick={() => {
@@ -131,6 +153,20 @@ export function AssetPanel(): ReactElement | null {
                           logFailure("web.asset_panel.apply", applied);
                         }
                         return;
+                      }
+                      if (item.kind === "texture") {
+                        return editor.assets
+                          .addFromSource(
+                            "polyhaven",
+                            item,
+                            { author: AUTHOR },
+                            new AbortController().signal,
+                          )
+                          .then((applied) => {
+                            if (!applied.ok) {
+                              logFailure("web.asset_panel.apply", applied);
+                            }
+                          });
                       }
                       return applyFetchedModel(
                         editor.assets,

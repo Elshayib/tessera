@@ -30,6 +30,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@tessera/assets": "workspace:*",
     "@tessera/core": "workspace:*",
     "@tessera/llm": "workspace:*",
     "@tessera/schema": "workspace:*",

@@ -46,6 +46,7 @@ function EditorShell(): ReactElement {
   return (
     <Shell
       viewport={<Viewport />}
+      jobs={{ jobs: editor.jobs }}
       chat={{
         transcripts: editor.transcripts,
         usage: editor.usage,
@@ -75,6 +76,7 @@ async function resolveEditorRuntime(editor: EditorContext) {
     critic: settings.roles.critic,
     compatibleOrigin: settings.compatibleOrigin,
     transcripts: editor.transcripts,
+    assets: editor.assets,
   });
   if (!created.ok) {
     return undefined;

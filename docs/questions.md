@@ -697,6 +697,97 @@ Options: (a) required argument, no default (b) optional inject, default `createM
 Conservative choice implemented: (b) T-0224 so existing harnesses keep working; the editor passes the IndexedDB façade.
 Answer: —
 
+### Q-0171 — T-0302 vs T-0120 Poly Haven source
+Raised by: T-0300 · Spec: `08` §6 vs T-0120 done · Status: open
+Question: T-0302's title is “Poly Haven models/textures source”, but T-0120 already searches `hdri|model|texture`.
+Options: (a) reimplement the source (b) narrow T-0302 to façade `search`/`addFromSource` and remaining apply/UX gaps
+Conservative choice implemented: (b) T-0300. `createPolyHavenSource` is not rewritten.
+Answer: —
+
+### Q-0172 — `AssetService.generate` / `thumbnails` before T-0306 / T-0303
+Raised by: T-0300 · Spec: `08` §10 full façade vs ticket split · Status: open
+Question: T-0301 must ship `importFiles`/`search`/`addFromSource` without generate or GPU thumbs.
+Options: (a) wait for T-0303/T-0306 (b) stub `generate` as `UNSUPPORTED` and `thumbnails.get` as `null` until those tickets
+Conservative choice implemented: (b) T-0301.
+Answer: —
+
+### Q-0173 — Texture apply target
+Raised by: T-0300 · Spec: `08` §6 vs Q-0086 · Status: open
+Question: Applying a Poly Haven texture to the document is unspecified beyond “not a no-op”.
+Options: (a) invent a new command (b) `asset.create` texture (+ material) and `material.update` / mesh material slots when `CommitOptions` names a target entity
+Conservative choice implemented: (b) T-0302. Closes Q-0086 for phase 3.
+Answer: —
+
+### Q-0174 — Thumbnail renderer injection
+Raised by: T-0300 · Spec: `08` §9 vs `02` §5 (assets must not import three) · Status: open
+Question: Who renders the 256×256 WebP?
+Options: (a) assets imports engine (forbidden) (b) inject a `ThumbnailRenderer` interface; headless leaves it unset → `null`
+Conservative choice implemented: (b) T-0303.
+Answer: —
+
+### Q-0175 — `FakeGenerationProvider` package home
+Raised by: T-0300 · Spec: `13` §3 `@tessera/testing` · Status: open
+Question: Fakes need `GenerationProvider` types from `@tessera/generation`.
+Options: (a) duplicate types in testing (b) testing depends on `@tessera/generation` (same as `@tessera/llm`)
+Conservative choice implemented: (b) T-0304.
+Answer: —
+
+### Q-0176 — Root Vitest coverage mix vs `@tessera/generation`
+Raised by: T-0300 · Spec: `01` §7 vs Q-0133 · Status: open
+Question: New layer-1 packages at 85% fail the root 95% mix.
+Options: (a) raise generation to 95% (b) omit `packages/generation` from the root mix like `llm`
+Conservative choice implemented: (b) T-0304; package vitest keeps 85/80.
+Answer: —
+
+### Q-0177 — Hunyuan3D regional restrictions
+Raised by: T-0300 · Spec: `07` §9 · Status: open
+Question: Model licenses with regional restrictions should be surfaced in the local worker capabilities payload.
+Options: (a) implement a Hunyuan adapter now (b) document a `details.regionalRestrictions` string on the local-worker descriptor when the worker reports it; no extra adapter
+Conservative choice implemented: (b) T-0305.
+Answer: —
+
+### Q-0178 — `enabledTiers` includes 3 in phase 3
+Raised by: T-0300 · Spec: `06` §5 vs Q-0126 `[0,1,2]` · Status: open
+Question: Progressive disclosure must expose tier-3 asset/generate tools.
+Options: (a) keep `[0,1,2]` and require `tools.enable` for generate (b) default `enabledTiers` to `[0,1,2,3]`
+Conservative choice implemented: (b) T-0306.
+Answer: —
+
+### Q-0179 — `jobs.await` timeout above 120000 ms
+Raised by: T-0300 · Spec: `06` §5 `timeoutMs ≤ 120000` · Status: open
+Question: Reject vs clamp.
+Options: (a) clamp (b) `INVALID_INPUT`
+Conservative choice implemented: (b) T-0306 so the cap is visible to the model.
+Answer: —
+
+### Q-0180 — Tier-3 tools are not catalog commands
+Raised by: T-0300 · Spec: `06` §5 / `08` §10 vs `04` §8 catalog · Status: open
+Question: `asset.search`, `asset.generate*`, `jobs.await` are named as tools but are not in `COMMAND_CATALOG` (only `asset.import` is, unregistered).
+Options: (a) add commands in schema (b) register extra tools on `ToolRegistry` like meta-tools
+Conservative choice implemented: (b) T-0306. `asset.import` tool wraps `AssetService.importFiles`, still not a bus command (Q-0016).
+Answer: —
+
+### Q-0181 — KTX2/Draco encoders in Node tests
+Raised by: T-0300 · Spec: `08` §7.1 / `09` §3.1 vs no GPU in CI · Status: open
+Question: Real BasisU/Draco WASM may be heavy or non-deterministic.
+Options: (a) require native encoders in CI (b) inject encoder ports; tests use a deterministic encoder that still emits KTX2 mime / Draco extension
+Conservative choice implemented: (b) T-0307. Production web/desktop injects real encoders when available.
+Answer: —
+
+### Q-0183 — `@tessera/assets` imports `@tessera/generation`
+Raised by: T-0301 · Spec: `07` §8.1 vs `02` §4 assets import list · Status: open
+Question: `07` §8.1 says assets wraps a `GenerationProvider` in a `JobSpec`. The architecture table does not list `generation` as an assets import.
+Options: (a) put generate in the app (b) assets may import `@tessera/generation` types + call injected providers
+Conservative choice implemented: (b) same-layer downward to L1, matching `07` §8.1.
+Answer: —
+
+### Q-0182 — `needs-generation` tag after scoring `core.generate-barrel`
+Raised by: T-0300 · Spec: `13` §5.4 vs Q-0131 · Status: open
+Question: Keep the tag (now misleading) or drop it?
+Options: (a) drop the tag (b) keep it but score the case anyway
+Conservative choice implemented: (a) T-0310 drops `needs-generation` so `isScoredPhase2`/successor includes the case. Tag may remain in comments.
+Answer: —
+
 ### Q-0030 — `EditorContext.assets` before T-0109
 Raised by: T-0100 · Spec: `02` §7 · Status: open
 Question: `EditorContext.assets` is required, but `AssetService.commitPlan` lands in T-0109 and T-0115 does not depend on T-0109.

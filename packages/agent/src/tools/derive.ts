@@ -6,14 +6,7 @@ import { denyIfDestructive, isDestructiveCommand } from "./destructive.js";
 import { attachSuggestion } from "./suggestions.js";
 import type { ToolContext, ToolDefinition, ToolGroup } from "./types.js";
 
-const OMITTED_NAMES = new Set([
-  "asset.import",
-  "asset.search",
-  "jobs.await",
-  "script.run",
-  "procedural.define",
-  "behavior.attach",
-]);
+const OMITTED_NAMES = new Set(["script.run", "procedural.define", "behavior.attach"]);
 
 const HINT = " Address entities by id (e_…) or { path }. Units: meters, Euler degrees XYZ.";
 
@@ -37,18 +30,15 @@ export const TOOL_GROUPS: readonly ToolGroup[] = [
 ];
 
 /**
- * True when a catalog entry must not become a phase-2 tool.
+ * True when a catalog entry must not become a tool (tier 4 until phase 7).
  *
  * @public
  */
 export function shouldOmitTool(name: string, tier: number): boolean {
-  if (tier >= 3) {
+  if (tier >= 4) {
     return true;
   }
-  if (OMITTED_NAMES.has(name)) {
-    return true;
-  }
-  return name.startsWith("asset.generate");
+  return OMITTED_NAMES.has(name);
 }
 
 /**

@@ -2,7 +2,7 @@ import type { RunPolicy } from "./tools/types.js";
 import type { CapabilityProfile } from "./types.js";
 
 /**
- * Phase-2 {@link RunPolicy} defaults (`06` §3, Q-0126).
+ * Phase-3 {@link RunPolicy} defaults (`06` §3, Q-0178).
  *
  * @example
  * ```ts
@@ -14,7 +14,7 @@ import type { CapabilityProfile } from "./types.js";
 export function defaultRunPolicy(profile: CapabilityProfile, criticHasVision: boolean): RunPolicy {
   const verify = criticHasVision && profile.vision ? "spatial+vision" : "spatial";
   return {
-    enabledTiers: [0, 1, 2],
+    enabledTiers: [0, 1, 2, 3],
     maxSteps: 24,
     maxToolCallsPerStep: 16,
     maxInputTokens: 400_000,

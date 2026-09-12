@@ -1,8 +1,21 @@
-import type { Author, CommandBus, TransactionRecord } from "@tessera/core";
+import type {
+  Author,
+  CommandBus,
+  DocumentReader,
+  JobQueue,
+  TransactionRecord,
+} from "@tessera/core";
+import type { GenerationProvider, GenerationRequest } from "@tessera/generation";
 import type { AssetId, EntityId, Vec3 } from "@tessera/schema";
 import { AssetIdSchema, EntityIdSchema } from "@tessera/schema";
-import type { Result, TesseraError } from "@tessera/std";
+import type { Clock, Result, TesseraError } from "@tessera/std";
 import { err, ok, tesseraError } from "@tessera/std";
+import type { BlobStore } from "@tessera/storage";
+import { planFromFetched, postCommitApply } from "./apply-fetched.js";
+import type { DelayFn } from "./generate.js";
+import { generateToPlan } from "./generate.js";
+import type { ImportFile } from "./import-files.js";
+import { planFromFile } from "./import-files.js";
 import type {
   AssetInput,
   CommitPlanIds,
@@ -10,6 +23,15 @@ import type {
   EntityInput,
   ImportPlan,
 } from "./import-plan.js";
+import { type ImportJobHandle, importJobHandle } from "./job-handle.js";
+import type { AssetSource, SearchItem, SearchPage } from "./sources/polyhaven.js";
+import {
+  type AssetSourceRegistry,
+  createAssetSourceRegistry,
+  requireSource,
+} from "./sources/registry.js";
+import type { ThumbnailService } from "./thumbnails.js";
+import { nullThumbnailService } from "./thumbnails.js";
 
 /**
  * Result of {@link AssetService.commitPlan}.
@@ -21,12 +43,61 @@ export interface CommitPlanResult extends CommitPlanIds {
 }
 
 /**
- * Main-thread import façade (`08` §7.5). T-0109 implements `commitPlan` only (Q-0052).
+ * Search query (`08` §6 / §10).
+ *
+ * @public
+ */
+export interface SearchQuery {
+  readonly text: string;
+  readonly kind: "model" | "texture" | "hdri";
+  readonly tags?: readonly string[];
+  readonly page?: number;
+  readonly pageSize?: number;
+}
+
+/**
+ * Commit options for façade methods (`08` §10).
+ *
+ * @public
+ */
+export interface CommitOptions extends CommitPlanOptions {
+  readonly setSky?: boolean;
+  readonly target?: EntityId;
+  readonly resolution?: "1k" | "2k" | "4k";
+}
+
+/**
+ * Main-thread import façade (`08` §7.5 / §10).
  *
  * @public
  */
 export interface AssetService {
   commitPlan(plan: ImportPlan, options: CommitPlanOptions): Result<CommitPlanResult, TesseraError>;
+  importFiles(
+    files: readonly ImportFile[],
+    options?: CommitOptions,
+    signal?: AbortSignal,
+  ): Promise<Result<readonly ImportJobHandle[], TesseraError>>;
+  search(
+    sourceId: string,
+    query: SearchQuery,
+    signal?: AbortSignal,
+  ): Promise<Result<SearchPage, TesseraError>>;
+  addFromSource(
+    sourceId: string,
+    item: SearchItem,
+    options?: CommitOptions,
+    signal?: AbortSignal,
+  ): Promise<Result<ImportJobHandle, TesseraError>>;
+  generate(
+    providerId: string,
+    request: GenerationRequest,
+    options?: CommitOptions,
+    signal?: AbortSignal,
+  ): Promise<Result<ImportJobHandle, TesseraError>>;
+  listUnused(): readonly AssetId[];
+  thumbnails: ThumbnailService;
+  readonly sources: AssetSourceRegistry;
 }
 
 /**
@@ -36,6 +107,14 @@ export interface AssetService {
  */
 export interface CreateAssetServiceOptions {
   readonly bus: CommandBus;
+  readonly jobs?: JobQueue;
+  readonly blobs?: BlobStore;
+  readonly clock?: Clock;
+  readonly sources?: readonly AssetSource[];
+  readonly providers?: Readonly<Record<string, GenerationProvider>>;
+  readonly reader?: DocumentReader;
+  readonly thumbnails?: ThumbnailService;
+  readonly delay?: DelayFn;
 }
 
 /**
@@ -50,9 +129,170 @@ export interface CreateAssetServiceOptions {
  * @public
  */
 export function createAssetService(options: CreateAssetServiceOptions): AssetService {
+  const sources = createAssetSourceRegistry(options.sources ?? []);
+  const thumbnails = options.thumbnails ?? nullThumbnailService();
+  const providers = options.providers ?? {};
+  const missing = (code: TesseraError["code"], message: string): TesseraError =>
+    tesseraError(code, message);
+
+  const enqueuePlan = (
+    kind: "import" | "generate",
+    label: string,
+    author: Author,
+    etaSeconds: number,
+    run: (ctx: {
+      signal: AbortSignal;
+      progress: (p: number, message?: string) => void;
+    }) => Promise<Result<ImportPlan, TesseraError>>,
+    after?: (
+      ids: CommitPlanIds,
+      run: (name: string, payload: unknown) => Result<unknown, TesseraError>,
+    ) => Result<void, TesseraError>,
+  ): Result<ImportJobHandle, TesseraError> => {
+    const jobs = options.jobs;
+    if (jobs === undefined) {
+      return err(missing("UNSUPPORTED", "JobQueue is required for import and generate jobs"));
+    }
+    const handle = jobs.enqueue({
+      kind,
+      label,
+      author,
+      async run(ctx) {
+        return run({ signal: ctx.signal, progress: ctx.progress });
+      },
+      commit(plan, bus) {
+        const committed = commitPlan(bus, plan, { author }, after);
+        if (!committed.ok) {
+          return committed;
+        }
+        return ok(undefined);
+      },
+    });
+    return ok(importJobHandle(handle, etaSeconds));
+  };
+
   return {
+    sources,
+    thumbnails,
     commitPlan(plan, commitOptions) {
       return commitPlan(options.bus, plan, commitOptions);
+    },
+    async importFiles(files, commitOptions, signal) {
+      const blobs = options.blobs;
+      const clock = options.clock;
+      if (blobs === undefined || clock === undefined) {
+        return err(missing("UNSUPPORTED", "blobs and clock are required for importFiles"));
+      }
+      const author = commitOptions?.author ?? { kind: "user", id: "user" };
+      const handles: ImportJobHandle[] = [];
+      for (const file of files) {
+        const queued = enqueuePlan("import", `Import ${file.name}`, author, 2, async (ctx) => {
+          const merged = signal === undefined ? ctx.signal : abortEither(signal, ctx.signal);
+          return planFromFile({ file, blobs, clock, signal: merged });
+        });
+        if (!queued.ok) {
+          return queued;
+        }
+        handles.push(queued.value);
+      }
+      return ok(handles);
+    },
+    async search(sourceId, query, signal) {
+      const source = requireSource(sources, sourceId);
+      if (!source.ok) {
+        return source;
+      }
+      return source.value.search(query, signal ?? new AbortController().signal);
+    },
+    async addFromSource(sourceId, item, commitOptions, signal) {
+      const blobs = options.blobs;
+      const clock = options.clock;
+      if (blobs === undefined || clock === undefined) {
+        return err(missing("UNSUPPORTED", "blobs and clock are required for addFromSource"));
+      }
+      const source = requireSource(sources, sourceId);
+      if (!source.ok) {
+        return source;
+      }
+      const author = commitOptions?.author ?? { kind: "user", id: "user" };
+      return enqueuePlan(
+        "import",
+        `Import ${item.name}`,
+        author,
+        4,
+        async (ctx) => {
+          const merged = signal === undefined ? ctx.signal : abortEither(signal, ctx.signal);
+          const fetched = await source.value.fetch(
+            item,
+            { resolution: commitOptions?.resolution ?? "1k" },
+            blobs,
+            merged,
+          );
+          if (!fetched.ok) {
+            return fetched;
+          }
+          return planFromFetched({
+            fetched: fetched.value,
+            item,
+            blobs,
+            clock,
+            signal: merged,
+            ...(commitOptions?.setSky === undefined ? {} : { setSky: commitOptions.setSky }),
+          });
+        },
+        (ids, run) => {
+          if (commitOptions === undefined) {
+            return ok(undefined);
+          }
+          return postCommitApply({
+            item,
+            assetIds: ids.assetIds,
+            options: commitOptions,
+            run,
+          });
+        },
+      );
+    },
+    async generate(providerId, request, commitOptions, signal) {
+      const blobs = options.blobs;
+      const clock = options.clock;
+      const provider = providers[providerId];
+      if (blobs === undefined || clock === undefined) {
+        return err(missing("UNSUPPORTED", "blobs and clock are required for generate"));
+      }
+      if (provider === undefined) {
+        return err(tesseraError("NOT_FOUND", "generation provider not found", { providerId }));
+      }
+      const author = commitOptions?.author ?? { kind: "user", id: "user" };
+      const estimated = await provider.estimate(request);
+      const etaSeconds = estimated.ok
+        ? estimated.value.seconds
+        : provider.descriptor.typicalSeconds.mesh;
+      return enqueuePlan(
+        "generate",
+        `Generate ${request.kind}`,
+        author,
+        etaSeconds,
+        async (ctx) => {
+          const merged = signal === undefined ? ctx.signal : abortEither(signal, ctx.signal);
+          return generateToPlan({
+            provider,
+            request,
+            blobs,
+            clock,
+            signal: merged,
+            ...(options.delay === undefined ? {} : { delay: options.delay }),
+            progress: ctx.progress,
+          });
+        },
+      );
+    },
+    listUnused() {
+      const reader = options.reader;
+      if (reader === undefined) {
+        return [];
+      }
+      return listUnusedAssets(reader);
     },
   };
 }
@@ -66,6 +306,10 @@ export function commitPlan(
   bus: CommandBus,
   plan: ImportPlan,
   options: CommitPlanOptions,
+  after?: (
+    ids: CommitPlanIds,
+    run: (name: string, payload: unknown) => Result<unknown, TesseraError>,
+  ) => Result<void, TesseraError>,
 ): Result<CommitPlanResult, TesseraError> {
   const fileName =
     plan.blobs.find((blob) => blob.mime === "model/gltf-binary")?.fileName ??
@@ -100,7 +344,14 @@ export function commitPlan(
       idMap.set(entity.id, id.value);
       entityIds.push(id.value);
     }
-    return ok({ assetIds, entityIds });
+    const ids = { assetIds, entityIds };
+    if (after !== undefined) {
+      const extra = after(ids, (name, payload) => tx.run(name, payload));
+      if (!extra.ok) {
+        return extra;
+      }
+    }
+    return ok(ids);
   });
   if (!result.ok) {
     return result;
@@ -110,6 +361,51 @@ export function commitPlan(
     entityIds: result.value.value.entityIds,
     transaction: result.value.transaction,
   });
+}
+
+function listUnusedAssets(reader: DocumentReader): AssetId[] {
+  const used = new Set<string>();
+  const visit = (value: unknown): void => {
+    if (typeof value === "string" && value.startsWith("a_")) {
+      used.add(value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      for (const entry of value) {
+        visit(entry);
+      }
+      return;
+    }
+    if (typeof value === "object" && value !== null) {
+      for (const entry of Object.values(value)) {
+        visit(entry);
+      }
+    }
+  };
+  for (const entity of reader.entities()) {
+    visit(entity.components);
+  }
+  const unused: AssetId[] = [];
+  for (const asset of reader.assets()) {
+    if (!used.has(asset.id)) {
+      unused.push(asset.id);
+    }
+  }
+  return unused;
+}
+
+function abortEither(left: AbortSignal, right: AbortSignal): AbortSignal {
+  const controller = new AbortController();
+  const abort = (): void => {
+    controller.abort();
+  };
+  if (left.aborted || right.aborted) {
+    controller.abort();
+    return controller.signal;
+  }
+  left.addEventListener("abort", abort, { once: true });
+  right.addEventListener("abort", abort, { once: true });
+  return controller.signal;
 }
 
 function entityCreateInput(
@@ -225,7 +521,8 @@ function readId(value: unknown): Result<string, TesseraError> {
   if (!isRecord(value)) {
     return err(tesseraError("INVARIANT_VIOLATION", "create did not return an id"));
   }
-  const id = value["id"];
+  const idKey = "id";
+  const id = value[idKey];
   if (typeof id !== "string") {
     return err(tesseraError("INVARIANT_VIOLATION", "create did not return an id"));
   }

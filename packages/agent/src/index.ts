@@ -19,6 +19,7 @@ export { DESTRUCTIVE_CONFIRM_SUGGESTION } from "./tools/destructive.js";
 export { createToolRegistry } from "./tools/registry.js";
 export { selectTools } from "./tools/select.js";
 export { suggestionFor } from "./tools/suggestions.js";
+export { createTier3Tools } from "./tools/tier3.js";
 export type {
   RunPolicy,
   ToolContext,

@@ -11,6 +11,7 @@
     { "path": "../std" },
     { "path": "../schema" },
     { "path": "../core" },
+    { "path": "../generation" },
     { "path": "../storage" }
   ]
 }

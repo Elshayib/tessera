@@ -2,6 +2,8 @@ import type { ReactElement, ReactNode } from "react";
 import type { ChatPanelProps } from "./chat/chat-panel.js";
 import { ChatPanel } from "./chat/chat-panel.js";
 import { en } from "./i18n/en.js";
+import type { JobPanelProps } from "./jobs/job-panel.js";
+import { JobPanel } from "./jobs/job-panel.js";
 import { useLayoutStore } from "./layout-store.js";
 import type { ReviewPanelProps } from "./review/review-panel.js";
 import { ReviewPanel } from "./review/review-panel.js";
@@ -23,6 +25,7 @@ export function Shell(
     readonly viewport?: ReactNode;
     readonly review?: ReviewPanelProps;
     readonly chat?: ChatPanelProps;
+    readonly jobs?: JobPanelProps;
   } = {},
 ): ReactElement {
   const outlinerWidth = useLayoutStore((state) => state.outlinerWidth);
@@ -86,6 +89,7 @@ export function Shell(
         <button type="button" onClick={() => setChatHeight(chatHeight + 16)}>
           {en.shell.tallerChat}
         </button>
+        {props.jobs === undefined ? null : <JobPanel {...props.jobs} />}
         {props.review === undefined ? null : <ReviewPanel {...props.review} />}
         {props.chat === undefined ? null : <ChatPanel {...props.chat} />}
       </section>

@@ -376,8 +376,19 @@ export const CORE_EVAL_CASES: readonly EvalCase[] = [
         .entity("wall", { mesh: "box" })
         .build(),
     prompt: "Generate a low-poly barrel and place it by the wall.",
-    tags: ["core-20", "needs-generation"],
-    assertions: (ctx) => [expectScene(ctx.after).toHaveEntity("*barrel*")],
+    tags: ["core-20"],
+    assertions: (ctx) => {
+      const generated = Object.values(ctx.after.assets).some(
+        (asset) =>
+          asset.provenance.source === "generated" || asset.provenance.generator !== undefined,
+      );
+      return [
+        { name: "generated asset with provenance", pass: generated, weight: 1 },
+        expectScene(ctx.after).toHaveEntity("*barrel*"),
+        expectScene(ctx.after).toBeWithin("*barrel*", "wall", 2),
+        expectScene(ctx.after).toBeOnGround("*barrel*", 0.5),
+      ];
+    },
   },
   {
     id: "core.fix-scene",

@@ -128,11 +128,11 @@ export function orderAfterSibling(
     .sort((left, right) => (left.order < right.order ? -1 : left.order > right.order ? 1 : 0));
   if (afterId === null) {
     const first = ordered[0];
-    return ok(generateKeyBetween(null, first === undefined ? null : first.order));
+    return keyBetween(null, first === undefined ? null : first.order);
   }
   if (afterId === undefined) {
     const last = ordered[ordered.length - 1];
-    return ok(generateKeyBetween(last === undefined ? null : last.order, null));
+    return keyBetween(last === undefined ? null : last.order, null);
   }
   const afterIndex = ordered.findIndex((sibling) => sibling.id === afterId);
   if (afterIndex < 0) {
@@ -143,7 +143,16 @@ export function orderAfterSibling(
   if (after === undefined) {
     return err(tesseraError("CONFLICT", "after is not a sibling", { after: afterId }));
   }
-  return ok(generateKeyBetween(after.order, next === undefined ? null : next.order));
+  return keyBetween(after.order, next === undefined ? null : next.order);
+}
+
+function keyBetween(lower: string | null, upper: string | null): Result<string, TesseraError> {
+  try {
+    return ok(generateKeyBetween(lower, upper));
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "invalid order key";
+    return err(tesseraError("INVARIANT_VIOLATION", message));
+  }
 }
 
 export function subtreeIds(reader: DocumentReader, rootId: string): string[] {

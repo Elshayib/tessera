@@ -497,7 +497,7 @@ function hdri(turn: number, ids: readonly string[]): readonly ToolCallPart[] {
 
 function barrel(turn: number, ids: readonly string[]): readonly ToolCallPart[] {
   if (turn === 0) {
-    return [call("c1", "asset.create", { asset: boxGeometry("barrel_mesh", [0.6, 0.9, 0.6]) })];
+    return [call("c1", "asset.create", { asset: generatedBox("barrel_mesh", [0.6, 0.9, 0.6]) })];
   }
   const geom = ids[0];
   if (turn === 1 && geom !== undefined) {
@@ -524,6 +524,23 @@ function fixScene(turn: number): readonly ToolCallPart[] {
       targets: [{ path: "float_a" }, { path: "float_b" }],
     }),
   ];
+}
+
+function generatedBox(name: string, size: readonly [number, number, number]) {
+  const [x, y, z] = size;
+  return {
+    name,
+    license: "CC0-1.0",
+    provenance: {
+      source: "generated",
+      importedAt: STAMP,
+      generator: { provider: "fake", promptHash: "sha256-barrel", jobId: "j_oraclegen" },
+    },
+    kind: "geometry" as const,
+    source: { kind: "primitive" as const, primitive: { type: "box" as const, size } },
+    bounds: { min: [-x / 2, -y / 2, -z / 2], max: [x / 2, y / 2, z / 2] },
+    stats: { triangles: 12, vertices: 8, primitiveGroups: 1 },
+  };
 }
 
 function boxGeometry(name: string, size: readonly [number, number, number]) {
@@ -570,8 +587,10 @@ function outputIds(messages: readonly LlmMessage[]): readonly string[] {
         continue;
       }
       const value = result.result;
-      if (isRecord(value) && typeof value["id"] === "string") {
-        ids.push(value["id"]);
+      const idKey = "id";
+      const id = isRecord(value) ? value[idKey] : undefined;
+      if (typeof id === "string") {
+        ids.push(id);
       }
     }
   }

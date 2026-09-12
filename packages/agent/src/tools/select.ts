@@ -6,8 +6,9 @@ const CATALOG_MODE_GROUPS: ReadonlySet<ToolGroup> = new Set(["entities", "compon
 /**
  * Progressive disclosure (`06` §5).
  *
- * Always includes tier 0 and meta-tools. When `profile.maxTools ≥ 40`, includes
- * every remaining tool in enabled tiers 0–2. Otherwise catalog mode: `entities`,
+ * Always includes tier 0 and meta-tools. Tier 4 is omitted. When
+ * `profile.maxTools ≥ 40`, includes every remaining tool whose tier is in
+ * `policy.enabledTiers` (including 3). Otherwise catalog mode: `entities`,
  * `components`, `layout`, plus groups enabled via `tools.enable`.
  *
  * @example
@@ -25,7 +26,7 @@ export function selectTools(
   const extra = registry.enabledGroups();
   const tiers = new Set(policy.enabledTiers);
   return registry.list().filter((tool) => {
-    if (tool.tier > 2) {
+    if (tool.tier >= 4) {
       return false;
     }
     if (tool.group === "meta" || tool.tier === 0) {
