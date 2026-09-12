@@ -1,6 +1,6 @@
 # `@tessera/assets`
 
-Canonical primitive mesh generator, default PBR material, glTF import pipeline (`08` §7), and the Poly Haven `AssetSource` (`08` §6).
+Canonical primitive mesh generator, default PBR material, glTF import pipeline (`08` §7), asset sources, thumbnails, and the `AssetService` façade (`08` §10).
 
 ## Public API
 
@@ -9,7 +9,9 @@ Canonical primitive mesh generator, default PBR material, glTF import pipeline (
 | `createPrimitiveMesh` | Pure triangle mesh (positions, normals, uvs, indices) for every schema `Primitive`. |
 | `createDefaultMaterial` | Valid `MaterialAsset` (license `unknown`, provenance `derived`, Q-0014). |
 | `importGltf` | Worker body: parse/normalize glTF, write blobs, return `ImportPlan` (`INV-AST-02`). |
-| `createAssetService` / `commitPlan` | Main thread: `asset.create` + `entity.create` in one `Import <fileName>` transaction. |
+| `stubEncodeKtx2` / `stampDracoOnGlb` | Deterministic KTX2/Draco encoder ports (Q-0181). |
+| `createAssetService` / `commitPlan` | Façade: `importFiles`, `search`, `addFromSource`, `generate`, `commitPlan` (`INV-AST-02`). |
+| `createThumbnailService` | Cached 256×256 WebP or `null` when headless (`08` §9). |
 | `HARD_BLOB_LIMIT_BYTES` | Reject files larger than 50 MiB (Q-0050). |
 | `createPolyHavenSource` | `AssetSource` id `polyhaven` (CC0-1.0). Tests inject a fixture transport; production uses `createFetchTransport`. |
 | `wrapUntrusted` | Wraps third-party text in `<untrusted>` (`06` §12). |
@@ -18,7 +20,7 @@ No document mutation inside `importGltf`. `asset.import` stays unregistered (Q-0
 
 ## Dependency rules
 
-Layer 2. May import `@tessera/std`, `@tessera/schema`, `@tessera/core`, `@tessera/storage`, and `@gltf-transform/*`. `import-worker.ts` / `import-plan.ts` must not import `@tessera/core` or `CommandBus` (`INV-AST-02`). Must not import `three`.
+Layer 2. May import `@tessera/std`, `@tessera/schema`, `@tessera/core`, `@tessera/storage`, `@tessera/generation` (Q-0183), and `@gltf-transform/*`. `import-worker.ts` / `import-plan.ts` must not import `@tessera/core` or `CommandBus` (`INV-AST-02`). Must not import `three`.
 
 ## Usage example
 

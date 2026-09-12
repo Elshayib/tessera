@@ -1,3 +1,4 @@
+import { createAssetService } from "@tessera/assets";
 import {
   createCommandBus,
   createDocument,
@@ -9,11 +10,12 @@ import type { LlmClient, LlmRequest, LlmResponse, ToolCallPart } from "@tessera/
 import { userText } from "@tessera/llm";
 import { canonicalize, emptyDocument } from "@tessera/schema";
 import { abortError, createLogger, err, ok, tesseraError } from "@tessera/std";
-import { docBuilder, FakeClock } from "@tessera/testing";
+import { docBuilder, FakeClock, MemoryBlobStore } from "@tessera/testing";
 import { expect, test } from "vitest";
 import type { RunEvent } from "./run-types.js";
 import { createAgentRuntime } from "./runtime.js";
 import { createToolRegistry } from "./tools/registry.js";
+import { createTier3Tools } from "./tools/tier3.js";
 import { createMemoryTranscriptStore } from "./transcript/memory.js";
 import type { TranscriptStore } from "./transcript/store.js";
 import type { CapabilityProfile } from "./types.js";
@@ -152,6 +154,48 @@ async function collect(
   }
   return events;
 }
+
+test("loop offers tier-3 asset/generate/jobs tools when enabledTiers includes 3", async () => {
+  const captured: LlmRequest[] = [];
+  const created = createDocument({ snapshot: emptyDocument(), clock: new FakeClock() });
+  const undo = createUndoService(created.doc);
+  const bus = createCommandBus(created.doc, { undo: undo.capture });
+  const host = createQueryHost(created.doc, { history: () => undo.committed() });
+  const queries = Object.assign(host.registry, { query: host.query.bind(host) });
+  const jobs = createJobQueue(bus, { logger: created.doc.logger });
+  const tools = createToolRegistry();
+  tools.deriveFromRegistries(bus.registry, queries);
+  const assets = createAssetService({
+    bus,
+    jobs,
+    blobs: new MemoryBlobStore(),
+    clock: new FakeClock(),
+  });
+  for (const tool of createTier3Tools(assets)) {
+    tools.register(tool);
+  }
+  const runtime = createAgentRuntime({
+    bus,
+    queries,
+    jobs,
+    tools,
+    llm: scriptedClient([assistantDone("ok")], captured),
+    roles: { models: { planner: executor, executor }, criticEnabled: false },
+    profiles: { "script:exec": profile },
+    logger: createLogger([]),
+    clock: new FakeClock(),
+    newRunId: () => "r_testrun001",
+  });
+  await collect(runtime, { maxSteps: 1 });
+  const names = new Set((captured[0]?.tools ?? []).map((tool) => tool.name));
+  expect(names.has("asset.search")).toBe(true);
+  expect(names.has("asset.add")).toBe(true);
+  expect(names.has("asset.generateMesh")).toBe(true);
+  expect(names.has("asset.generateTexture")).toBe(true);
+  expect(names.has("asset.generateEnvironment")).toBe(true);
+  expect(names.has("asset.import")).toBe(true);
+  expect(names.has("jobs.await")).toBe(true);
+});
 
 test("INV-AGT-01 mutations author.kind agent and runId", async () => {
   const { runtime, undo } = harness([

@@ -50,6 +50,11 @@ export const en = {
     usage: "Usage",
     ollamaOrigins: "Browser access requires OLLAMA_ORIGINS on the Ollama server.",
   },
+  jobs: {
+    title: "Jobs",
+    empty: "No jobs",
+    cancel: "Cancel",
+  },
   chat: {
     title: "Chat",
     prompt: "Prompt",
@@ -105,6 +110,8 @@ export const en = {
     search: "Search",
     kind: "Kind",
     apply: "Apply",
+    upload: "Upload",
+    licenseNudge: "Set a license for uploads (defaults to unknown)",
     nextPage: "Next page",
     page: "Page",
     kinds: {

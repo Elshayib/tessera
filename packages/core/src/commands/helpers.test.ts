@@ -123,6 +123,10 @@ test("orderAfterSibling and entity ref helpers", () => {
   const missing = orderAfterSibling([a, b], "e_zzzzzzzzzz");
   expect(isErr(missing) && missing.error.code === "CONFLICT").toBe(true);
 
+  const invalidHead = { ...a, order: "0000000000" };
+  const invalid = orderAfterSibling([invalidHead], undefined);
+  expect(isErr(invalid) && invalid.error.code === "INVARIANT_VIOLATION").toBe(true);
+
   const { reader } = createDocument({ snapshot: emptyDocument() });
   expect(isErr(resolveEntityRef(reader, "e_zzzzzzzzzz"))).toBe(true);
   expect(isErr(resolveEntityRef(reader, { path: "/nope" }))).toBe(true);

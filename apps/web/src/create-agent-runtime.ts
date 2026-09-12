@@ -1,4 +1,5 @@
 import type { RunEvent, RunRequest, TranscriptStore } from "@tessera/agent/observability";
+import type { AssetService } from "@tessera/assets";
 import type { CommandBus, JobQueue, QueryRegistry } from "@tessera/core";
 import type { KeyVault, LlmClient, ModelRef, ProviderConfig } from "@tessera/llm";
 import type { Clock, Logger, Result, TesseraError } from "@tessera/std";
@@ -33,6 +34,7 @@ export interface CreateWebAgentRuntimeInput {
   readonly compatibleOrigin?: string;
   readonly llm?: LlmClient;
   readonly transcripts: TranscriptStore;
+  readonly assets?: AssetService;
 }
 
 /**
@@ -93,6 +95,11 @@ export async function createWebAgentRuntime(
   }
   const tools = agent.createToolRegistry();
   tools.deriveFromRegistries(input.bus.registry, input.queries);
+  if (input.assets !== undefined) {
+    for (const tool of agent.createTier3Tools(input.assets)) {
+      tools.register(tool);
+    }
+  }
   const runtime = agent.createAgentRuntime({
     bus: input.bus,
     queries: input.queries,

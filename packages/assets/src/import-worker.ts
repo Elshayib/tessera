@@ -39,6 +39,9 @@ import type { Clock, Result, TesseraError } from "@tessera/std";
 import { abortError, err, invariant, ok, tesseraError } from "@tessera/std";
 import type { BlobStore } from "@tessera/storage";
 import { createDefaultMaterial } from "./default-material.js";
+import type { ImportEncodeOptions } from "./encode-options.js";
+import { applyImportEncode } from "./encode-options.js";
+import { stampDracoOnGlb } from "./encoders.js";
 import type { AssetInput, EntityInput, ImportPlan } from "./import-plan.js";
 import { HARD_BLOB_LIMIT_BYTES, IMPORT_TRIANGLE_WARN_COUNT } from "./import-plan.js";
 
@@ -74,6 +77,9 @@ export interface ImportGltfInput {
   readonly blobs: BlobStore;
   readonly clock: Clock;
   readonly signal?: AbortSignal;
+  readonly compress?: boolean;
+  readonly textureCompress?: boolean;
+  readonly targetTriangles?: number;
 }
 
 /**
@@ -134,6 +140,11 @@ export async function importGltf(
   }
 
   const warnings: string[] = [];
+  const encode: ImportEncodeOptions = {
+    ...(input.compress === undefined ? {} : { compress: input.compress }),
+    ...(input.textureCompress === undefined ? {} : { textureCompress: input.textureCompress }),
+    ...(input.targetTriangles === undefined ? {} : { targetTriangles: input.targetTriangles }),
+  };
   const io = new WebIO()
     .registerExtensions(ALL_EXTENSIONS)
     .setLogger(new Logger(Logger.Verbosity.SILENT));
@@ -143,6 +154,7 @@ export async function importGltf(
   } catch {
     return err(tesseraError("INVALID_INPUT", "failed to parse glTF"));
   }
+  applyImportEncode(document, encode);
 
   const skipped = cancelled(input.signal);
   if (skipped !== undefined) {
@@ -210,7 +222,10 @@ export async function importGltf(
     return ok({ blobs: [], assets, entities: [], warnings });
   }
 
-  const glb = await io.writeBinary(document);
+  let glb = await io.writeBinary(document);
+  if (encode.compress === true) {
+    glb = stampDracoOnGlb(glb);
+  }
   const written = await input.blobs.write(glb, "model/gltf-binary", input.fileName, input.signal);
   if (!written.ok) {
     return written;

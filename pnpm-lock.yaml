@@ -182,6 +182,9 @@ importers:
 
   packages/agent:
     dependencies:
+      '@tessera/assets':
+        specifier: workspace:*
+        version: link:../assets
       '@tessera/core':
         specifier: workspace:*
         version: link:../core
@@ -228,6 +231,9 @@ importers:
       '@tessera/core':
         specifier: workspace:*
         version: link:../core
+      '@tessera/generation':
+        specifier: workspace:*
+        version: link:../generation
       '@tessera/schema':
         specifier: workspace:*
         version: link:../schema
@@ -359,11 +365,46 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
 
+  packages/generation:
+    dependencies:
+      '@tessera/schema':
+        specifier: workspace:*
+        version: link:../schema
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../std
+    devDependencies:
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
+
   packages/llm:
     dependencies:
       '@tessera/std':
         specifier: workspace:*
         version: link:../std
+    devDependencies:
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@24.3.1)(happy-dom@18.0.1)(jiti@2.7.0)(tsx@4.20.5)
+
+  packages/providers-generation:
+    dependencies:
+      '@tessera/generation':
+        specifier: workspace:*
+        version: link:../generation
+      '@tessera/std':
+        specifier: workspace:*
+        version: link:../std
+      '@tessera/storage':
+        specifier: workspace:*
+        version: link:../storage
     devDependencies:
       typescript:
         specifier: 5.9.2
@@ -498,6 +539,9 @@ importers:
 
   packages/testing:
     dependencies:
+      '@tessera/generation':
+        specifier: workspace:*
+        version: link:../generation
       '@tessera/llm':
         specifier: workspace:*
         version: link:../llm

@@ -177,6 +177,7 @@ class DocBuilderImpl implements DocBuilder {
 
     const entities: Document["entities"] = {};
     const entityIds = new Map<string, string>();
+    const siblingIndex = new Map<string, number>();
     let entityIndex = 0;
     for (const pending of this.#entities) {
       const id = sequentialId("e", entityIndex);
@@ -196,11 +197,14 @@ class DocBuilderImpl implements DocBuilder {
           visible: true,
         };
       }
+      const parentKey = parent ?? "";
+      const orderIndex = siblingIndex.get(parentKey) ?? 0;
+      siblingIndex.set(parentKey, orderIndex + 1);
       const entity: Entity = {
         id,
         name: pending.name,
         parent,
-        order: id.slice(2),
+        order: siblingOrderKey(orderIndex),
         enabled: pending.enabled,
         components,
       };
@@ -234,6 +238,23 @@ function mergeTransform(input: TransformBuild | undefined): Transform {
 
 function sequentialId(prefix: "e" | "a", index: number): string {
   return `${prefix}_${index.toString(36).padStart(10, "0")}`;
+}
+
+/** Digit alphabet used by `fractional-indexing` 4.x (`generateKeyBetween`). */
+const ORDER_DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+/**
+ * Sibling order keys the command bus can extend (`a0`, `a1`, …).
+ * `id.slice(2)` is `0000000000`, which is not a valid fractional-index head.
+ */
+function siblingOrderKey(index: number): string {
+  invariant(
+    index >= 0 && index < ORDER_DIGITS.length,
+    "docBuilder sibling count exceeds order alphabet",
+  );
+  const digit = ORDER_DIGITS[index];
+  invariant(digit !== undefined, "order digit");
+  return `a${digit}`;
 }
 
 function geometryAsset(

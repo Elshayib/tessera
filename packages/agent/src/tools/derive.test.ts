@@ -175,7 +175,7 @@ test("INV-AGT-05 query tools do not open a transaction", async () => {
   expect(queryRuns).toBe(1);
 });
 
-test("tiers 0-2 only; tier 3 commands omitted", () => {
+test("tier 4 tools remain omitted", () => {
   const { doc } = createDocument();
   const bus = createCommandBus(doc);
   const host = createQueryHost(doc, { history: () => [] });
@@ -191,9 +191,6 @@ test("tiers 0-2 only; tier 3 commands omitted", () => {
   });
   const registry = createToolRegistry();
   registry.deriveFromRegistries(bus.registry, host.registry);
-  expect(registry.get("asset.import")).toBeUndefined();
-  expect(registry.get("asset.search")).toBeUndefined();
-  expect(registry.get("jobs.await")).toBeUndefined();
   expect(registry.get("script.run")).toBeUndefined();
   expect(registry.get("procedural.define")).toBeUndefined();
   expect(registry.get("behavior.attach")).toBeUndefined();

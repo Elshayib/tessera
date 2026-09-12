@@ -58,7 +58,7 @@ export interface CaseResult {
  */
 export function isScoredPhase2(evalCase: EvalCase): boolean {
   const tags = evalCase.tags ?? [];
-  return tags.includes("core-20") && !tags.includes("needs-generation");
+  return tags.includes("core-20");
 }
 
 /**

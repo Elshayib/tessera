@@ -65,6 +65,13 @@ module.exports = {
       to: { path: "node_modules/(ai|@ai-sdk|@openrouter)" },
     },
     {
+      name: "generation-vendor-isolation",
+      comment: "INV-PRV-01: generation vendor SDKs only in providers-generation.",
+      severity: "error",
+      from: { pathNot: "^packages/providers-generation/" },
+      to: { path: "node_modules/(meshy|tripo|hyper3d|@gradio)" },
+    },
+    {
       name: "mcp-sdk-isolation",
       severity: "error",
       from: { pathNot: "^(packages/mcp/|apps/mcp-server/)" },

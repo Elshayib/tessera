@@ -49,6 +49,12 @@ test("builder produces valid documents", () => {
   const disabled = docBuilder().entity("hidden", { enabled: false }).build();
   expect(validateDocument(disabled).ok).toBe(true);
 
+  const wall = docBuilder().entity("wall").entity("prop").build();
+  const wallEntity = Object.values(wall.entities).find((entity) => entity.name === "wall");
+  const propEntity = Object.values(wall.entities).find((entity) => entity.name === "prop");
+  expect(wallEntity?.order).toBe("a0");
+  expect(propEntity?.order).toBe("a1");
+
   expect(() => docBuilder().entity("a").entity("b", { parent: "missing" })).toThrow(InvariantError);
   expect(() => docBuilder().entity("a").entity("a")).toThrow(InvariantError);
   expect(() => docBuilder().entity("a", { material: "bark" })).toThrow(InvariantError);

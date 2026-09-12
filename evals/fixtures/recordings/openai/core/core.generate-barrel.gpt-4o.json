@@ -84,10 +84,15 @@
             "input": {
               "asset": {
                 "name": "barrel_mesh",
-                "license": "unknown",
+                "license": "CC0-1.0",
                 "provenance": {
-                  "source": "tessera",
-                  "importedAt": "2026-01-01T00:00:00.000Z"
+                  "source": "generated",
+                  "importedAt": "2026-01-01T00:00:00.000Z",
+                  "generator": {
+                    "provider": "fake",
+                    "promptHash": "sha256-barrel",
+                    "jobId": "j_oraclegen"
+                  }
                 },
                 "kind": "geometry",
                 "source": {
@@ -136,13 +141,13 @@
     }
   },
   {
-    "requestHash": "44ee857588ea0349904a9797a1f2fa610bcf30aacd1a82060885de6d2640e15f",
+    "requestHash": "b8794f719d15dad26d17b77d9b567d4675151e8093a58ff81352fe0b4cf57aa7",
     "request": {
       "model": {
         "providerId": "openai",
         "modelId": "gpt-4o"
       },
-      "systemPromptHash": "44ee857588ea0349904a9797a1f2fa610bcf30aacd1a82060885de6d2640e15f",
+      "systemPromptHash": "b8794f719d15dad26d17b77d9b567d4675151e8093a58ff81352fe0b4cf57aa7",
       "messages": [
         {
           "role": "system",
@@ -167,10 +172,15 @@
               "input": {
                 "asset": {
                   "name": "barrel_mesh",
-                  "license": "unknown",
+                  "license": "CC0-1.0",
                   "provenance": {
-                    "source": "tessera",
-                    "importedAt": "<ts>"
+                    "source": "generated",
+                    "importedAt": "<ts>",
+                    "generator": {
+                      "provider": "fake",
+                      "promptHash": "sha256-barrel",
+                      "jobId": "j_oraclegen"
+                    }
                   },
                   "kind": "geometry",
                   "source": {
@@ -324,13 +334,13 @@
     }
   },
   {
-    "requestHash": "01365b1e0bd1f93ffc95b8fceaa4ccfa8b5a9e1ddc76e093c962d95fdc12d163",
+    "requestHash": "09f2c269eeaa5e0a4e1ce1b4a736234a20e8461abb2f151229c31f84e6639d2e",
     "request": {
       "model": {
         "providerId": "openai",
         "modelId": "gpt-4o"
       },
-      "systemPromptHash": "01365b1e0bd1f93ffc95b8fceaa4ccfa8b5a9e1ddc76e093c962d95fdc12d163",
+      "systemPromptHash": "09f2c269eeaa5e0a4e1ce1b4a736234a20e8461abb2f151229c31f84e6639d2e",
       "messages": [
         {
           "role": "system",
@@ -355,10 +365,15 @@
               "input": {
                 "asset": {
                   "name": "barrel_mesh",
-                  "license": "unknown",
+                  "license": "CC0-1.0",
                   "provenance": {
-                    "source": "tessera",
-                    "importedAt": "<ts>"
+                    "source": "generated",
+                    "importedAt": "<ts>",
+                    "generator": {
+                      "provider": "fake",
+                      "promptHash": "sha256-barrel",
+                      "jobId": "j_oraclegen"
+                    }
                   },
                   "kind": "geometry",
                   "source": {
@@ -453,10 +468,9 @@
               "callId": "c2",
               "name": "entity.create",
               "result": {
-                "code": "INVARIANT_VIOLATION",
-                "message": "invalid order key head: 0"
+                "id": "e_0sps6hvyox"
               },
-              "isError": true
+              "isError": false
             }
           ]
         }

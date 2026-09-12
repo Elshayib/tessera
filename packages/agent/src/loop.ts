@@ -173,9 +173,24 @@ export async function* runLoop(
     readonly vision: Verdict | null;
   } = { spatial: null, vision: null };
   let repairRound = 0;
+  const watchedJobs = new Set<string>();
 
   for (;;) {
     while (stepIndex < policy.maxSteps) {
+      for (const jobId of [...watchedJobs]) {
+        const status = deps.jobs.get(jobId);
+        if (status === undefined) {
+          continue;
+        }
+        if (
+          status.state === "succeeded" ||
+          status.state === "failed" ||
+          status.state === "cancelled"
+        ) {
+          messages = [...messages, userText(`job.updated ${jobId} ${status.state}`)];
+          watchedJobs.delete(jobId);
+        }
+      }
       const halt = haltRun(budget, cancelled);
       if (halt !== undefined && !halt.ok) {
         yield failOrCancel(halt.error, budget.snapshot(), cancelled);
@@ -243,7 +258,14 @@ export async function* runLoop(
         signal: signal ?? new AbortController().signal,
         logger: deps.logger,
       };
-      const executed = executeStep(deps.bus, deps.tools, selected, calls, ctxBase, deps.clock);
+      const executed = await executeStep(
+        deps.bus,
+        deps.tools,
+        selected,
+        calls,
+        ctxBase,
+        deps.clock,
+      );
       for (const event of executed.events) {
         yield event;
       }
@@ -260,6 +282,13 @@ export async function* runLoop(
         merged = mergeChangeSets(merged, executed.record.changeSet);
       }
       messages = appendTurn(fitted, stepped.value.response, executed.results, executorProfile);
+      for (const part of executed.results) {
+        const jobId = readJobId(part.result);
+        if (jobId !== undefined) {
+          watchedJobs.add(jobId);
+        }
+      }
+      await settleJobs(deps.jobs, watchedJobs);
       stepIndex += 1;
       if (executed.askUser !== undefined) {
         break;
@@ -407,6 +436,35 @@ function isQueryText(value: unknown): value is { ok: true; value: { text: string
     return false;
   }
   return true;
+}
+
+async function settleJobs(jobs: LoopDeps["jobs"], ids: ReadonlySet<string>): Promise<void> {
+  const deadline = Date.now() + 1000;
+  while (Date.now() < deadline) {
+    let pending = false;
+    for (const id of ids) {
+      const status = jobs.get(id);
+      if (status !== undefined && (status.state === "queued" || status.state === "running")) {
+        pending = true;
+      }
+    }
+    if (!pending) {
+      return;
+    }
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5);
+    });
+  }
+}
+
+function readJobId(value: unknown): string | undefined {
+  if (typeof value !== "object" || value === null) {
+    return undefined;
+  }
+  const record: Record<string, unknown> = { ...value };
+  const key = "jobId";
+  const jobId = record[key];
+  return typeof jobId === "string" ? jobId : undefined;
 }
 
 function userPayload(request: RunRequest, outline: string): string {

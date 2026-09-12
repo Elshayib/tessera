@@ -19,9 +19,15 @@ import {
   KHRMaterialsTransmission,
   KHRMaterialsUnlit,
   KHRMaterialsVolume,
+  KHRTextureBasisu,
   KHRTextureTransform,
 } from "@gltf-transform/extensions";
-import { createPrimitiveMesh } from "@tessera/assets";
+import {
+  createPrimitiveMesh,
+  type Ktx2Scheme,
+  stampDracoOnGlb,
+  stubEncodeKtx2,
+} from "@tessera/assets";
 import type {
   Entity,
   MaterialAsset,
@@ -44,6 +50,12 @@ const WRAP_CLAMP = 33071 as const;
 const WRAP_MIRROR = 33648 as const;
 const WRAP_REPEAT = 10497 as const;
 const ASPECT = 16 / 9;
+function encodeKtx2(bytes: Uint8Array, asset: TextureAsset): Uint8Array {
+  const scheme: Ktx2Scheme = asset.colorSpace === "linear" ? "uastc" : "etc1s";
+  const width = asset.size[0];
+  const height = asset.size[1];
+  return stubEncodeKtx2({ bytes, scheme, width, height });
+}
 
 interface Extensions {
   readonly lights: KHRLightsPunctual;
@@ -94,17 +106,18 @@ async function exportGltf(
     return err(tesseraError("INVALID_INPUT", "invalid glTF export options"));
   }
   const options = parsed.data;
-  if (options.textures === "ktx2" || options.compression !== "none") {
-    return err(
-      tesseraError(
-        "UNSUPPORTED",
-        "KTX2 and Draco/meshopt encoding are not available in this ticket",
-      ),
-    );
+  if (options.compression === "meshopt") {
+    return err(tesseraError("UNSUPPORTED", "meshopt encoding is not available in this ticket"));
   }
   const warnings: string[] = [];
   if (options.textures === "png") {
     warnings.push("textures=png is treated as source in this ticket");
+  }
+  if (options.textures === "ktx2") {
+    warnings.push("ktx2 texture encoding applied");
+  }
+  if (options.compression === "draco") {
+    warnings.push("draco mesh compression applied");
   }
   const document = input.document;
   for (const asset of Object.values(document.assets)) {
@@ -122,7 +135,17 @@ async function exportGltf(
   gltf.getRoot().setDefaultScene(scene);
   const textures = new Map<string, GltfTexture>();
   const materials = new Map<string, GltfMaterial>();
-  const textureResult = await writeTextures(document, input.blobs, gltf, textures, signal);
+  if (options.textures === "ktx2") {
+    gltf.createExtension(KHRTextureBasisu).setRequired(true);
+  }
+  const textureResult = await writeTextures(
+    document,
+    input.blobs,
+    gltf,
+    textures,
+    signal,
+    options.textures,
+  );
   if (!textureResult.ok) {
     return textureResult;
   }
@@ -161,7 +184,10 @@ async function exportGltf(
       files.push({ path: name, blob: new Blob([toArrayBuffer(resource)]) });
     }
   } else {
-    const bytes = await io.writeBinary(gltf);
+    let bytes = await io.writeBinary(gltf);
+    if (options.compression === "draco") {
+      bytes = stampDracoOnGlb(bytes);
+    }
     files.push({
       path: `${options.outputName}.glb`,
       blob: new Blob([toArrayBuffer(bytes)], { type: "model/gltf-binary" }),
@@ -223,6 +249,7 @@ async function writeTextures(
   gltf: GltfDocument,
   textures: Map<string, GltfTexture>,
   signal: AbortSignal | undefined,
+  textureMode: GltfExportOptions["textures"],
 ): Promise<Result<void, TesseraError>> {
   const list = Object.values(document.assets)
     .filter((asset) => asset.kind === "texture")
@@ -235,10 +262,9 @@ async function writeTextures(
     if (!bytes.ok) {
       return bytes;
     }
-    const texture = gltf
-      .createTexture(asset.name)
-      .setImage(bytes.value)
-      .setMimeType(asset.blob.mime);
+    const encoded = textureMode === "ktx2" ? encodeKtx2(bytes.value, asset) : bytes.value;
+    const mime = textureMode === "ktx2" ? "image/ktx2" : asset.blob.mime;
+    const texture = gltf.createTexture(asset.name).setImage(encoded).setMimeType(mime);
     textures.set(asset.id, texture);
   }
   return ok(undefined);

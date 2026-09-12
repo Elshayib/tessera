@@ -6,7 +6,7 @@ glTF 2.0 + Tessera sidecar from the **document** (never from the three.js scene)
 
 | Export | Description |
 | --- | --- |
-| `createGltfExporter` | `Exporter` id `gltf`: GLB/glTF + `<name>.tessera.json` (`09` §2–§4). |
+| `createGltfExporter` | `Exporter` id `gltf`: GLB/glTF + `<name>.tessera.json` (`09` §2–§4). `textures: 'ktx2'` / `compression: 'draco'` encode via injected stub ports (Q-0181). |
 | `createCodeThreeExporter` | `Exporter` id `code-three`: ESM `scene.js` plus the glTF bundle (`09` §6). |
 | `createCodeR3fExporter` | `Exporter` id `code-r3f`: TypeScript `Scene.tsx` plus the glTF bundle (`09` §6). |
 | `GltfExportOptionsSchema` | Zod options with inspector metadata, including `deterministic` (Q-0028). |

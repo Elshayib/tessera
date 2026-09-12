@@ -14,77 +14,128 @@ import type { ToolContext, ToolDefinition, ToolRegistry } from "./tools/types.js
  *
  * @public
  */
-export function executeStep(
+export async function executeStep(
   bus: CommandBus,
   registry: ToolRegistry,
   selected: readonly ToolDefinition[],
   calls: readonly ToolCallPart[],
   base: Omit<ToolContext, "tx">,
   clock: Clock,
-): {
+): Promise<{
   readonly events: RunEvent[];
   readonly results: ToolResultPart[];
   readonly record: TransactionRecord | undefined;
   readonly plan: readonly { text: string; done: boolean }[] | undefined;
   readonly askUser: string | undefined;
-} {
+}> {
   const events: RunEvent[] = [];
   const results: ToolResultPart[] = [];
   let plan: readonly { text: string; done: boolean }[] | undefined;
   let askUser: string | undefined;
-  const outcome = bus.transaction(
-    { author: base.author, runId: base.runId, label: "agent-step" },
-    (tx) => {
-      const ctx: ToolContext = { ...base, tx };
-      for (const call of calls) {
-        events.push({
-          type: "tool.called",
-          stepIndex: base.stepIndex,
-          callId: call.callId,
-          name: call.name,
-          input: call.input,
-        });
-        const tool = selected.find((item) => item.name === call.name) ?? registry.get(call.name);
-        const began = clock.now();
-        const result =
-          tool === undefined
-            ? err(tesseraError("NOT_FOUND", `unknown tool ${call.name}`))
-            : dispatchTool(tool, call.input, ctx, registry);
-        const durationMs = clock.now() - began;
-        const summary = result.ok
-          ? JSON.stringify(compactValue(result.value)).slice(0, 400)
-          : result.error.message;
-        events.push({
-          type: "tool.result",
-          stepIndex: base.stepIndex,
-          callId: call.callId,
-          ok: result.ok,
-          summary,
-          durationMs,
-        });
-        results.push({
-          callId: call.callId,
-          name: call.name,
-          result: result.ok ? compactValue(result.value) : result.error,
-          isError: !result.ok,
-        });
-        if (call.name === "plan.set" && result.ok) {
-          plan = applyPlan(result.value);
-        }
-        if (call.name === "ask_user" && result.ok) {
-          const question = questionOf(result.value);
-          if (question !== undefined) {
-            askUser = question;
-          }
-        }
+  let record: TransactionRecord | undefined;
+  const dummyTx: TransactionHandle = {
+    id: "t_tier3wait0",
+    run: () => err(tesseraError("UNSUPPORTED", "tier-3 tools do not use tx.run")),
+  };
+  const mutating: ToolCallPart[] = [];
+
+  const recordCall = (
+    call: ToolCallPart,
+    result: Result<unknown, TesseraError>,
+    began: number,
+  ): void => {
+    const durationMs = clock.now() - began;
+    const summary = result.ok
+      ? JSON.stringify(compactValue(result.value)).slice(0, 400)
+      : result.error.message;
+    events.push({
+      type: "tool.result",
+      stepIndex: base.stepIndex,
+      callId: call.callId,
+      ok: result.ok,
+      summary,
+      durationMs,
+    });
+    results.push({
+      callId: call.callId,
+      name: call.name,
+      result: result.ok ? compactValue(result.value) : result.error,
+      isError: !result.ok,
+    });
+    if (call.name === "plan.set" && result.ok) {
+      plan = applyPlan(result.value);
+    }
+    if (call.name === "ask_user" && result.ok) {
+      const question = questionOf(result.value);
+      if (question !== undefined) {
+        askUser = question;
       }
-      return ok(undefined);
-    },
-  );
-  if (!outcome.ok) {
-    return { events, results, record: undefined, plan, askUser };
+    }
+  };
+
+  const flushMutating = (): void => {
+    if (mutating.length === 0) {
+      return;
+    }
+    const batch = [...mutating];
+    mutating.length = 0;
+    const outcome = bus.transaction(
+      { author: base.author, runId: base.runId, label: "agent-step" },
+      (tx) => {
+        const ctx: ToolContext = { ...base, tx };
+        for (const call of batch) {
+          events.push({
+            type: "tool.called",
+            stepIndex: base.stepIndex,
+            callId: call.callId,
+            name: call.name,
+            input: call.input,
+          });
+          const tool = selected.find((item) => item.name === call.name) ?? registry.get(call.name);
+          const began = clock.now();
+          const result =
+            tool === undefined
+              ? err(tesseraError("NOT_FOUND", `unknown tool ${call.name}`))
+              : dispatchTool(tool, call.input, ctx, registry);
+          recordCall(call, result, began);
+        }
+        return ok(undefined);
+      },
+    );
+    if (outcome.ok) {
+      record = outcome.value.transaction;
+    }
+  };
+
+  for (const call of calls) {
+    const tool = selected.find((item) => item.name === call.name) ?? registry.get(call.name);
+    if (tool !== undefined && tool.tier >= 3) {
+      flushMutating();
+      events.push({
+        type: "tool.called",
+        stepIndex: base.stepIndex,
+        callId: call.callId,
+        name: call.name,
+        input: call.input,
+      });
+      const began = clock.now();
+      const parsed = tool.input.safeParse(call.input);
+      let result: Result<unknown, TesseraError>;
+      if (!parsed.success) {
+        result = attachSuggestion(
+          tool.group,
+          err(tesseraError("INVALID_INPUT", "invalid tool input")),
+        );
+      } else {
+        result = await tool.execute(parsed.data, { ...base, tx: dummyTx });
+      }
+      recordCall(call, result, began);
+      continue;
+    }
+    mutating.push(call);
   }
-  return { events, results, record: outcome.value.transaction, plan, askUser };
+  flushMutating();
+  return { events, results, record, plan, askUser };
 }
 
 /**

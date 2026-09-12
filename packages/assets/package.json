@@ -28,6 +28,7 @@
     "@gltf-transform/extensions": "4.4.2",
     "@gltf-transform/functions": "4.4.2",
     "@tessera/core": "workspace:*",
+    "@tessera/generation": "workspace:*",
     "@tessera/schema": "workspace:*",
     "@tessera/std": "workspace:*",
     "@tessera/storage": "workspace:*"
