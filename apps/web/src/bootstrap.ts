@@ -53,6 +53,7 @@ export function bootstrap(options: BootstrapOptions = {}): EditorContext {
   const flags = parseFlags(options.search ?? "", options.isDev === true);
   const context: EditorContext = {
     document: created.doc,
+    reader: created.reader,
     commands,
     queries,
     undo: undoCreated.undo,

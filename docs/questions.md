@@ -30,11 +30,11 @@ Conservative choice implemented: keep constants in `packages/schema/src/defaults
 Answer: —
 
 ### Q-0003 — Kenney asset source manifest
-Raised by: planning · Spec: 08 §6 · Status: open
+Raised by: planning · Spec: 08 §6 · Status: answered
 Question: Kenney distributes zip packs, not a per-asset API. A curated in-repo manifest pointing at converted glb files requires hosting the converted files somewhere.
 Options: (a) manifest with links to Kenney's own downloads plus in-browser conversion (b) a community-maintained CC0 mirror (c) defer Kenney to phase 8
 Conservative choice implemented: phase 3 ticket marked Draft; Poly Haven and uploads are the phase-1 sources.
-Answer: —
+Answer: (c) defer Kenney to phase 8. T-0309 stays blocked; do not host converted glbs in this repo.
 
 ### Q-0004 — y-webrtc signaling defaults
 Raised by: planning · Spec: 10 §3 · Status: open
@@ -44,10 +44,10 @@ Conservative choice implemented: to be decided at phase 6 start.
 Answer: —
 
 ### Q-0005 — First engine bridge
-Raised by: user decision pending · Spec: 09 §7, 17 · Status: open
+Raised by: user decision pending · Spec: 09 §7, 17 · Status: answered
 Question: Godot is the recommended first bridge (free, MIT, text scenes, CI-testable). Confirm or choose Unity/Unreal/Blender first.
 Conservative choice implemented: roadmap lists Godot first.
-Answer: —
+Answer: Godot first. Unity/Unreal/Blender wait until the Godot addon lands (T-0403/T-0404).
 
 ### Q-0006 — Workspace members and root project references before later packages exist
 Raised by: T-0001 · Spec: ADR-0012, `docs/templates/` · Status: open

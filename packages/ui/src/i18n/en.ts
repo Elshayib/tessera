@@ -9,6 +9,8 @@ export const en = {
     outliner: "Outliner",
     inspector: "Inspector",
     chat: "Chat",
+    toolbar: "Toolbar",
+    settings: "Settings",
     widenOutliner: "Widen outliner",
     narrowOutliner: "Narrow outliner",
     widenInspector: "Widen inspector",

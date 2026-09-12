@@ -9,10 +9,13 @@ test("bootstrap empty document validates", () => {
   const report = validateDocument(fromYDoc(ctx.document.ydoc));
   expect(report.ok).toBe(true);
   expect(ctx.flags.polyhaven).toBe(true);
+  expect(ctx.flags.createMenu).toBe(true);
   expect(ctx.agentVerify).toBe("none");
   expect(ctx.engine).toBeUndefined();
   expect(ctx.queries.list().length).toBeGreaterThan(0);
   expect(typeof Reflect.get(ctx.queries, "query")).toBe("function");
+  expect(typeof ctx.reader.subscribe).toBe("function");
+  expect(typeof ctx.reader.snapshot).toBe("function");
 });
 
 test("bootstrap includes KeyVault for Settings", () => {

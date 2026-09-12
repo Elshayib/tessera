@@ -40,3 +40,25 @@ test("shell renders regions", async () => {
     root.unmount();
   });
 });
+
+test("shell docks toolbar outliner and inspector slots", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => {
+    root.render(
+      <Shell
+        toolbar={<span>toolbar-slot</span>}
+        outliner={<span>outliner-slot</span>}
+        inspector={<span>inspector-slot</span>}
+      />,
+    );
+  });
+  expect(host.querySelector(`nav[aria-label="${en.shell.toolbar}"]`)).not.toBeNull();
+  expect(host.textContent?.includes("toolbar-slot")).toBe(true);
+  expect(host.textContent?.includes("outliner-slot")).toBe(true);
+  expect(host.textContent?.includes("inspector-slot")).toBe(true);
+  await act(async () => {
+    root.unmount();
+  });
+});

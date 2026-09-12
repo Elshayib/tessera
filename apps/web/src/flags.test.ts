@@ -7,7 +7,7 @@ test("flags default off", () => {
   expect(flags.agentVerifyLoop).toBe(false);
   expect(bootstrapVerifyMode(defaultFlags())).toBe("none");
   expect(bootstrapVerifyMode({ ...defaultFlags(), agentVerifyLoop: true })).toBe("spatial");
-  expect(flags.createMenu).toBe(false);
+  expect(flags.createMenu).toBe(true);
   expect(parseFlags("?flag=createMenu", true).createMenu).toBe(true);
   expect(parseFlags("?flag=polyhaven&flag=agentVerifyLoop", false).polyhaven).toBe(true);
   expect(parseFlags("?flag=polyhaven", true).polyhaven).toBe(true);
