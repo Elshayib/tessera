@@ -5,17 +5,17 @@ Tickets below were frozen by **T-0300**. Do not implement T-0301+ until T-0300 i
 
 | Id | Title | Package | Depends | Status |
 | --- | --- | --- | --- | --- |
-| T-0300 | Freeze phase-3 tickets | docs | T-0215 | `done` |
-| T-0301 | Asset panel + uploads UX | ui, assets, web | T-0300 | `done` |
-| T-0302 | Poly Haven façade/apply remaining (not a second source) | assets, web | T-0120, T-0301 | `done` |
-| T-0303 | Thumbnails worker | assets | T-0301 | `done` |
-| T-0304 | `@tessera/generation` interfaces + job kinds | generation, testing | T-0300 | `done` |
-| T-0305 | Providers: Meshy, Tripo, Rodin, HF TRELLIS.2, local worker contract | providers-generation | T-0304 | `done` |
-| T-0306 | Job UI + progress + cancel; agent tier-3 tools | ui, agent, assets | T-0305, T-0008 | `done` |
-| T-0307 | KTX2/Draco import/export options | assets, exporters | T-0109 | `done` |
-| T-0308 | Attribution/license export | exporters | T-0302 | `done` |
+| T-0300 | Freeze phase-3 tickets | docs | T-0215 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0301 | Asset panel + uploads UX | ui, assets, web | T-0300 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0302 | Poly Haven façade/apply remaining (not a second source) | assets, web | T-0120, T-0301 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0303 | Thumbnails worker | assets | T-0301 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0304 | `@tessera/generation` interfaces + job kinds | generation, testing | T-0300 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0305 | Providers: Meshy, Tripo, Rodin, HF TRELLIS.2, local worker contract | providers-generation | T-0304 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0306 | Job UI + progress + cancel; agent tier-3 tools | ui, agent, assets | T-0305, T-0008 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0307 | KTX2/Draco import/export options | assets, exporters | T-0109 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
+| T-0308 | Attribution/license export | exporters | T-0302 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
 | T-0309 | Kenney source (Draft — Q-0003) | assets | Q-0003 answered | `blocked` |
-| T-0310 | Phase 3 exit: score `core.generate-barrel` | evals | T-0306 | `done` |
+| T-0310 | Phase 3 exit: score `core.generate-barrel` | evals | T-0306 | `done` ([#66](https://github.com/Elshayib/tessera/pull/66)) |
 
 ## Specs
 
