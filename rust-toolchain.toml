@@ -1,0 +1,5 @@
+# This repo builds with the GNU toolchain: the dev machines behind it have no
+# MSVC link.exe installed, and build scripts always compile for the host triple,
+# so a GNU *host* is required, not just a GNU --target.
+[toolchain]
+channel = "1.93.0-x86_64-pc-windows-gnu"

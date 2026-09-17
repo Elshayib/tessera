@@ -1,0 +1,9 @@
+[package]
+name = "tessera-session"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tessera-engine = { path = "../tessera-engine" }
+tessera-view = { path = "../tessera-view" }
