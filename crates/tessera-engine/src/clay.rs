@@ -2,11 +2,13 @@
 //! inflated without talking about vertices. A Mesh is poured from Clay later for
 //! Game-ready export, which is not part of v1.
 //!
-//! The full Clay store lands with later tickets (#3, #5). So far an Object is
-//! named and placed; form arrives with the Clay work.
+//! The full Clay store lands with the Sculpt ticket (#6). So far an Object
+//! carries the Primitive it was composed from and the Material family it wears.
 
-/// One thing in the Scene, addressed as a whole: its place, and the Part it was
-/// composed from.
+use crate::verb::MaterialFamily;
+
+/// One thing in the Scene, addressed as a whole: its place, its silhouette's
+/// shape, and the Material family it wears.
 #[derive(Debug, Clone)]
 pub struct Object {
     /// The name used in Narration and later Talk ("the lantern roof").
@@ -14,9 +16,10 @@ pub struct Object {
     /// Relative place in the Scene, in the Agent's coarse words ("on the cliff",
     /// "atop the tower"). The Engine resolves it; the Agent passes no coordinates.
     pub place: String,
-    /// How the Object was composed: a Primitive or Kit Part. Kit Parts land in
-    /// #5; only Primitives exist so far.
+    /// The Primitive it was composed from, in the Agent's coarse word ("cylinder").
     pub part: String,
+    /// The named look this Object wears; set on the First take, never a shader.
+    pub family: Option<MaterialFamily>,
 }
 
 impl Object {
@@ -25,6 +28,7 @@ impl Object {
             name: name.into(),
             place: place.into(),
             part: part.into(),
+            family: None,
         }
     }
 }

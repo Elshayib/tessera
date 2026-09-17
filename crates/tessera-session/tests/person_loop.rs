@@ -3,7 +3,7 @@
 //! is on. They never issue Verbs, never open a real window, and never call a
 //! live Provider — the Provider here is scripted, the View is a recorder.
 
-use tessera_session::{ScriptedProvider, Session, ViewReport};
+use tessera_session::{Primitive, ScriptedProvider, Session, ViewReport};
 
 /// The Person starts a Scene with no account: Session::start takes nothing but
 /// a Provider and a View. There is no signup, no login, no key required to open
@@ -31,12 +31,14 @@ fn person_starts_a_scene_with_no_account() {
 fn person_types_intent_and_the_agent_places_a_named_object() {
     let provider = ScriptedProvider::default().plan(ScriptedProvider::place_and_frame(
         "the lighthouse",
-        "a cylinder",
+        Primitive::Cylinder,
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
 
-    session.submit_intent("a weathered lighthouse on a cliff at dusk");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the scripted plan lands");
 
     let objects = session.objects();
     assert_eq!(objects.len(), 1, "the Intent should have placed one Object");
@@ -50,12 +52,14 @@ fn person_types_intent_and_the_agent_places_a_named_object() {
 fn narration_says_what_happened_using_the_objects_name() {
     let provider = ScriptedProvider::default().plan(ScriptedProvider::place_and_frame(
         "the lighthouse",
-        "a cylinder",
+        Primitive::Cylinder,
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
 
-    let said = session.submit_intent("a weathered lighthouse on a cliff at dusk");
+    let said = session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the scripted plan lands");
     assert!(
         !said.is_empty(),
         "the Agent must Narrate; a silent Viewport loses the beginner (ADR-0004)"
@@ -71,12 +75,14 @@ fn narration_says_what_happened_using_the_objects_name() {
 fn the_agent_frames_the_work_so_the_person_is_looking_at_it() {
     let provider = ScriptedProvider::default().plan(ScriptedProvider::place_and_frame(
         "the lighthouse",
-        "a cylinder",
+        Primitive::Cylinder,
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
 
-    session.submit_intent("a weathered lighthouse on a cliff at dusk");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the scripted plan lands");
 
     let last_frame = session
         .view()
@@ -94,18 +100,22 @@ fn the_talk_accumulates_across_intents() {
     let provider = ScriptedProvider::default()
         .plan(ScriptedProvider::place_and_frame(
             "the lighthouse",
-            "a cylinder",
+            Primitive::Cylinder,
             "on the cliff",
         ))
         .plan(ScriptedProvider::place_and_frame(
             "the cliff",
-            "a box",
+            Primitive::Box,
             "under the lighthouse",
         ));
     let mut session = Session::start(provider, ViewReport::new());
 
-    session.submit_intent("a weathered lighthouse on a cliff at dusk");
-    session.submit_intent("put it on a cliff");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the scripted plan lands");
+    session
+        .submit_intent("put it on a cliff")
+        .expect("the scripted plan lands");
 
     let talk = session.talk();
     assert_eq!(

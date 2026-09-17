@@ -3,7 +3,7 @@
 
 use crate::plan::Plan;
 use crate::provider::Provider;
-use tessera_engine::verb::{FrameTarget, ObjectRef, Verb};
+use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive, Verb};
 
 /// Hands back the scripted Plans, one per Intent, in the order they were added.
 #[derive(Debug, Default)]
@@ -21,19 +21,33 @@ impl ScriptedProvider {
 
     /// Convenience: a plan that places one named Object and Frames it — the
     /// shape a real Provider's first response to Intent should have.
-    pub fn place_and_frame(name: &str, part: &str, at: &str) -> Plan {
+    pub fn place_and_frame(name: &str, part: Primitive, at: &str) -> Plan {
         Plan::new(
             vec![
-                format!("Placing {name} {at} out of {part}."),
+                format!("Placing {name} {at} out of a {}.", part.word()),
                 format!("Framing {name} so you can judge it."),
             ],
             vec![
                 Verb::place {
                     name: ObjectRef(name.to_string()),
-                    part: part.to_string(),
+                    part,
                     at: at.to_string(),
                 },
                 Verb::frame(FrameTarget::Object(ObjectRef(name.to_string()))),
+            ],
+        )
+    }
+
+    /// Convenience: a plan that sets the Scene's light and sky.
+    pub fn light_and_sky(light: tessera_engine::LightCondition, sky: &str) -> Plan {
+        Plan::new(
+            vec![
+                format!("Setting the light to {}.", light.word()),
+                format!("Dressing the sky in {sky}."),
+            ],
+            vec![
+                Verb::light(light),
+                Verb::sky(MaterialFamily(sky.to_string())),
             ],
         )
     }

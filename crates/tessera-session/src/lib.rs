@@ -1,17 +1,17 @@
-//! Session: Tessera as the Person meets it. Tests act as the Person here.
-//!
-//! The Person submits Intent, Steer, Stop, Point, Orbit, Undo, Mark, Restore,
-//! save/open Scene, keep Still, keep Turntable, and set Key/Provider. They never
-//! issue Verbs (ADR-0002): the Agent does, guided by a Provider's plan.
-
+pub mod marks;
 pub mod plan;
 pub mod provider;
+pub mod scene;
 pub mod scripted_provider;
 pub mod session;
 pub mod view;
 
+pub use marks::{MarkError, Marks};
 pub use plan::Plan;
 pub use provider::Provider;
+pub use scene::Scene;
 pub use scripted_provider::ScriptedProvider;
-pub use session::{NarrationLine, Session};
+pub use session::{NarrationLine, Session, SessionError};
+pub use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive};
+pub use tessera_engine::{LightCondition, Verb};
 pub use view::ViewReport;

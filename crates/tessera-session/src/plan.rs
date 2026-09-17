@@ -4,10 +4,11 @@
 //! scripted and never touches the network. Verbs, not prose, cross this seam —
 //! the same small set regardless of Provider (ADR-0016).
 
-use tessera_engine::verb::Verb;
+use tessera_engine::Verb;
 
 /// A planned take on Intent: what the Agent will do, and what it will say while
-/// doing it. One Narration line per Verb, in order — enforced by [`Plan::new`].
+/// doing it. One Narration line per Verb, in order — enforced by [`Plan::new`],
+/// which panics when the two differ.
 #[derive(Debug, Clone)]
 pub struct Plan {
     pub(crate) narration: Vec<String>,
