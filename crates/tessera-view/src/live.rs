@@ -30,6 +30,7 @@ struct Inner {
     camera: Camera,
     orbiting: bool,
     pending_stop: bool,
+    pending_steer: Option<String>,
     talk: Vec<String>,
 }
 
@@ -42,6 +43,7 @@ impl LiveView {
                 camera: Camera::default(),
                 orbiting: false,
                 pending_stop: false,
+                pending_steer: None,
                 talk: Vec::new(),
             })),
         }
@@ -61,6 +63,12 @@ impl LiveView {
     /// The Person hit Stop in the window.
     pub fn request_stop(&self) {
         self.inner.lock().expect("Viewport state").pending_stop = true;
+    }
+
+    /// The Person talked over while a take is on screen. Session finishes the
+    /// current Verb, then takes these words as Intent.
+    pub fn request_steer(&self, words: impl Into<String>) {
+        self.inner.lock().expect("Viewport state").pending_steer = Some(words.into());
     }
 
     /// Turn the camera. `&self` so the window can Orbit while Session holds the View.
@@ -110,6 +118,14 @@ impl View for LiveView {
         let requested = g.pending_stop;
         g.pending_stop = false;
         requested
+    }
+
+    fn steer_requested(&mut self) -> Option<String> {
+        self.inner
+            .lock()
+            .expect("Viewport state")
+            .pending_steer
+            .take()
     }
 
     fn orbit(&mut self, delta_azimuth: f32, delta_elevation: f32) {

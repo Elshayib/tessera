@@ -196,6 +196,8 @@ impl<P: Provider, V: View> Session<P, V> {
         }
         self.pending_ask = None;
         let mut said = Vec::new();
+        let mut stopped = false;
+        let mut steered: Option<String> = None;
         for (line, verb) in narration.into_iter().zip(verbs.into_iter()) {
             let before = UndoStep {
                 scene: self.scene.clone(),
@@ -211,6 +213,12 @@ impl<P: Provider, V: View> Session<P, V> {
             self.view.say(&line);
             said.push(line);
             if self.person_stopped() {
+                stopped = true;
+                let _ = self.view.steer_requested();
+                break;
+            }
+            if let Some(words) = self.view.steer_requested() {
+                steered = Some(words);
                 break;
             }
         }
@@ -219,6 +227,15 @@ impl<P: Provider, V: View> Session<P, V> {
                 "Marking this as your first take; you can always come back to it.".to_string();
             self.view.say(&line);
             said.push(line);
+        }
+        // Steer: current Verb finished; take the new Intent. Stop wins if both.
+        if !stopped {
+            if steered.is_none() {
+                steered = self.view.steer_requested();
+            }
+            if let Some(words) = steered {
+                said.extend(self.submit_intent(words)?);
+            }
         }
         Ok(said)
     }

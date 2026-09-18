@@ -48,12 +48,17 @@ impl TesseraApp {
 
     fn send_intent(&mut self) {
         let words = self.intent.trim().to_string();
-        if words.is_empty() || self.busy {
+        if words.is_empty() {
             return;
         }
         self.intent.clear();
-        self.busy = true;
         self.error = None;
+        if self.busy {
+            // Talk over: the current Verb finishes, then these words are Intent.
+            self.live.request_steer(words);
+            return;
+        }
+        self.busy = true;
         if !self.key.is_empty() {
             let _ = self.cmds.send(Command::SetKey(self.key.clone()));
             let _ = self.cmds.send(Command::SetProvider(self.provider));
@@ -130,16 +135,12 @@ impl eframe::App for TesseraApp {
                     let edit = ui.add(
                         egui::TextEdit::singleline(&mut self.intent)
                             .desired_width(ui.available_width() - 56.0)
-                            .hint_text("Intent")
-                            .interactive(!self.busy),
+                            .hint_text(if self.busy { "Steer" } else { "Intent" }),
                     );
                     if edit.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
                         self.send_intent();
                     }
-                    if ui
-                        .add_enabled(!self.busy, egui::Button::new("Go"))
-                        .clicked()
-                    {
+                    if ui.button("Go").clicked() {
                         self.send_intent();
                     }
                 });

@@ -94,6 +94,14 @@ pub trait View {
         false
     }
 
+    /// Words the Person typed while this View was showing a take (Steer).
+    /// Session finishes the current Verb, abandons the rest of the plan, then
+    /// takes these words as Intent. Consumed: a leftover Steer must not steal
+    /// the next take. `None` means they did not talk over.
+    fn steer_requested(&mut self) -> Option<String> {
+        None
+    }
+
     /// Keep a Still: a picture file of the current framed view. A friend can
     /// open it without Tessera. `clay` is the framed Object's silhouette, if any.
     fn keep_still(

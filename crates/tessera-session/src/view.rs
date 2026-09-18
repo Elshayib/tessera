@@ -15,6 +15,10 @@ pub struct ViewReport {
     /// never do.
     stop_after_frames: Option<usize>,
     pending_stop: bool,
+    /// After this many Frames in total, the Person Steers with these words.
+    /// `None` means they never do.
+    steer_after_frames: Option<(usize, String)>,
+    pending_steer: Option<String>,
     stills: Vec<(PathBuf, tessera_view::Frame)>,
     turntables: Vec<(PathBuf, usize)>,
     /// Object names shown after each Verb, in land order.
@@ -32,6 +36,13 @@ impl ViewReport {
     /// in for the Stop button while a take is on screen.
     pub fn person_stops_after_frames(mut self, n: usize) -> Self {
         self.stop_after_frames = Some(n);
+        self
+    }
+
+    /// The Person will Steer after this many Frames have landed, standing in
+    /// for talking over while a take is on screen.
+    pub fn person_steers_after_frames(mut self, n: usize, words: impl Into<String>) -> Self {
+        self.steer_after_frames = Some((n, words.into()));
         self
     }
 
@@ -76,6 +87,11 @@ impl View for ViewReport {
         if self.stop_after_frames == Some(self.frames.len()) {
             self.pending_stop = true;
         }
+        if let Some((n, words)) = self.steer_after_frames.as_ref()
+            && *n == self.frames.len()
+        {
+            self.pending_steer = Some(words.clone());
+        }
     }
 
     fn orbit(&mut self, delta_azimuth: f32, delta_elevation: f32) {
@@ -96,6 +112,10 @@ impl View for ViewReport {
         let requested = self.pending_stop;
         self.pending_stop = false;
         requested
+    }
+
+    fn steer_requested(&mut self) -> Option<String> {
+        self.pending_steer.take()
     }
 
     fn keep_still(
