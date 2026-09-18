@@ -14,7 +14,9 @@ pub use provider::{Credentials, Provider, ProviderError, ProviderName};
 pub use scene::Scene;
 pub use scripted_provider::ScriptedProvider;
 pub use session::{KeyError, NarrationLine, Session, SessionError};
-pub use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Primitive};
-pub use tessera_engine::{KitPart, LightCondition, Verb};
+pub use tessera_engine::verb::{
+    Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Primitive, Region,
+};
+pub use tessera_engine::{Clay, KitPart, LightCondition, Verb};
 pub use tessera_view::View;
 pub use view::ViewReport;

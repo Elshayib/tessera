@@ -22,5 +22,13 @@ Verbs (tag field "verb"):
   condition is one of: dawn, noon, overcast, dusk, night
 - {"verb":"sky","family":"dusk sky"}
 - {"verb":"wear","object":"the lighthouse","family":"painted wood"}
+- {"verb":"carve","object":"the cliff","amount":"a little","region":"windward"}
+  amount is one of: a little, more, a lot
+  region is a whole-object side: windward, top, base
+- {"verb":"inflate","object":"the lighthouse","amount":"a lot","region":"base"}
+- {"verb":"taper","object":"the roof","amount":"more","along":"up"}
+  along is the Object's own up or along
+- {"verb":"weather","object":"the cliff","amount":"more"}
+  weather is Rehearsal, not First take
 
 Do not emit any other Verb. Do not use coordinates, vertices, or shader graphs."#;

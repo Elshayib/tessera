@@ -98,6 +98,90 @@ impl From<KitPart> for Part {
     }
 }
 
+/// How much a Sculpt asks for, in the Agent's coarse words. Never a millimetre.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Amount {
+    ALittle,
+    More,
+    ALot,
+}
+
+impl Amount {
+    /// The Agent's coarse word for the amount.
+    pub fn word(self) -> &'static str {
+        match self {
+            Amount::ALittle => "a little",
+            Amount::More => "more",
+            Amount::ALot => "a lot",
+        }
+    }
+
+    /// Parse the Agent's coarse word back into an amount.
+    pub fn from_word(word: &str) -> Option<Self> {
+        match word {
+            "a little" => Some(Self::ALittle),
+            "more" => Some(Self::More),
+            "a lot" => Some(Self::ALot),
+            _ => None,
+        }
+    }
+}
+
+/// A whole-object side a Sculpt may name. Never a brush stroke.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Region {
+    Windward,
+    Top,
+    Base,
+}
+
+impl Region {
+    /// The Agent's coarse word for the side.
+    pub fn word(self) -> &'static str {
+        match self {
+            Region::Windward => "windward",
+            Region::Top => "top",
+            Region::Base => "base",
+        }
+    }
+
+    /// Parse the Agent's coarse word back into a side.
+    pub fn from_word(word: &str) -> Option<Self> {
+        match word {
+            "windward" => Some(Self::Windward),
+            "top" => Some(Self::Top),
+            "base" => Some(Self::Base),
+            _ => None,
+        }
+    }
+}
+
+/// Along the Object's own up or along, for `taper`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Axis {
+    Up,
+    Along,
+}
+
+impl Axis {
+    /// The Agent's coarse word for the axis.
+    pub fn word(self) -> &'static str {
+        match self {
+            Axis::Up => "up",
+            Axis::Along => "along",
+        }
+    }
+
+    /// Parse the Agent's coarse word back into an axis.
+    pub fn from_word(word: &str) -> Option<Self> {
+        match word {
+            "up" => Some(Self::Up),
+            "along" => Some(Self::Along),
+            _ => None,
+        }
+    }
+}
+
 /// Named lighting for the whole Scene, matching the Intent ("at dusk").
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LightCondition {
@@ -135,7 +219,7 @@ impl LightCondition {
 
 /// A named, high-leverage operation the Agent is allowed to issue.
 ///
-/// Only the Verbs v1 has specified exist here. Verbs not yet landed (#6, #12)
+/// Only the Verbs v1 has specified exist here. Verbs not yet landed (#12)
 /// will join this enum as their tickets are built; the Agent surface stays small.
 // Variant names are lowercase on purpose: they are the spec's Verb vocabulary
 // ("place", "frame", ...), the words the Agent speaks.
@@ -160,4 +244,24 @@ pub enum Verb {
         object: ObjectRef,
         family: MaterialFamily,
     },
+    /// Sculpt: cut into the silhouette of a named Object, on a whole-object side.
+    carve {
+        object: ObjectRef,
+        amount: Amount,
+        region: Region,
+    },
+    /// Sculpt: push the silhouette out, same coarse arguments as carve.
+    inflate {
+        object: ObjectRef,
+        amount: Amount,
+        region: Region,
+    },
+    /// Sculpt: narrow or widen a named Object along its own up/along.
+    taper {
+        object: ObjectRef,
+        amount: Amount,
+        along: Axis,
+    },
+    /// Sculpt: wear the silhouette as if by age or wind. Rehearsal, not First take.
+    weather { object: ObjectRef, amount: Amount },
 }

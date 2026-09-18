@@ -294,7 +294,9 @@ mod tests {
                 request.body.contains("The Person never names a Verb"),
                 "{provider:?} must carry Tessera's Verb contract, not its own"
             );
-            for verb in ["place", "frame", "light", "sky", "wear"] {
+            for verb in [
+                "place", "frame", "light", "sky", "wear", "carve", "inflate", "taper", "weather",
+            ] {
                 assert!(
                     request.body.contains(verb),
                     "{provider:?} must name the Verb {verb} in the shared contract"

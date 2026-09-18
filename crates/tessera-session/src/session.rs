@@ -11,6 +11,7 @@ use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
 use crate::provider::{Provider, ProviderError, ProviderName};
 use crate::scene::Scene;
+use tessera_engine::Clay;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::{FrameTarget, LightCondition, ObjectRef, Verb};
 use tessera_view::View;
@@ -236,8 +237,43 @@ impl<P: Provider, V: View> Session<P, V> {
                     None => return Err(SessionError::UnknownObject(object.0)),
                 }
             }
+            Verb::carve {
+                object,
+                amount,
+                region,
+            } => self.sculpt(object, |clay| clay.carve(amount, region))?,
+            Verb::inflate {
+                object,
+                amount,
+                region,
+            } => self.sculpt(object, |clay| clay.inflate(amount, region))?,
+            Verb::taper {
+                object,
+                amount,
+                along,
+            } => self.sculpt(object, |clay| clay.taper(amount, along))?,
+            Verb::weather { object, amount } => self.sculpt(object, |clay| clay.weather(amount))?,
         }
         Ok(())
+    }
+
+    /// Work one named Object's Clay and Frame it so the Person is looking at
+    /// the silhouette that just changed.
+    fn sculpt(
+        &mut self,
+        object: ObjectRef,
+        op: impl FnOnce(&mut Clay),
+    ) -> Result<(), SessionError> {
+        match self.scene.objects.iter_mut().find(|o| o.name == object.0) {
+            Some(o) => {
+                op(&mut o.clay);
+                self.view.show_frame(tessera_view::Frame {
+                    object: Some(object.0),
+                });
+                Ok(())
+            }
+            None => Err(SessionError::UnknownObject(object.0)),
+        }
     }
 
     /// A lab refusal, as the Person can act on it.

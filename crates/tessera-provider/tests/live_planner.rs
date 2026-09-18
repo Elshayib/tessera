@@ -29,6 +29,34 @@ const KIT_PLAN: &str = r#"{
   ]
 }"#;
 
+const PLACE_ROOF: &str = r#"{
+  "narration": [
+    "Capping it with a roof.",
+    "Framing the roof so you can judge it."
+  ],
+  "verbs": [
+    {"verb": "place", "name": "the roof", "part": "cone", "at": "atop the lighthouse"},
+    {"verb": "frame", "target": "the roof"}
+  ]
+}"#;
+
+const SCULPT_PLAN: &str = r#"{
+  "narration": [
+    "The roof is too steep — tapering it along its up.",
+    "Weathering the roof a little.",
+    "Carving the top a little.",
+    "Inflating the base a lot.",
+    "Framing the roof so you can judge it."
+  ],
+  "verbs": [
+    {"verb": "taper", "object": "the roof", "amount": "more", "along": "up"},
+    {"verb": "weather", "object": "the roof", "amount": "a little"},
+    {"verb": "carve", "object": "the roof", "amount": "a little", "region": "top"},
+    {"verb": "inflate", "object": "the roof", "amount": "a lot", "region": "base"},
+    {"verb": "frame", "target": "the roof"}
+  ]
+}"#;
+
 fn anthropic_ok(plan: &str) -> String {
     serde_json::json!({
         "content": [{ "type": "text", "text": plan }]
@@ -106,6 +134,42 @@ fn kit_parts_land_the_same_across_providers() {
         assert_eq!(objects[0].part, Part::Kit(KitPart::CliffSlab));
         assert_eq!(objects[1].name, "the lantern room");
         assert_eq!(objects[1].part, Part::Kit(KitPart::LanternRoom));
+    }
+}
+
+/// Sculpt Verbs in the JSON land the same on every lab: silhouette changes,
+/// Object persists.
+#[test]
+fn sculpt_verbs_land_the_same_across_providers() {
+    for provider in ProviderName::ALL {
+        let (place_status, place_body) = envelope(provider, PLACE_ROOF);
+        let (sculpt_status, sculpt_body) = envelope(provider, SCULPT_PLAN);
+        let mut session = session(
+            provider,
+            FakeTransport::default()
+                .replies(place_status, place_body)
+                .replies(sculpt_status, sculpt_body),
+        );
+        session
+            .submit_intent("a roof atop the lighthouse")
+            .expect("the fake Provider places the roof");
+        assert!(
+            session.objects()[0].clay.composed_only(),
+            "{provider:?} First take is composed, not weathered"
+        );
+        session
+            .submit_intent("the roof is too steep")
+            .expect("the fake Provider returns a Sculpt plan");
+
+        let objects = session.objects();
+        assert_eq!(objects.len(), 1, "{provider:?}");
+        assert_eq!(objects[0].name, "the roof");
+        assert!(
+            !objects[0].clay.composed_only(),
+            "{provider:?} must land Sculpt on the roof"
+        );
+        let last = session.view().last_frame().expect("framed");
+        assert_eq!(last.object.as_deref(), Some("the roof"));
     }
 }
 

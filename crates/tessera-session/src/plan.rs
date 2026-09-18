@@ -6,7 +6,9 @@
 
 use serde::Deserialize;
 use tessera_engine::LightCondition;
-use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
+use tessera_engine::verb::{
+    Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Region, Verb,
+};
 
 /// A planned take on Intent: what the Agent will do, and what it will say while
 /// doing it. One Narration line per Verb, in order — enforced by [`Plan::new`],
@@ -84,6 +86,26 @@ enum VerbWire {
     Sky { family: String },
     #[serde(rename = "wear")]
     Wear { object: String, family: String },
+    #[serde(rename = "carve")]
+    Carve {
+        object: String,
+        amount: String,
+        region: String,
+    },
+    #[serde(rename = "inflate")]
+    Inflate {
+        object: String,
+        amount: String,
+        region: String,
+    },
+    #[serde(rename = "taper")]
+    Taper {
+        object: String,
+        amount: String,
+        along: String,
+    },
+    #[serde(rename = "weather")]
+    Weather { object: String, amount: String },
 }
 
 impl VerbWire {
@@ -116,6 +138,45 @@ impl VerbWire {
                 object: ObjectRef(object),
                 family: MaterialFamily(family),
             }),
+            VerbWire::Carve {
+                object,
+                amount,
+                region,
+            } => Ok(Verb::carve {
+                object: ObjectRef(object),
+                amount: parse_amount(&amount)?,
+                region: parse_region(&region)?,
+            }),
+            VerbWire::Inflate {
+                object,
+                amount,
+                region,
+            } => Ok(Verb::inflate {
+                object: ObjectRef(object),
+                amount: parse_amount(&amount)?,
+                region: parse_region(&region)?,
+            }),
+            VerbWire::Taper {
+                object,
+                amount,
+                along,
+            } => Ok(Verb::taper {
+                object: ObjectRef(object),
+                amount: parse_amount(&amount)?,
+                along: Axis::from_word(&along).ok_or_else(|| format!("unknown axis {along:?}"))?,
+            }),
+            VerbWire::Weather { object, amount } => Ok(Verb::weather {
+                object: ObjectRef(object),
+                amount: parse_amount(&amount)?,
+            }),
         }
     }
+}
+
+fn parse_amount(word: &str) -> Result<Amount, String> {
+    Amount::from_word(word).ok_or_else(|| format!("unknown amount {word:?}"))
+}
+
+fn parse_region(word: &str) -> Result<Region, String> {
+    Region::from_word(word).ok_or_else(|| format!("unknown region {word:?}"))
 }
