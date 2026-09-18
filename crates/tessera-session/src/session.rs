@@ -12,7 +12,7 @@ use crate::intent::Intent;
 use crate::keyring::{KeyStore, Keyring, MemoryKeyStore};
 use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
-use crate::provider::{Bindings, Provider, ProviderError, ProviderName, Reply};
+use crate::provider::{Bindings, Brain, Provider, ProviderError, ProviderName, Reply};
 use crate::scene::{Scene, TalkLine};
 use crate::scene_file::{self, SceneError};
 use tessera_engine::Clay;
@@ -31,6 +31,23 @@ pub enum SessionError {
     /// out of credit (issue #4).
     #[error("{0}")]
     Key(KeyError),
+    /// The Agent cannot think with the current Brain pick (ADR-0021).
+    #[error("{0}")]
+    Brain(BrainError),
+}
+
+/// Why the Brain pick cannot think, as the Person can act on it.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum BrainError {
+    /// Nothing offered, or nothing picked and no default.
+    #[error("No Brain is available. Pick a Brain in settings so the Agent can think.")]
+    Missing,
+    /// The remembered Brain is not in what the Provider currently offers.
+    #[error("That Brain is no longer offered. Pick another Brain in settings.")]
+    Unknown,
+    /// Pictures were sent to a Brain that cannot see them.
+    #[error("This Brain cannot see pictures. Pick a Brain that can see, or send words only.")]
+    CannotSee,
 }
 
 /// What is wrong with the Key, as the Person can act on it (spec story 49).
@@ -98,6 +115,8 @@ pub struct Session<P: Provider, V: View> {
     pending_ask: Option<String>,
     /// The Object the Person Pointed at, if any. Binds later "this".
     pointed: Option<String>,
+    /// Last fetched chat Brains for the current Provider and Key.
+    catalog: Option<Vec<Brain>>,
 }
 
 impl<P: Provider, V: View> Session<P, V> {
@@ -117,6 +136,7 @@ impl<P: Provider, V: View> Session<P, V> {
             last_frame: None,
             pending_ask: None,
             pointed: None,
+            catalog: None,
         }
     }
 
@@ -130,11 +150,13 @@ impl<P: Provider, V: View> Session<P, V> {
     /// The Person picked a Provider from the short list (spec story 4).
     pub fn set_provider(&mut self, provider: ProviderName) {
         self.keyring.set_provider(provider);
+        self.catalog = None;
     }
 
     /// The Person pasted a Key for the chosen Provider (spec story 3).
     pub fn set_key(&mut self, key: &str) {
         self.keyring.set_key(key);
+        self.catalog = None;
     }
 
     /// The Provider the Key belongs to, once the Person has picked one.
@@ -145,6 +167,48 @@ impl<P: Provider, V: View> Session<P, V> {
     /// Whether the Person has pasted a Key.
     pub fn has_key(&self) -> bool {
         self.keyring.has_key()
+    }
+
+    /// What the current Provider offers, as settings should show it: chat,
+    /// text in and out. Fetches when a Provider and Key are both set. Picks a
+    /// default Brain if the Person has not. A vanished pick is not swapped:
+    /// the list is still returned so they can pick another.
+    pub fn brains(&mut self) -> Result<Vec<Brain>, SessionError> {
+        match self.resolve_brain() {
+            Ok(_) | Err(SessionError::Brain(BrainError::Missing | BrainError::Unknown)) => {
+                self.ensure_catalog().cloned()
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// The live list, filtered to Brains whose name or id matches `query`.
+    /// Empty query is the full list.
+    pub fn brains_matching(&mut self, query: &str) -> Result<Vec<Brain>, SessionError> {
+        Ok(self
+            .brains()?
+            .into_iter()
+            .filter(|b| b.matches(query))
+            .collect())
+    }
+
+    /// The Brain the Agent will think with: the Person's pick, or Tessera's
+    /// default. None until a list has been fetched.
+    pub fn chosen_brain(&self) -> Option<&Brain> {
+        let id = self.keyring.brain()?;
+        self.catalog.as_ref()?.iter().find(|b| b.id == id)
+    }
+
+    /// The Person picked a Brain from the live list.
+    pub fn set_brain(&mut self, id: &str) -> Result<(), SessionError> {
+        let catalog = self.ensure_catalog()?.clone();
+        let brain = catalog
+            .iter()
+            .find(|b| b.id == id)
+            .cloned()
+            .ok_or(SessionError::Brain(BrainError::Unknown))?;
+        self.keyring.set_brain(&brain);
+        Ok(())
     }
 
     /// The Person's Intent. The Agent plans, lands each Verb on the Engine, and
@@ -159,7 +223,7 @@ impl<P: Provider, V: View> Session<P, V> {
         intent: impl Into<Intent>,
     ) -> Result<Vec<String>, SessionError> {
         let intent = intent.into();
-        let credentials = match self.keyring.credentials() {
+        let mut credentials = match self.keyring.credentials() {
             Some(credentials) => credentials,
             None => {
                 let err = if !self.keyring.has_key() {
@@ -170,6 +234,13 @@ impl<P: Provider, V: View> Session<P, V> {
                 return Err(SessionError::Key(err));
             }
         };
+        if credentials.provider == ProviderName::Anthropic {
+            let brain = self.resolve_brain()?;
+            if !intent.pictures().is_empty() && !brain.can_see {
+                return Err(SessionError::Brain(BrainError::CannotSee));
+            }
+            credentials.brain = Some(brain.id);
+        }
         let names: Vec<String> = self.scene.objects.iter().map(|o| o.name.clone()).collect();
         let answering = self.pending_ask.is_some();
         let bindings = Bindings {
@@ -711,5 +782,48 @@ impl<P: Provider, V: View> Session<P, V> {
             ProviderError::OutOfCredit => KeyError::OutOfCredit,
             ProviderError::Unavailable(reason) => KeyError::Unavailable(reason),
         }
+    }
+
+    fn ensure_catalog(&mut self) -> Result<&Vec<Brain>, SessionError> {
+        if self.catalog.is_some() {
+            return Ok(self.catalog.as_ref().expect("just checked"));
+        }
+        let credentials = match self.keyring.credentials() {
+            Some(credentials) => credentials,
+            None => {
+                let err = if !self.keyring.has_key() {
+                    KeyError::Missing
+                } else {
+                    KeyError::MissingProvider
+                };
+                return Err(SessionError::Key(err));
+            }
+        };
+        let brains = self
+            .provider
+            .list_brains(&credentials)
+            .map_err(|e| SessionError::Key(Self::key_error(e)))?;
+        self.catalog = Some(brains);
+        Ok(self.catalog.as_ref().expect("just stored"))
+    }
+
+    /// The Brain the Agent thinks with: remembered pick if still offered,
+    /// otherwise the default. Does not silently swap a vanished pick.
+    fn resolve_brain(&mut self) -> Result<Brain, SessionError> {
+        let catalog = self.ensure_catalog()?.clone();
+        if catalog.is_empty() {
+            return Err(SessionError::Brain(BrainError::Missing));
+        }
+        if let Some(id) = self.keyring.brain().map(str::to_string) {
+            return catalog
+                .into_iter()
+                .find(|b| b.id == id)
+                .ok_or(SessionError::Brain(BrainError::Unknown));
+        }
+        let default = Brain::default_in(&catalog)
+            .cloned()
+            .ok_or(SessionError::Brain(BrainError::Missing))?;
+        self.keyring.set_brain(&default);
+        Ok(default)
     }
 }

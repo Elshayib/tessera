@@ -8,7 +8,7 @@ mod lab;
 mod prompt;
 mod transport;
 
-use tessera_session::{Bindings, Credentials, Intent, Provider, ProviderError, Reply};
+use tessera_session::{Bindings, Brain, Credentials, Intent, Provider, ProviderError, Reply};
 
 pub use prompt::SYSTEM;
 pub use transport::{
@@ -40,6 +40,14 @@ impl<T: Transport> LivePlanner<T> {
     }
 }
 
+impl LivePlanner<FakeTransport> {
+    /// What the fake transport recorded, in send order. Tests assert the Brain
+    /// id in the chat POST and that listing is a GET.
+    pub fn transport_sent(&self) -> &[HttpRequest] {
+        &self.transport.sent
+    }
+}
+
 impl<T: Transport> Provider for LivePlanner<T> {
     fn respond(
         &mut self,
@@ -59,5 +67,9 @@ impl<T: Transport> Provider for LivePlanner<T> {
                 "The Agent could not plan that. Try again, or pick another Provider.".to_string(),
             )
         })
+    }
+
+    fn list_brains(&mut self, credentials: &Credentials) -> Result<Vec<Brain>, ProviderError> {
+        lab::list_brains(&mut self.transport, credentials)
     }
 }

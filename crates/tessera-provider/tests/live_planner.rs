@@ -112,10 +112,45 @@ fn envelope(provider: ProviderName, plan: &str) -> (u16, String) {
     }
 }
 
+/// Anthropic list: two chat Brains. First cannot see; second can. No prices,
+/// so the default is the first that can see.
+fn anthropic_catalog() -> String {
+    serde_json::json!({
+        "data": [
+            {
+                "id": "claude-words",
+                "display_name": "Claude Words",
+                "type": "model",
+                "capabilities": { "image_input": { "supported": false } }
+            },
+            {
+                "id": "claude-haiku-4-5",
+                "display_name": "Claude Haiku 4.5",
+                "type": "model",
+                "capabilities": { "image_input": { "supported": true } }
+            }
+        ],
+        "has_more": false,
+        "first_id": "claude-words",
+        "last_id": "claude-haiku-4-5"
+    })
+    .to_string()
+}
+
+fn with_anthropic_catalog(chat: FakeTransport) -> FakeTransport {
+    FakeTransport::default()
+        .replies(200, anthropic_catalog())
+        .then(chat)
+}
+
 fn session(
     provider: ProviderName,
     transport: FakeTransport,
 ) -> Session<LivePlanner<FakeTransport>, ViewReport> {
+    let transport = match provider {
+        ProviderName::Anthropic => with_anthropic_catalog(transport),
+        _ => transport,
+    };
     let mut session = Session::start(LivePlanner::with_transport(transport), ViewReport::new());
     session.set_provider(provider);
     session.set_key("sk-test");
@@ -436,6 +471,139 @@ fn remove_without_point_asks_across_providers() {
             session.objects().len(),
             1,
             "{provider:?} must not delete while Asking"
+        );
+    }
+}
+
+/// Paginated Anthropic lists are combined into one Person-facing list.
+#[test]
+fn anthropic_follows_catalog_pages() {
+    let page1 = serde_json::json!({
+        "data": [{ "id": "first", "display_name": "First", "type": "model" }],
+        "has_more": true,
+        "first_id": "first",
+        "last_id": "first"
+    })
+    .to_string();
+    let page2 = serde_json::json!({
+        "data": [{ "id": "second", "display_name": "Second", "type": "model" }],
+        "has_more": false,
+        "first_id": "second",
+        "last_id": "second"
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(
+            FakeTransport::default()
+                .replies(200, page1)
+                .replies(200, page2),
+        ),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-test");
+    let brains = session.brains().expect("both pages");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, ["first", "second"]);
+    let sent = session.provider().transport_sent();
+    assert!(
+        sent[0]
+            .url
+            .starts_with("https://api.anthropic.com/v1/models"),
+        "{}",
+        sent[0].url
+    );
+    assert!(
+        sent[1].url.contains("after_id=first"),
+        "the second page follows last_id: {}",
+        sent[1].url
+    );
+}
+
+/// After an Anthropic Key, the Person sees Brains from the live list.
+#[test]
+fn anthropic_lists_brains_from_the_live_catalog() {
+    let mut session = session(ProviderName::Anthropic, FakeTransport::default());
+    let brains = session.brains().expect("the fake catalog is offered");
+    let names: Vec<&str> = brains.iter().map(|b| b.name.as_str()).collect();
+    assert_eq!(names, ["Claude Words", "Claude Haiku 4.5"]);
+    assert!(!brains[0].can_see, "image_input false is text-only");
+    assert!(brains[1].can_see, "image_input true can see pictures");
+}
+
+/// Default with no prices is the first Brain that can see pictures.
+#[test]
+fn anthropic_default_is_the_first_that_can_see() {
+    let mut session = session(
+        ProviderName::Anthropic,
+        FakeTransport::default().replies(200, anthropic_ok(PLAN)),
+    );
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the fake lab returns a plan");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("claude-haiku-4-5")
+    );
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/v1/messages"))
+        .expect("a chat POST follows the catalog GET");
+    assert!(
+        chat.body.contains("claude-haiku-4-5"),
+        "the Agent thinks with the default Brain's id: {}",
+        chat.body
+    );
+}
+
+/// The Person's pick is the id in the chat POST.
+#[test]
+fn anthropic_thinks_with_the_brain_the_person_picked() {
+    let mut session = session(
+        ProviderName::Anthropic,
+        FakeTransport::default().replies(200, anthropic_ok(PLAN)),
+    );
+    session
+        .set_brain("claude-words")
+        .expect("text-only Brains stay on the list");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("words-only Intent works with a text-only Brain");
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/v1/messages"))
+        .expect("chat POST");
+    assert!(
+        chat.body.contains("claude-words"),
+        "the Agent thinks with the picked Brain's id"
+    );
+    assert!(
+        chat.body.contains("The Person never names a Verb"),
+        "the system prompt does not change when the Brain does"
+    );
+}
+
+/// Catalog GET then chat POST: OpenAI and Google still think without a list.
+#[test]
+fn openai_and_google_still_think_without_a_catalog_get() {
+    for provider in [ProviderName::OpenAI, ProviderName::Google] {
+        let (status, body) = envelope(provider, PLAN);
+        let mut session = session(provider, FakeTransport::default().replies(status, body));
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect("OpenAI and Google still think");
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+        let sent = session.provider().transport_sent();
+        assert_eq!(
+            sent.len(),
+            1,
+            "{provider:?} must not fetch a catalog in this ticket"
+        );
+        assert!(
+            !sent[0].url.contains("/v1/models"),
+            "{provider:?} chat is not a catalog GET"
         );
     }
 }

@@ -2,12 +2,14 @@
 //! only the envelope (URL, headers, JSON wrap) changes.
 
 use serde_json::{Value, json};
-use tessera_session::{Bindings, Credentials, Intent, Picture, ProviderError, ProviderName};
+use tessera_session::{
+    Bindings, Brain, BrainKind, Credentials, Intent, Picture, ProviderError, ProviderName,
+    chat_brains,
+};
 
 use crate::prompt::SYSTEM;
 use crate::transport::{HttpRequest, HttpResponse};
 
-const ANTHROPIC_MODEL: &str = "claude-haiku-4-5";
 const OPENAI_MODEL: &str = "gpt-4.1-nano";
 const GOOGLE_MODEL: &str = "gemini-2.5-flash";
 
@@ -23,7 +25,9 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
                 ("anthropic-version".into(), "2023-06-01".into()),
             ],
             body: json!({
-                "model": ANTHROPIC_MODEL,
+                "model": credentials.brain.as_deref().expect(
+                    "Anthropic chat names a Brain; Session resolves one before thinking",
+                ),
                 "max_tokens": 4096,
                 "system": SYSTEM,
                 "messages": [{ "role": "user", "content": anthropic_content(&text, intent.pictures()) }],
@@ -193,30 +197,139 @@ pub fn unpack(provider: ProviderName, response: &HttpResponse) -> Result<String,
     }
 }
 
-fn unpack_anthropic(response: &HttpResponse) -> Result<String, ProviderError> {
+/// List what this Provider currently offers. Anthropic is a live GET; OpenAI
+/// and Google stay pinned until their catalog tickets.
+pub fn list_brains<T: crate::transport::Transport>(
+    transport: &mut T,
+    credentials: &Credentials,
+) -> Result<Vec<Brain>, ProviderError> {
+    match credentials.provider {
+        ProviderName::Anthropic => list_anthropic(transport, &credentials.key),
+        ProviderName::OpenAI | ProviderName::Google => Ok(Vec::new()),
+    }
+}
+
+fn list_anthropic<T: crate::transport::Transport>(
+    transport: &mut T,
+    key: &str,
+) -> Result<Vec<Brain>, ProviderError> {
+    let mut brains = Vec::new();
+    let mut after_id: Option<String> = None;
+    loop {
+        let mut url = "https://api.anthropic.com/v1/models?limit=1000".to_string();
+        if let Some(id) = &after_id {
+            url.push_str("&after_id=");
+            url.push_str(id);
+        }
+        let request = HttpRequest {
+            url,
+            headers: vec![
+                ("x-api-key".into(), key.to_string()),
+                ("anthropic-version".into(), "2023-06-01".into()),
+            ],
+            body: String::new(),
+        };
+        let response = transport.get(&request).map_err(|_| {
+            ProviderError::Unavailable(
+                "Could not reach the Provider. Check the network and try again.".to_string(),
+            )
+        })?;
+        if let Some(err) = anthropic_refusal(&response) {
+            return Err(err);
+        }
+        let (page, has_more, last_id) = anthropic_catalog_page(&response.body)?;
+        brains.extend(page);
+        if has_more {
+            let Some(last_id) = last_id else {
+                break;
+            };
+            after_id = Some(last_id);
+            continue;
+        }
+        break;
+    }
+    Ok(chat_brains(brains))
+}
+
+fn anthropic_catalog_page(body: &str) -> Result<(Vec<Brain>, bool, Option<String>), ProviderError> {
+    let value = parse_json(body).ok_or_else(could_not_list)?;
+    let Some(serde_json::Value::Array(data)) = value.get("data").cloned() else {
+        return Err(could_not_list());
+    };
+    let mut brains = Vec::new();
+    for item in data {
+        let Some(id) = item.get("id").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if id.is_empty() {
+            continue;
+        }
+        let name = item
+            .get("display_name")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or(id);
+        let can_see = item
+            .pointer("/capabilities/image_input/supported")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(true);
+        brains.push(Brain {
+            id: id.to_string(),
+            name: name.to_string(),
+            can_see,
+            price: None,
+            kind: BrainKind::Chat,
+        });
+    }
+    let has_more = value
+        .get("has_more")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let last_id = value
+        .get("last_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
+    Ok((brains, has_more, last_id))
+}
+
+fn could_not_list() -> ProviderError {
+    ProviderError::Unavailable(
+        "The Provider did not return a list of Brains. Try again, or pick another Provider."
+            .to_string(),
+    )
+}
+
+fn anthropic_refusal(response: &HttpResponse) -> Option<ProviderError> {
     let body = parse_json(&response.body);
     if response.status == 401
         || type_is(&body, "authentication_error")
         || type_is(&body, "permission_error")
     {
-        return Err(ProviderError::InvalidKey);
+        return Some(ProviderError::InvalidKey);
     }
     if response.status == 402
         || type_is(&body, "billing_error")
         || error_code(&body) == Some("enforced_spend_limit_reached")
     {
-        return Err(ProviderError::OutOfCredit);
+        return Some(ProviderError::OutOfCredit);
     }
     if response.status == 429 {
         let retry = header(&response.headers, "retry-after");
         if retry.is_none() || error_code(&body) == Some("enforced_spend_limit_reached") {
-            return Err(ProviderError::OutOfCredit);
+            return Some(ProviderError::OutOfCredit);
         }
-        return Err(busy());
+        return Some(busy());
     }
     if response.status != 200 {
-        return Err(unavailable());
+        return Some(unavailable());
     }
+    None
+}
+
+fn unpack_anthropic(response: &HttpResponse) -> Result<String, ProviderError> {
+    if let Some(err) = anthropic_refusal(response) {
+        return Err(err);
+    }
+    let body = parse_json(&response.body);
     let Some(Value::Array(blocks)) = body.as_ref().and_then(|v| v.get("content")) else {
         return Err(could_not_plan());
     };
@@ -398,6 +511,7 @@ mod tests {
         Credentials {
             provider,
             key: "sk-test".to_string(),
+            brain: Some("test-brain".to_string()),
         }
     }
 
@@ -470,6 +584,21 @@ mod tests {
                 "{provider:?} must say what the Person Pointed at"
             );
         }
+    }
+
+    #[test]
+    fn anthropic_names_the_brain_id_not_a_pinned_sku() {
+        let mut creds = creds(ProviderName::Anthropic);
+        creds.brain = Some("claude-opus-4-1".into());
+        let request = pack(&creds, &words("hi"), none_pointed());
+        assert!(
+            request.body.contains("claude-opus-4-1"),
+            "the Agent thinks with the Brain the Person picked"
+        );
+        assert!(
+            !request.body.contains("test-brain"),
+            "a live pick must not be replaced by a stand-in id"
+        );
     }
 
     #[test]

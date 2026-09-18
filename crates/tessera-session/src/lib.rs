@@ -14,11 +14,14 @@ pub use intent::{Intent, Picture, PictureKind};
 pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
-pub use provider::{Bindings, Credentials, Provider, ProviderError, ProviderName, Reply};
+pub use provider::{
+    Bindings, Brain, BrainKind, Credentials, Provider, ProviderError, ProviderName, Reply,
+    chat_brains,
+};
 pub use scene::{Scene, TalkLine};
 pub use scene_file::SceneError;
 pub use scripted_provider::ScriptedProvider;
-pub use session::{KeepError, KeyError, Session, SessionError, UndoError};
+pub use session::{BrainError, KeepError, KeyError, Session, SessionError, UndoError};
 pub use tessera_engine::verb::{
     Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Primitive, Region,
 };

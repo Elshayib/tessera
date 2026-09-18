@@ -3,16 +3,41 @@
 
 use crate::intent::Intent;
 use crate::plan::Plan;
-use crate::provider::{Bindings, Credentials, Provider, ProviderError, Reply};
+use crate::provider::{
+    Bindings, Brain, BrainKind, Credentials, Provider, ProviderError, Reply, chat_brains,
+};
 use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
 
 /// Hands back the scripted Plans, Asks, or troubles, one per Intent, in the
-/// order they were added.
-#[derive(Debug, Default)]
+/// order they were added. A default ScriptedProvider offers one chat Brain
+/// that can see, so tests that do not care about the catalog still think.
+#[derive(Debug)]
 pub struct ScriptedProvider {
     outcomes: Vec<Result<Reply, ProviderError>>,
     next: usize,
     received: Vec<Intent>,
+    received_credentials: Vec<Credentials>,
+    brains: Vec<Brain>,
+    list_error: Option<ProviderError>,
+}
+
+impl Default for ScriptedProvider {
+    fn default() -> Self {
+        Self {
+            outcomes: Vec::new(),
+            next: 0,
+            received: Vec::new(),
+            received_credentials: Vec::new(),
+            brains: vec![Brain {
+                id: "scripted".into(),
+                name: "Scripted".into(),
+                can_see: true,
+                price: None,
+                kind: BrainKind::Chat,
+            }],
+            list_error: None,
+        }
+    }
 }
 
 impl ScriptedProvider {
@@ -33,6 +58,23 @@ impl ScriptedProvider {
     pub fn fail(mut self, error: ProviderError) -> Self {
         self.outcomes.push(Err(error));
         self
+    }
+
+    /// Script the live list of Brains this Provider currently offers.
+    pub fn offering(mut self, brains: Vec<Brain>) -> Self {
+        self.brains = brains;
+        self
+    }
+
+    /// Script listing so it fails this way instead of returning Brains.
+    pub fn catalog_fail(mut self, error: ProviderError) -> Self {
+        self.list_error = Some(error);
+        self
+    }
+
+    /// Credentials that crossed the seam with each Intent, in order.
+    pub fn received_credentials(&self) -> &[Credentials] {
+        &self.received_credentials
     }
 
     /// Convenience: a plan that places one named Object and Frames it — the
@@ -79,10 +121,11 @@ impl Provider for ScriptedProvider {
     fn respond(
         &mut self,
         intent: &Intent,
-        _credentials: &Credentials,
+        credentials: &Credentials,
         _bindings: Bindings<'_>,
     ) -> Result<Reply, ProviderError> {
         self.received.push(intent.clone());
+        self.received_credentials.push(credentials.clone());
         let outcome = self.outcomes.get(self.next).cloned().unwrap_or_else(|| {
             panic!(
                 "the test scripted {} outcome(s) but the Provider was asked {} time(s)",
@@ -92,5 +135,12 @@ impl Provider for ScriptedProvider {
         });
         self.next += 1;
         outcome
+    }
+
+    fn list_brains(&mut self, _credentials: &Credentials) -> Result<Vec<Brain>, ProviderError> {
+        if let Some(error) = self.list_error.clone() {
+            return Err(error);
+        }
+        Ok(chat_brains(self.brains.clone()))
     }
 }

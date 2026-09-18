@@ -10,7 +10,9 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread;
 
 use tessera_provider::LivePlanner;
-use tessera_session::{FileKeyStore, LiveView, ProviderName, Session, TalkLine};
+use tessera_session::{
+    Brain, BrainError, FileKeyStore, LiveView, Provider, ProviderName, Session, TalkLine, View,
+};
 
 /// Chat is a strip beside the Viewport; the Viewport is the product (ADR-0004).
 pub const CHAT_WIDTH: f32 = 320.0;
@@ -19,12 +21,18 @@ pub enum Command {
     Intent(String),
     SetKey(String),
     SetProvider(ProviderName),
+    SetBrain(String),
+    RefreshBrains,
     Shutdown,
 }
 
 pub enum Event {
     Talk(Vec<TalkLine>),
     Error(String),
+    Catalog {
+        brains: Vec<Brain>,
+        chosen: Option<String>,
+    },
     Idle,
 }
 
@@ -47,13 +55,44 @@ pub fn key_path() -> PathBuf {
     dir
 }
 
+fn send_catalog<P: Provider, V: View>(session: &mut Session<P, V>, events: &Sender<Event>) {
+    if session.chosen_provider() != Some(ProviderName::Anthropic) || !session.has_key() {
+        return;
+    }
+    match session.brains() {
+        Ok(brains) if brains.is_empty() => {
+            let _ = events.send(Event::Error(BrainError::Missing.to_string()));
+        }
+        Ok(brains) => {
+            let chosen = session.chosen_brain().map(|b| b.id.clone());
+            let _ = events.send(Event::Catalog { brains, chosen });
+        }
+        Err(err) => {
+            let _ = events.send(Event::Error(err.to_string()));
+        }
+    }
+}
+
 fn worker(view: LiveView, store: FileKeyStore, cmds: Receiver<Command>, events: Sender<Event>) {
     let mut session = Session::start(LivePlanner::new(), view).with_key_store(store);
     while let Ok(cmd) = cmds.recv() {
         match cmd {
             Command::Shutdown => break,
-            Command::SetKey(key) => session.set_key(&key),
-            Command::SetProvider(provider) => session.set_provider(provider),
+            Command::SetKey(key) => {
+                session.set_key(&key);
+                send_catalog(&mut session, &events);
+            }
+            Command::SetProvider(provider) => {
+                session.set_provider(provider);
+                send_catalog(&mut session, &events);
+            }
+            Command::SetBrain(id) => {
+                if let Err(err) = session.set_brain(&id) {
+                    let _ = events.send(Event::Error(err.to_string()));
+                }
+                send_catalog(&mut session, &events);
+            }
+            Command::RefreshBrains => send_catalog(&mut session, &events),
             Command::Intent(words) => {
                 match session.submit_intent(words) {
                     Ok(_) => {

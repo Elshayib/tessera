@@ -3,7 +3,7 @@
 use std::sync::mpsc::{Receiver, Sender};
 
 use eframe::egui::{self, Color32, ColorImage, Key, RichText, TextureOptions};
-use tessera_session::ProviderName;
+use tessera_session::{Brain, ProviderName};
 use tessera_view::LiveView;
 
 use crate::{CHAT_WIDTH, Command, Event};
@@ -18,6 +18,9 @@ pub struct TesseraApp {
     error: Option<String>,
     key: String,
     provider: ProviderName,
+    brains: Vec<Brain>,
+    brain_id: Option<String>,
+    brain_query: String,
     busy: bool,
 }
 
@@ -32,6 +35,9 @@ impl TesseraApp {
             error: None,
             key: String::new(),
             provider: ProviderName::Anthropic,
+            brains: Vec::new(),
+            brain_id: None,
+            brain_query: String::new(),
             busy: false,
         }
     }
@@ -41,6 +47,11 @@ impl TesseraApp {
             match event {
                 Event::Talk(_) => self.error = None,
                 Event::Error(err) => self.error = Some(err),
+                Event::Catalog { brains, chosen } => {
+                    self.brains = brains;
+                    self.brain_id = chosen;
+                    self.error = None;
+                }
                 Event::Idle => self.busy = false,
             }
         }
@@ -100,6 +111,40 @@ impl eframe::App for TesseraApp {
                 );
                 if key.lost_focus() && !self.key.is_empty() {
                     let _ = self.cmds.send(Command::SetKey(self.key.clone()));
+                    let _ = self.cmds.send(Command::RefreshBrains);
+                }
+                if self.provider == ProviderName::Anthropic && !self.brains.is_empty() {
+                    ui.label("Brain");
+                    let selected = self
+                        .brains
+                        .iter()
+                        .find(|b| Some(b.id.as_str()) == self.brain_id.as_deref())
+                        .map(|b| b.name.as_str())
+                        .unwrap_or("pick a Brain");
+                    egui::ComboBox::from_id_salt("brain")
+                        .selected_text(selected)
+                        .show_ui(ui, |ui| {
+                            ui.add(
+                                egui::TextEdit::singleline(&mut self.brain_query)
+                                    .hint_text("search")
+                                    .desired_width(220.0),
+                            );
+                            egui::ScrollArea::vertical()
+                                .max_height(200.0)
+                                .show(ui, |ui| {
+                                    for brain in
+                                        self.brains.iter().filter(|b| b.matches(&self.brain_query))
+                                    {
+                                        let picked =
+                                            Some(brain.id.as_str()) == self.brain_id.as_deref();
+                                        if ui.selectable_label(picked, &brain.name).clicked() {
+                                            self.brain_id = Some(brain.id.clone());
+                                            let _ =
+                                                self.cmds.send(Command::SetBrain(brain.id.clone()));
+                                        }
+                                    }
+                                });
+                        });
                 }
             });
         });

@@ -1,10 +1,10 @@
-//! The Key: a model API key the Person pastes into Tessera. It lives in app
+//! The Key: a paid API key the Person pastes into Tessera. It lives in app
 //! settings on the Person's machine, never in the Scene file (spec story 6) —
 //! sending a Scene to a friend must not leak the Key.
 
 use std::path::{Path, PathBuf};
 
-use crate::provider::{Credentials, ProviderName};
+use crate::provider::{Brain, Credentials, ProviderName};
 
 /// Where the machine keeps the Key and the Provider it belongs to. Tessera
 /// does not open a credential vault itself: the app hands Session whichever
@@ -44,19 +44,25 @@ impl<S: KeyStore + ?Sized> KeyStore for Box<S> {
 pub struct Keyring<S: KeyStore + ?Sized> {
     key: Option<String>,
     provider: Option<ProviderName>,
+    brain: Option<String>,
     store: S,
 }
 
 impl<S: KeyStore> Keyring<S> {
     /// The settings as this machine last kept them.
     pub fn from_store(store: S) -> Self {
-        let (key, provider) = match store.load() {
-            Some(credentials) => (Some(credentials.key), Some(credentials.provider)),
-            None => (None, None),
+        let (key, provider, brain) = match store.load() {
+            Some(credentials) => (
+                Some(credentials.key),
+                Some(credentials.provider),
+                credentials.brain,
+            ),
+            None => (None, None, None),
         };
         Self {
             key,
             provider,
+            brain,
             store,
         }
     }
@@ -80,9 +86,20 @@ impl<S: KeyStore + ?Sized> Keyring<S> {
         self.write_through();
     }
 
+    /// The Person picked a Brain, or Tessera picked the default (ADR-0021).
+    pub fn set_brain(&mut self, brain: &Brain) {
+        self.brain = Some(brain.id.clone());
+        self.write_through();
+    }
+
     /// The Provider the Key belongs to, once the Person has picked one.
     pub fn provider(&self) -> Option<ProviderName> {
         self.provider
+    }
+
+    /// The Brain id last picked (or defaulted) for this Provider, if any.
+    pub fn brain(&self) -> Option<&str> {
+        self.brain.as_deref()
     }
 
     /// Whether the Person has pasted a Key.
@@ -90,11 +107,13 @@ impl<S: KeyStore + ?Sized> Keyring<S> {
         self.key.is_some()
     }
 
-    /// What the Agent thinks with, when both halves are set.
+    /// What the Agent thinks with, when both halves are set. Brain may still
+    /// be missing: listing does not require it.
     pub fn credentials(&self) -> Option<Credentials> {
         Some(Credentials {
             provider: self.provider?,
             key: self.key.clone()?,
+            brain: self.brain.clone(),
         })
     }
 

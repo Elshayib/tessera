@@ -4,7 +4,7 @@
 use std::collections::VecDeque;
 use std::time::Duration;
 
-/// One POST a live Provider is about to send.
+/// One HTTP request a live Provider is about to send.
 #[derive(Debug, Clone)]
 pub struct HttpRequest {
     pub url: String,
@@ -21,7 +21,7 @@ pub struct HttpResponse {
     pub body: String,
 }
 
-/// The network could not complete a POST.
+/// The network could not complete the request.
 #[derive(Debug, Clone)]
 pub struct TransportError(pub String);
 
@@ -31,9 +31,11 @@ impl std::fmt::Display for TransportError {
     }
 }
 
-/// A POST client. One adapter hits the network; one is scripted for tests.
+/// An HTTP client. One adapter hits the network; one is scripted for tests.
+/// Listing is GET; thinking is POST. Both go through this seam.
 pub trait Transport {
     fn post(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError>;
+    fn get(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError>;
 }
 
 /// Production HTTP: rustls, blocking, status codes left on the response so a
@@ -65,26 +67,41 @@ impl Transport for UreqTransport {
         for (name, value) in &request.headers {
             req = req.header(name, value);
         }
-        let mut resp = req
+        let resp = req
             .send(request.body.as_str())
             .map_err(|e| TransportError(e.to_string()))?;
-        let status = resp.status().as_u16();
-        let mut headers = Vec::new();
-        for (name, value) in resp.headers() {
-            if let Ok(value) = value.to_str() {
-                headers.push((name.as_str().to_string(), value.to_string()));
-            }
-        }
-        let body = resp
-            .body_mut()
-            .read_to_string()
-            .map_err(|e| TransportError(e.to_string()))?;
-        Ok(HttpResponse {
-            status,
-            headers,
-            body,
-        })
+        read_response(resp)
     }
+
+    fn get(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+        let mut req = self.agent.get(&request.url);
+        for (name, value) in &request.headers {
+            req = req.header(name, value);
+        }
+        let resp = req.call().map_err(|e| TransportError(e.to_string()))?;
+        read_response(resp)
+    }
+}
+
+fn read_response(
+    mut resp: ureq::http::Response<ureq::Body>,
+) -> Result<HttpResponse, TransportError> {
+    let status = resp.status().as_u16();
+    let mut headers = Vec::new();
+    for (name, value) in resp.headers() {
+        if let Ok(value) = value.to_str() {
+            headers.push((name.as_str().to_string(), value.to_string()));
+        }
+    }
+    let body = resp
+        .body_mut()
+        .read_to_string()
+        .map_err(|e| TransportError(e.to_string()))?;
+    Ok(HttpResponse {
+        status,
+        headers,
+        body,
+    })
 }
 
 /// Scripted HTTP for tests: never opens a socket.
@@ -110,15 +127,29 @@ impl FakeTransport {
             .push_back(Err(TransportError("connection failed".to_string())));
         self
     }
-}
 
-impl Transport for FakeTransport {
-    fn post(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+    /// Queue another scripted transport's replies after these.
+    pub fn then(mut self, mut next: Self) -> Self {
+        self.replies.append(&mut next.replies);
+        self
+    }
+
+    fn exchange(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
         self.sent.push(request.clone());
         self.replies.pop_front().unwrap_or_else(|| {
             Err(TransportError(
                 "the test scripted no further HTTP reply".to_string(),
             ))
         })
+    }
+}
+
+impl Transport for FakeTransport {
+    fn post(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+        self.exchange(request)
+    }
+
+    fn get(&mut self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+        self.exchange(request)
     }
 }
