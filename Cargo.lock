@@ -548,6 +548,9 @@ dependencies = [
 [[package]]
 name = "tessera-view"
 version = "0.1.0"
+dependencies = [
+ "tessera-engine",
+]
 
 [[package]]
 name = "thiserror"

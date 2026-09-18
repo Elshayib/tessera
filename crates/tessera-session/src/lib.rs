@@ -1,4 +1,5 @@
 pub mod intent;
+mod keep;
 pub mod keyring;
 pub mod marks;
 pub mod plan;
@@ -15,7 +16,7 @@ pub use plan::Plan;
 pub use provider::{Bindings, Credentials, Provider, ProviderError, ProviderName, Reply};
 pub use scene::{Scene, TalkLine};
 pub use scripted_provider::ScriptedProvider;
-pub use session::{KeyError, Session, SessionError, UndoError};
+pub use session::{KeepError, KeyError, Session, SessionError, UndoError};
 pub use tessera_engine::verb::{
     Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Primitive, Region,
 };

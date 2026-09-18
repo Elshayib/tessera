@@ -6,6 +6,8 @@
 //! When a take composes the named place, it lands as the automatic First-take
 //! Mark.
 
+use std::path::Path;
+
 use crate::intent::Intent;
 use crate::keyring::{KeyStore, Keyring, MemoryKeyStore};
 use crate::marks::{MarkError, Marks};
@@ -59,6 +61,18 @@ const FIRST_TAKE: &str = "First take";
 pub enum UndoError {
     /// No completed Verb left to revert.
     NothingToUndo,
+}
+
+/// Why a Still or Turntable could not be kept. The Person should know whether
+/// they need to wait for a Frame, or pick another place to write.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum KeepError {
+    /// Nothing is on camera yet; a Still and a Turntable are of the framed view.
+    #[error("Nothing is framed yet. Wait until you can see the work, then keep it.")]
+    NoFrame,
+    /// The file could not be written where they asked.
+    #[error("Could not keep the file: {0}")]
+    Io(String),
 }
 
 /// Scene, Talk, and Frame as they were before a completed Verb (or restore).
@@ -268,6 +282,36 @@ impl<P: Provider, V: View> Session<P, V> {
     /// has not yet landed.
     pub fn stop(&mut self) {
         self.stop_requested = true;
+    }
+
+    /// Keep a Still of the framed view: a picture file a friend can open
+    /// without Tessera (spec story 32, ADR-0012).
+    pub fn keep_still(&mut self, path: impl AsRef<Path>) -> Result<(), KeepError> {
+        let (frame, clay) = self.framed_clay()?;
+        self.view
+            .keep_still(path.as_ref(), &frame, clay.as_ref())
+            .map_err(|e| KeepError::Io(e.to_string()))
+    }
+
+    /// Keep a short Turntable video of an orbit so a friend can judge the
+    /// Scene as 3D (spec story 33, ADR-0003, ADR-0012).
+    pub fn keep_turntable(&mut self, path: impl AsRef<Path>) -> Result<(), KeepError> {
+        let (frame, clay) = self.framed_clay()?;
+        self.view
+            .keep_turntable(path.as_ref(), &frame, clay.as_ref())
+            .map_err(|e| KeepError::Io(e.to_string()))
+    }
+
+    fn framed_clay(&self) -> Result<(tessera_view::Frame, Option<Clay>), KeepError> {
+        let frame = self.last_frame.clone().ok_or(KeepError::NoFrame)?;
+        let clay = frame.object.as_ref().and_then(|name| {
+            self.scene
+                .objects
+                .iter()
+                .find(|o| o.name == *name)
+                .map(|o| o.clay.clone())
+        });
+        Ok((frame, clay))
     }
 
     fn person_stopped(&mut self) -> bool {
