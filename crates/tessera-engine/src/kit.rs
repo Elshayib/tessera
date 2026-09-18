@@ -5,6 +5,8 @@
 //! product; it is just enough that "lighthouse on a cliff" is made of
 //! lighthouse-shaped pieces, not twelve cylinders.
 
+use serde::{Deserialize, Serialize};
+
 /// The three families the v1 Kit is filed under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KitFamily {
@@ -16,13 +18,18 @@ pub enum KitFamily {
 /// A named Part from the shipped Kit. v1's minimum catalog for the lighthouse
 /// tracer: tower, lantern room, doorway, window bay, roof cap; cliff slab,
 /// rock, ground; railing, lamp.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum KitPart {
     Tower,
+    #[serde(rename = "lantern room")]
     LanternRoom,
     Doorway,
+    #[serde(rename = "window bay")]
     WindowBay,
+    #[serde(rename = "roof cap")]
     RoofCap,
+    #[serde(rename = "cliff slab")]
     CliffSlab,
     Rock,
     Ground,

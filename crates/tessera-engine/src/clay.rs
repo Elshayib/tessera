@@ -7,12 +7,14 @@
 //! Product tests compare Clay values and `composed_only`; they do not sample
 //! the field.
 
+use serde::{Deserialize, Serialize};
+
 use crate::kit::KitPart;
 use crate::verb::{Amount, Axis, MaterialFamily, Part, Primitive, Region};
 
 /// One thing in the Scene, addressed as a whole: its place, its silhouette's
 /// shape, and the Material family it wears.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Object {
     /// The name used in Narration and later Talk ("the lantern roof").
     pub name: String,
@@ -122,14 +124,15 @@ fn resolve_place(at: &str, others: &[Object]) -> [f32; 3] {
 
 /// The form of an Object. Callers Sculpt through named operations; they never
 /// set a vertex. Negative samples are inside the silhouette.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Clay {
     body: Body,
     sculpts: Vec<Sculpt>,
 }
 
 /// How this Clay was composed: a single Part, or whole pieces joined or cut.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum Body {
     Part(Part),
     Join {
@@ -146,7 +149,8 @@ enum Body {
 }
 
 /// One Object-level Sculpt that has landed on this Clay.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum Sculpt {
     Carve { amount: Amount, region: Region },
     Inflate { amount: Amount, region: Region },

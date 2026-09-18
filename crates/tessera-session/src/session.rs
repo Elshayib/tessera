@@ -14,6 +14,7 @@ use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
 use crate::provider::{Bindings, Provider, ProviderError, ProviderName, Reply};
 use crate::scene::{Scene, TalkLine};
+use crate::scene_file::{self, SceneError};
 use tessera_engine::Clay;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::{FrameTarget, LightCondition, ObjectRef, Verb};
@@ -302,6 +303,38 @@ impl<P: Provider, V: View> Session<P, V> {
     /// has not yet landed.
     pub fn stop(&mut self) {
         self.stop_requested = true;
+    }
+
+    /// Keep the Scene as a file on disk: the place and the Talk, so tomorrow's
+    /// Rehearsal continues (spec stories 29–30, 34; ADR-0014). The Key is not
+    /// written (spec story 6).
+    pub fn save(&self, path: impl AsRef<Path>) -> Result<(), SceneError> {
+        scene_file::write(
+            path.as_ref(),
+            &self.scene,
+            &self.marks,
+            self.last_frame.as_ref(),
+        )
+    }
+
+    /// Open yesterday's Scene file. Replaces the current place and Talk. The
+    /// Key stays in settings, not in the file. A fresh Session is the usual
+    /// caller (spec story 30).
+    pub fn open(&mut self, path: impl AsRef<Path>) -> Result<(), SceneError> {
+        let (scene, marks, frame) = scene_file::read(path.as_ref())?;
+        self.scene = scene;
+        self.marks = marks;
+        self.first_take_marked = self.marks.names().iter().any(|n| n == FIRST_TAKE);
+        self.undo.clear();
+        self.stop_requested = false;
+        self.pending_ask = None;
+        self.pointed = None;
+        self.view.show_scene(self.shown_scene());
+        for line in &self.scene.talk {
+            self.view.say(&line.text);
+        }
+        self.put_frame(frame);
+        Ok(())
     }
 
     /// Keep a Still of the framed view: a picture file a friend can open

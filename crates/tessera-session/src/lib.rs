@@ -5,6 +5,7 @@ pub mod marks;
 pub mod plan;
 pub mod provider;
 pub mod scene;
+mod scene_file;
 pub mod scripted_provider;
 pub mod session;
 pub mod view;
@@ -15,6 +16,7 @@ pub use marks::{MarkError, Marks};
 pub use plan::Plan;
 pub use provider::{Bindings, Credentials, Provider, ProviderError, ProviderName, Reply};
 pub use scene::{Scene, TalkLine};
+pub use scene_file::SceneError;
 pub use scripted_provider::ScriptedProvider;
 pub use session::{KeepError, KeyError, Session, SessionError, UndoError};
 pub use tessera_engine::verb::{

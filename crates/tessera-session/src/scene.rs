@@ -1,6 +1,8 @@
 //! The Scene: the working document. Objects, ground, sky, light — and the Talk,
 //! so tomorrow's Rehearsal still knows what "the roof" meant (ADR-0006,
-//! ADR-0014). v1 keeps it in memory; the file on disk arrives with #13.
+//! ADR-0014). The Scene is a file on disk (issue #14); the Key is not in it.
+
+use serde::{Deserialize, Serialize};
 
 use crate::intent::Picture;
 use tessera_engine::MaterialFamily;
@@ -9,7 +11,7 @@ use tessera_engine::verb::LightCondition;
 
 /// One turn of Talk in this Scene: the Person's Intent (words, and pictures
 /// they dropped) or a line of Narration.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TalkLine {
     pub text: String,
     /// Pictures the Person dropped with this turn. Empty on Agent Narration.
@@ -20,7 +22,7 @@ pub struct TalkLine {
 /// holds one of these; restore swaps the live Scene for it. Talk is part of
 /// the state (ADR-0014, ADR-0015): restoring a Mark returns the Talk at that
 /// moment too.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Scene {
     pub objects: Vec<Object>,
     /// The Material family the sky wears, if any.

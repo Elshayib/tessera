@@ -63,9 +63,8 @@ fn person_drops_pictures_with_words_and_the_provider_receives_them() {
     assert_eq!(pictures[1].bytes(), PHOTO);
 }
 
-/// Pictures persist with the Talk (ADR-0014). The Scene file is a later
-/// ticket; until then they are present in-session, and a Mark restore
-/// returns the pictures that belonged to that state.
+/// Pictures persist with the Talk (ADR-0014). In-session and on Mark restore
+/// they belong to that state; the Scene file round-trip is issue #14.
 #[test]
 fn pictures_stay_in_the_talk() {
     let provider = ScriptedProvider::default()

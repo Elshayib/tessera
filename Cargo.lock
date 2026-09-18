@@ -2914,6 +2914,9 @@ dependencies = [
 [[package]]
 name = "tessera-engine"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "tessera-provider"

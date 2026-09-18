@@ -2,6 +2,8 @@
 //! (ADR-0011). A picture is never a scan to copy and never a call to an
 //! image-to-3D generator.
 
+use serde::{Deserialize, Serialize};
+
 /// What the Person wants this turn.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Intent {
@@ -45,7 +47,8 @@ impl From<String> for Intent {
 
 /// How the Person made the picture they dropped. The Agent still Composes and
 /// Sculpts; the kind is Intent, not a generator mode.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum PictureKind {
     Photo,
     Sketch,
@@ -65,7 +68,7 @@ impl PictureKind {
 
 /// A picture dropped with Intent. Bytes travel with Talk; nothing here invokes
 /// a generator.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Picture {
     kind: PictureKind,
     bytes: Vec<u8>,

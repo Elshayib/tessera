@@ -29,6 +29,15 @@ pub struct Marks {
 }
 
 impl Marks {
+    /// Rebuild the Marks of a Scene from the file (issue #14).
+    pub(crate) fn load(marks: Vec<Mark>) -> Self {
+        Self { marks }
+    }
+
+    pub(crate) fn all(&self) -> &[Mark] {
+        &self.marks
+    }
+
     pub fn record(&mut self, name: &str, scene: Scene, frame: Option<Frame>) {
         self.marks.push(Mark {
             name: name.to_string(),

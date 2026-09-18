@@ -3,6 +3,8 @@
 //! Scene-level and object-level only. No coordinates, no vertex lists, no shader
 //! nodes in arguments. The Person never names a Verb.
 
+use serde::{Deserialize, Serialize};
+
 use crate::kit::KitPart;
 
 /// The Object a Verb acts on, by the name the Agent gave it in Narration.
@@ -11,7 +13,7 @@ pub struct ObjectRef(pub String);
 
 /// A Material family: a named look for a surface or the sky ("weathered stone"),
 /// never a shader graph. The First take already wears these.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MaterialFamily(pub String);
 
 /// What `frame` puts the camera on.
@@ -24,7 +26,8 @@ pub enum FrameTarget {
 }
 
 /// A Part with no identity beyond its shape.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Primitive {
     Box,
     Sphere,
@@ -63,7 +66,8 @@ impl Primitive {
 
 /// A piece the Agent may `place` while Composing: a Primitive, or a named Part
 /// from the Kit. The Kit does not replace Primitives.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "word", rename_all = "lowercase")]
 pub enum Part {
     Primitive(Primitive),
     Kit(KitPart),
@@ -99,10 +103,13 @@ impl From<KitPart> for Part {
 }
 
 /// How much a Sculpt asks for, in the Agent's coarse words. Never a millimetre.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Amount {
+    #[serde(rename = "a little")]
     ALittle,
+    #[serde(rename = "more")]
     More,
+    #[serde(rename = "a lot")]
     ALot,
 }
 
@@ -128,7 +135,8 @@ impl Amount {
 }
 
 /// A whole-object side a Sculpt may name. Never a brush stroke.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Region {
     Windward,
     Top,
@@ -157,7 +165,8 @@ impl Region {
 }
 
 /// Along the Object's own up or along, for `taper`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Axis {
     Up,
     Along,
@@ -183,7 +192,8 @@ impl Axis {
 }
 
 /// Named lighting for the whole Scene, matching the Intent ("at dusk").
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum LightCondition {
     Dawn,
     Noon,
@@ -219,8 +229,7 @@ impl LightCondition {
 
 /// A named, high-leverage operation the Agent is allowed to issue.
 ///
-/// Only the Verbs v1 has specified exist here. Verbs not yet landed (#13, #14)
-/// will join this enum as their tickets are built; the Agent surface stays small.
+/// Only the Verbs v1 has specified exist here. The Agent surface stays small.
 // Variant names are lowercase on purpose: they are the spec's Verb vocabulary
 // ("place", "frame", ...), the words the Agent speaks.
 #[allow(non_camel_case_types)]
