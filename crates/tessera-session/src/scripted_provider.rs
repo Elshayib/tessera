@@ -2,21 +2,28 @@
 //! network: it hands back the plan a real Provider would have thought up.
 
 use crate::plan::Plan;
-use crate::provider::{Credentials, Provider, ProviderError};
+use crate::provider::{Bindings, Credentials, Provider, ProviderError, Reply};
 use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
 
-/// Hands back the scripted Plans (or troubles), one per Intent, in the order
-/// they were added.
+/// Hands back the scripted Plans, Asks, or troubles, one per Intent, in the
+/// order they were added.
 #[derive(Debug, Default)]
 pub struct ScriptedProvider {
-    outcomes: Vec<Result<Plan, ProviderError>>,
+    outcomes: Vec<Result<Reply, ProviderError>>,
     next: usize,
 }
 
 impl ScriptedProvider {
     /// Script the Provider so the next Intent in line gets this Plan.
     pub fn plan(mut self, plan: Plan) -> Self {
-        self.outcomes.push(Ok(plan));
+        self.outcomes.push(Ok(Reply::Plan(plan)));
+        self
+    }
+
+    /// Script the Provider so the next Intent in line is an Ask: the Viewport
+    /// waits and no Verb lands until the Person answers.
+    pub fn ask(mut self, question: impl Into<String>) -> Self {
+        self.outcomes.push(Ok(Reply::Ask(question.into())));
         self
     }
 
@@ -66,7 +73,8 @@ impl Provider for ScriptedProvider {
         &mut self,
         _intent: &str,
         _credentials: &Credentials,
-    ) -> Result<Plan, ProviderError> {
+        _bindings: Bindings<'_>,
+    ) -> Result<Reply, ProviderError> {
         let outcome = self.outcomes.get(self.next).cloned().unwrap_or_else(|| {
             panic!(
                 "the test scripted {} outcome(s) but the Provider was asked {} time(s)",

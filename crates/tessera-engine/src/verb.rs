@@ -264,4 +264,7 @@ pub enum Verb {
     },
     /// Sculpt: wear the silhouette as if by age or wind. Rehearsal, not First take.
     weather { object: ObjectRef, amount: Amount },
+    /// Object-level: delete a named Object. Session Asks unless that Object is
+    /// Pointed (issue #8).
+    remove { object: ObjectRef },
 }

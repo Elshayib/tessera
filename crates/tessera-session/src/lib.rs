@@ -10,7 +10,7 @@ pub mod view;
 pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
-pub use provider::{Credentials, Provider, ProviderError, ProviderName};
+pub use provider::{Bindings, Credentials, Provider, ProviderError, ProviderName, Reply};
 pub use scene::{NarrationLine, Scene};
 pub use scripted_provider::ScriptedProvider;
 pub use session::{KeyError, Session, SessionError, UndoError};

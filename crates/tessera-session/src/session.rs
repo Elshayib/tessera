@@ -9,7 +9,7 @@
 use crate::keyring::{KeyStore, Keyring, MemoryKeyStore};
 use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
-use crate::provider::{Provider, ProviderError, ProviderName};
+use crate::provider::{Bindings, Provider, ProviderError, ProviderName, Reply};
 use crate::scene::{NarrationLine, Scene};
 use tessera_engine::Clay;
 use tessera_engine::clay::Object;
@@ -78,6 +78,10 @@ pub struct Session<P: Provider, V: View> {
     undo: Vec<UndoStep>,
     stop_requested: bool,
     last_frame: Option<tessera_view::Frame>,
+    /// The Agent's pending Ask, if the Viewport is waiting on the Person.
+    pending_ask: Option<String>,
+    /// The Object the Person Pointed at, if any. Binds later "this".
+    pointed: Option<String>,
 }
 
 impl<P: Provider, V: View> Session<P, V> {
@@ -95,6 +99,8 @@ impl<P: Provider, V: View> Session<P, V> {
             undo: Vec::new(),
             stop_requested: false,
             last_frame: None,
+            pending_ask: None,
+            pointed: None,
         }
     }
 
@@ -144,18 +150,34 @@ impl<P: Provider, V: View> Session<P, V> {
                 return Err(SessionError::Key(err));
             }
         };
-        let Plan { narration, verbs } = self
+        let names: Vec<String> = self.scene.objects.iter().map(|o| o.name.clone()).collect();
+        let answering = self.pending_ask.is_some();
+        let bindings = Bindings {
+            objects: &names,
+            pointed: self.pointed.as_deref(),
+            pending_ask: self.pending_ask.as_deref(),
+        };
+        let reply = self
             .provider
-            .respond(intent, &credentials)
+            .respond(intent, &credentials, bindings)
             .map_err(|e| SessionError::Key(Self::key_error(e)))?;
         // Stop applies to a take in progress, not the next Intent.
         self.stop_requested = false;
+        let Plan { narration, verbs } = match reply {
+            Reply::Ask(question) => return Ok(self.hold_ask(question)),
+            Reply::Plan(plan) => plan,
+        };
+        if let Some(question) = self.ask_instead(&verbs, answering) {
+            return Ok(self.hold_ask(question));
+        }
+        self.pending_ask = None;
         let mut said = Vec::new();
         for (line, verb) in narration.into_iter().zip(verbs.into_iter()) {
             let before = UndoStep {
                 scene: self.scene.clone(),
                 frame: self.last_frame.clone(),
             };
+            let verb = self.bind_this(verb)?;
             self.apply(verb)?;
             self.undo.push(before);
             self.scene.talk.push(NarrationLine { text: line.clone() });
@@ -261,6 +283,22 @@ impl<P: Provider, V: View> Session<P, V> {
         &self.view
     }
 
+    /// The Agent's Ask, if the Viewport is waiting instead of acting.
+    /// None means the last Intent was a Guess and work continued (ADR-0017).
+    pub fn ask(&self) -> Option<&str> {
+        self.pending_ask.as_deref()
+    }
+
+    /// The Person clicked an Object to mean "this." Optional; words still work
+    /// alone (ADR-0013). The name is the one the Agent already gave in Narration.
+    pub fn point(&mut self, name: &str) -> Result<(), SessionError> {
+        if !self.scene.objects.iter().any(|o| o.name == name) {
+            return Err(SessionError::UnknownObject(name.to_string()));
+        }
+        self.pointed = Some(name.to_string());
+        Ok(())
+    }
+
     /// The First take bar (spec #1): a judgeable place, already lit and dressed.
     /// The first take that reaches it is marked automatically, once per Scene.
     /// Returns whether a Mark was recorded.
@@ -279,6 +317,113 @@ impl<P: Provider, V: View> Session<P, V> {
             true
         } else {
             false
+        }
+    }
+
+    fn hold_ask(&mut self, question: String) -> Vec<String> {
+        self.pending_ask = Some(question.clone());
+        self.scene.talk.push(NarrationLine {
+            text: question.clone(),
+        });
+        vec![question]
+    }
+
+    /// Remove is hard to Undo: Ask unless that Object is Pointed, or the Person
+    /// is answering an Ask by naming it (words still work alone, ADR-0013).
+    /// Unbound "this" is an Ask, not a missing Object.
+    fn ask_instead(&self, verbs: &[Verb], answering: bool) -> Option<String> {
+        for verb in verbs {
+            if self.says_this(verb) && self.pointed.is_none() {
+                return Some("Which Object do you mean? Point at it, or name it.".to_string());
+            }
+            if let Verb::remove { object } = verb {
+                let name = if object.0 == "this" {
+                    self.pointed.as_deref()
+                } else {
+                    Some(object.0.as_str())
+                };
+                let pointed_ok = matches!(
+                    (name, self.pointed.as_deref()),
+                    (Some(n), Some(p)) if n == p
+                );
+                let named_answer = answering && object.0 != "this";
+                if !pointed_ok && !named_answer {
+                    let who = name.unwrap_or("this");
+                    return Some(format!("Remove {who}? Point at it, or say which Object."));
+                }
+            }
+        }
+        None
+    }
+
+    fn says_this(&self, verb: &Verb) -> bool {
+        match verb {
+            Verb::frame(FrameTarget::Object(object))
+            | Verb::wear { object, .. }
+            | Verb::carve { object, .. }
+            | Verb::inflate { object, .. }
+            | Verb::taper { object, .. }
+            | Verb::weather { object, .. }
+            | Verb::remove { object } => object.0 == "this",
+            _ => false,
+        }
+    }
+
+    /// Bind "this" in a Verb to the Object the Person Pointed at.
+    fn bind_this(&self, verb: Verb) -> Result<Verb, SessionError> {
+        Ok(match verb {
+            Verb::frame(FrameTarget::Object(object)) => {
+                Verb::frame(FrameTarget::Object(self.resolve_this(object)?))
+            }
+            Verb::wear { object, family } => Verb::wear {
+                object: self.resolve_this(object)?,
+                family,
+            },
+            Verb::carve {
+                object,
+                amount,
+                region,
+            } => Verb::carve {
+                object: self.resolve_this(object)?,
+                amount,
+                region,
+            },
+            Verb::inflate {
+                object,
+                amount,
+                region,
+            } => Verb::inflate {
+                object: self.resolve_this(object)?,
+                amount,
+                region,
+            },
+            Verb::taper {
+                object,
+                amount,
+                along,
+            } => Verb::taper {
+                object: self.resolve_this(object)?,
+                amount,
+                along,
+            },
+            Verb::weather { object, amount } => Verb::weather {
+                object: self.resolve_this(object)?,
+                amount,
+            },
+            Verb::remove { object } => Verb::remove {
+                object: self.resolve_this(object)?,
+            },
+            other => other,
+        })
+    }
+
+    fn resolve_this(&self, object: ObjectRef) -> Result<ObjectRef, SessionError> {
+        if object.0 != "this" {
+            return Ok(object);
+        }
+        match &self.pointed {
+            Some(name) => Ok(ObjectRef(name.clone())),
+            None => Err(SessionError::UnknownObject("this".to_string())),
         }
     }
 
@@ -323,6 +468,18 @@ impl<P: Provider, V: View> Session<P, V> {
                 along,
             } => self.sculpt(object, |clay| clay.taper(amount, along))?,
             Verb::weather { object, amount } => self.sculpt(object, |clay| clay.weather(amount))?,
+            Verb::remove { object } => {
+                match self.scene.objects.iter().position(|o| o.name == object.0) {
+                    Some(idx) => {
+                        self.scene.objects.remove(idx);
+                        if self.pointed.as_deref() == Some(object.0.as_str()) {
+                            self.pointed = None;
+                        }
+                        self.show_frame(tessera_view::Frame { object: None });
+                    }
+                    None => return Err(SessionError::UnknownObject(object.0)),
+                }
+            }
         }
         Ok(())
     }

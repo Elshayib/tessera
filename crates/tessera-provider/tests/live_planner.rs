@@ -308,6 +308,67 @@ fn unreachable_lab_is_not_a_silent_freeze() {
     assert!(session.objects().is_empty());
 }
 
+/// An Ask from the model is not a plan: the Viewport waits, no Verb lands.
+#[test]
+fn ask_json_waits_and_lands_no_verb() {
+    const ASK: &str = r#"{"ask":"Which roof — the lantern roof or the shed roof?"}"#;
+    let (status, body) = envelope(ProviderName::Anthropic, ASK);
+    let mut session = session(
+        ProviderName::Anthropic,
+        FakeTransport::default().replies(status, body),
+    );
+    let said = session
+        .submit_intent("the roof is too steep")
+        .expect("an Ask is not a Key error");
+    assert_eq!(
+        session.ask(),
+        Some("Which roof — the lantern roof or the shed roof?")
+    );
+    assert!(said.iter().any(|l| l.contains("lantern roof")));
+    assert!(
+        session.objects().is_empty(),
+        "no Verb lands while the Viewport waits"
+    );
+}
+
+/// `remove` in the Verb JSON is understood the same on every lab; without Point
+/// Session still Asks.
+#[test]
+fn remove_without_point_asks_across_providers() {
+    const PLACE: &str = r#"{
+      "narration": ["Placing the shed."],
+      "verbs": [{"verb": "place", "name": "the shed", "part": "box", "at": "beside the lighthouse"}]
+    }"#;
+    const REMOVE: &str = r#"{
+      "narration": ["Removing the shed."],
+      "verbs": [{"verb": "remove", "object": "the shed"}]
+    }"#;
+    for provider in ProviderName::ALL {
+        let (place_status, place_body) = envelope(provider, PLACE);
+        let (remove_status, remove_body) = envelope(provider, REMOVE);
+        let mut session = session(
+            provider,
+            FakeTransport::default()
+                .replies(place_status, place_body)
+                .replies(remove_status, remove_body),
+        );
+        session.submit_intent("add a shed").expect("the shed lands");
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+        session
+            .submit_intent("get rid of the shed")
+            .expect("Ask is not an error");
+        assert!(
+            session.ask().is_some(),
+            "{provider:?} must Ask before remove without Point"
+        );
+        assert_eq!(
+            session.objects().len(),
+            1,
+            "{provider:?} must not delete while Asking"
+        );
+    }
+}
+
 /// Changing Provider mid-Scene still lands the next plan on the same Objects.
 #[test]
 fn changing_provider_keeps_the_open_scene() {

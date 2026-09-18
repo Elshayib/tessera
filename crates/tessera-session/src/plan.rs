@@ -4,6 +4,7 @@
 //! scripted and never touches the network. Verbs, not prose, cross this seam —
 //! the same small set regardless of Provider (ADR-0016).
 
+use crate::provider::Reply;
 use serde::Deserialize;
 use tessera_engine::LightCondition;
 use tessera_engine::verb::{
@@ -48,6 +49,21 @@ impl Plan {
             narration: wire.narration,
             verbs,
         })
+    }
+}
+
+impl Reply {
+    /// Parse a live Provider's JSON: either an Ask, or a Plan of Verbs.
+    pub fn from_json(text: &str) -> Result<Self, String> {
+        let text = strip_fences(text);
+        let value: serde_json::Value = serde_json::from_str(text)
+            .map_err(|e| format!("the Agent's plan was not JSON: {e}"))?;
+        if let Some(ask) = value.get("ask").and_then(serde_json::Value::as_str)
+            && !ask.is_empty()
+        {
+            return Ok(Reply::Ask(ask.to_string()));
+        }
+        Plan::from_json(text).map(Reply::Plan)
     }
 }
 
@@ -106,6 +122,8 @@ enum VerbWire {
     },
     #[serde(rename = "weather")]
     Weather { object: String, amount: String },
+    #[serde(rename = "remove")]
+    Remove { object: String },
 }
 
 impl VerbWire {
@@ -168,6 +186,9 @@ impl VerbWire {
             VerbWire::Weather { object, amount } => Ok(Verb::weather {
                 object: ObjectRef(object),
                 amount: parse_amount(&amount)?,
+            }),
+            VerbWire::Remove { object } => Ok(Verb::remove {
+                object: ObjectRef(object),
             }),
         }
     }

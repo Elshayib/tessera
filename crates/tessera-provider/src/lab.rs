@@ -2,7 +2,7 @@
 //! only the envelope (URL, headers, JSON wrap) changes.
 
 use serde_json::{Value, json};
-use tessera_session::{Credentials, ProviderError, ProviderName};
+use tessera_session::{Bindings, Credentials, ProviderError, ProviderName};
 
 use crate::prompt::SYSTEM;
 use crate::transport::{HttpRequest, HttpResponse};
@@ -11,8 +11,9 @@ const ANTHROPIC_MODEL: &str = "claude-haiku-4-5";
 const OPENAI_MODEL: &str = "gpt-4.1-nano";
 const GOOGLE_MODEL: &str = "gemini-2.5-flash";
 
-/// Pack Intent + the shared Verb contract into the chosen lab's POST.
-pub fn pack(credentials: &Credentials, intent: &str) -> HttpRequest {
+/// Pack Intent + Scene bindings + the shared Verb contract into the chosen lab's POST.
+pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> HttpRequest {
+    let content = user_content(intent, bindings);
     match credentials.provider {
         ProviderName::Anthropic => HttpRequest {
             url: "https://api.anthropic.com/v1/messages".to_string(),
@@ -25,7 +26,7 @@ pub fn pack(credentials: &Credentials, intent: &str) -> HttpRequest {
                 "model": ANTHROPIC_MODEL,
                 "max_tokens": 4096,
                 "system": SYSTEM,
-                "messages": [{ "role": "user", "content": intent }],
+                "messages": [{ "role": "user", "content": content }],
             })
             .to_string(),
         },
@@ -43,7 +44,7 @@ pub fn pack(credentials: &Credentials, intent: &str) -> HttpRequest {
                 "max_completion_tokens": 4096,
                 "messages": [
                     { "role": "system", "content": SYSTEM },
-                    { "role": "user", "content": intent },
+                    { "role": "user", "content": content },
                 ],
             })
             .to_string(),
@@ -60,13 +61,28 @@ pub fn pack(credentials: &Credentials, intent: &str) -> HttpRequest {
                 "systemInstruction": { "parts": [{ "text": SYSTEM }] },
                 "contents": [{
                     "role": "user",
-                    "parts": [{ "text": intent }],
+                    "parts": [{ "text": content }],
                 }],
                 "generationConfig": { "maxOutputTokens": 4096 },
             })
             .to_string(),
         },
     }
+}
+
+fn user_content(intent: &str, bindings: Bindings<'_>) -> String {
+    let objects = if bindings.objects.is_empty() {
+        "(none yet)".to_string()
+    } else {
+        bindings.objects.join(", ")
+    };
+    let pointed = bindings.pointed.unwrap_or("(none)");
+    let mut text = format!("{intent}\n\nObjects in the Scene: {objects}\nPointed: {pointed}");
+    if let Some(ask) = bindings.pending_ask {
+        text.push_str("\nPending Ask: ");
+        text.push_str(ask);
+    }
+    text
 }
 
 /// Turn a lab HTTP response into model text, or a Person-facing Key error.
@@ -286,16 +302,25 @@ mod tests {
         }
     }
 
+    fn none_pointed() -> Bindings<'static> {
+        Bindings {
+            objects: &[],
+            pointed: None,
+            pending_ask: None,
+        }
+    }
+
     #[test]
     fn every_lab_carries_the_same_verb_contract() {
         for provider in ProviderName::ALL {
-            let request = pack(&creds(provider), "a lighthouse at dusk");
+            let request = pack(&creds(provider), "a lighthouse at dusk", none_pointed());
             assert!(
                 request.body.contains("The Person never names a Verb"),
                 "{provider:?} must carry Tessera's Verb contract, not its own"
             );
             for verb in [
                 "place", "frame", "light", "sky", "wear", "carve", "inflate", "taper", "weather",
+                "remove",
             ] {
                 assert!(
                     request.body.contains(verb),
@@ -308,12 +333,37 @@ mod tests {
                     "{provider:?} must name Kit Part {part} in the shared contract"
                 );
             }
+            assert!(
+                request.body.contains("Guess") && request.body.contains("Ask"),
+                "{provider:?} must teach Guess-by-default and Ask as the exception"
+            );
+        }
+    }
+
+    #[test]
+    fn every_lab_carries_named_objects_and_point() {
+        let objects = ["the lantern roof".to_string(), "the shed roof".to_string()];
+        let bindings = Bindings {
+            objects: &objects,
+            pointed: Some("the lantern roof"),
+            pending_ask: None,
+        };
+        for provider in ProviderName::ALL {
+            let request = pack(&creds(provider), "the roof is too steep", bindings);
+            assert!(
+                request.body.contains("the lantern roof") && request.body.contains("the shed roof"),
+                "{provider:?} must name the Scene's Objects"
+            );
+            assert!(
+                request.body.contains("Pointed"),
+                "{provider:?} must say what the Person Pointed at"
+            );
         }
     }
 
     #[test]
     fn the_three_labs_use_their_own_envelopes() {
-        let anthropic = pack(&creds(ProviderName::Anthropic), "hi");
+        let anthropic = pack(&creds(ProviderName::Anthropic), "hi", none_pointed());
         assert_eq!(anthropic.url, "https://api.anthropic.com/v1/messages");
         assert!(
             anthropic
@@ -328,7 +378,7 @@ mod tests {
                 .any(|(k, v)| k == "anthropic-version" && v == "2023-06-01")
         );
 
-        let openai = pack(&creds(ProviderName::OpenAI), "hi");
+        let openai = pack(&creds(ProviderName::OpenAI), "hi", none_pointed());
         assert_eq!(openai.url, "https://api.openai.com/v1/chat/completions");
         assert!(
             openai
@@ -337,7 +387,7 @@ mod tests {
                 .any(|(k, v)| k == "authorization" && v == "Bearer sk-test")
         );
 
-        let google = pack(&creds(ProviderName::Google), "hi");
+        let google = pack(&creds(ProviderName::Google), "hi", none_pointed());
         assert!(
             google
                 .url

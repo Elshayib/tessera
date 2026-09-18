@@ -8,7 +8,7 @@ mod lab;
 mod prompt;
 mod transport;
 
-use tessera_session::{Credentials, Plan, Provider, ProviderError};
+use tessera_session::{Bindings, Credentials, Provider, ProviderError, Reply};
 
 pub use prompt::SYSTEM;
 pub use transport::{
@@ -41,15 +41,20 @@ impl<T: Transport> LivePlanner<T> {
 }
 
 impl<T: Transport> Provider for LivePlanner<T> {
-    fn respond(&mut self, intent: &str, credentials: &Credentials) -> Result<Plan, ProviderError> {
-        let request = lab::pack(credentials, intent);
+    fn respond(
+        &mut self,
+        intent: &str,
+        credentials: &Credentials,
+        bindings: Bindings<'_>,
+    ) -> Result<Reply, ProviderError> {
+        let request = lab::pack(credentials, intent, bindings);
         let response = self.transport.post(&request).map_err(|_| {
             ProviderError::Unavailable(
                 "Could not reach the Provider. Check the network and try again.".to_string(),
             )
         })?;
         let text = lab::unpack(credentials.provider, &response)?;
-        Plan::from_json(&text).map_err(|_| {
+        Reply::from_json(&text).map_err(|_| {
             ProviderError::Unavailable(
                 "The Agent could not plan that. Try again, or pick another Provider.".to_string(),
             )

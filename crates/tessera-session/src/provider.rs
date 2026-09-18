@@ -6,9 +6,34 @@ use serde::{Deserialize, Serialize};
 /// A company whose model the Agent thinks with, given a Key. The Verbs do not
 /// change when the Provider does (ADR-0016).
 pub trait Provider {
-    /// Turn the Person's Intent into a plan of Verbs for the open Scene, or
-    /// refuse when the Key cannot buy the thinking (spec story 49).
-    fn respond(&mut self, intent: &str, credentials: &Credentials) -> Result<Plan, ProviderError>;
+    /// Turn the Person's Intent into work or an Ask, or refuse when the Key
+    /// cannot buy the thinking (spec story 49). Ask is the exception: Guess
+    /// and move is the default (ADR-0017).
+    fn respond(
+        &mut self,
+        intent: &str,
+        credentials: &Credentials,
+        bindings: Bindings<'_>,
+    ) -> Result<Reply, ProviderError>;
+}
+
+/// Named Objects in the open Scene, and the Object the Person Pointed at (if
+/// any). The Agent uses these to Guess or Ask (ADR-0013, ADR-0017).
+#[derive(Debug, Clone, Copy)]
+pub struct Bindings<'a> {
+    pub objects: &'a [String],
+    pub pointed: Option<&'a str>,
+    /// The Ask the Viewport is waiting on, if any; the Person's words are the answer.
+    pub pending_ask: Option<&'a str>,
+}
+
+/// What the Agent does with Intent: a plan of Verbs, or an Ask instead of acting.
+#[derive(Debug, Clone)]
+pub enum Reply {
+    /// Guess: name it in Narration and land the Verbs.
+    Plan(Plan),
+    /// Ask: the Viewport waits; no Verb lands until the Person answers.
+    Ask(String),
 }
 
 /// The v1 short list of Providers (spec #1; ADR-0016). Not one lab, not every
