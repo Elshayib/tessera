@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/tessera-engine", "crates/tessera-provider", "crates/tessera-view", "crates/tessera-session"]
+members = ["crates/tessera-engine", "crates/tessera-provider", "crates/tessera-view", "crates/tessera-session", "crates/tessera"]
 
 [workspace.package]
 version = "0.1.0"

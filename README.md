@@ -12,6 +12,7 @@ for the decisions that pin it down.
 
 | Crate | Role |
 | --- | --- |
+| `tessera` | Installed Windows app: live Viewport, chat and Narration beside it. No account. |
 | `tessera-session` | Session: Tessera as the Person meets it. Intent in, Narration out. The Person never names a Verb. Holds the Provider seam (trait, scripted adapter for tests). |
 | `tessera-provider` | Production adapters for Anthropic, OpenAI, and Google. Same Verbs, fake HTTP in tests. |
 | `tessera-view` | The View seam: the live Viewport in the app; a recorder under test. |
@@ -26,6 +27,14 @@ assert what a Person can notice — no real window, no live Provider, no network
 ```sh
 cargo test --workspace
 ```
+
+Run the app (no account; paste a Key in the window to let the Agent think):
+
+```sh
+cargo run -p tessera
+```
+
+The Viewport is the product. Drag to Orbit — optional. Tests never open that window; they use a recording View.
 
 ## License
 

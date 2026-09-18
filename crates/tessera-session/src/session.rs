@@ -186,6 +186,7 @@ impl<P: Provider, V: View> Session<P, V> {
             text: intent.words.clone(),
             pictures: intent.pictures().to_vec(),
         });
+        self.view.say(&intent.words);
         let Plan { narration, verbs } = match reply {
             Reply::Ask(question) => return Ok(self.hold_ask(question)),
             Reply::Plan(plan) => plan,
@@ -207,15 +208,17 @@ impl<P: Provider, V: View> Session<P, V> {
                 text: line.clone(),
                 pictures: Vec::new(),
             });
+            self.view.say(&line);
             said.push(line);
             if self.person_stopped() {
                 break;
             }
         }
         if self.maybe_mark_first_take() {
-            said.push(
-                "Marking this as your first take; you can always come back to it.".to_string(),
-            );
+            let line =
+                "Marking this as your first take; you can always come back to it.".to_string();
+            self.view.say(&line);
+            said.push(line);
         }
         Ok(said)
     }
@@ -322,12 +325,15 @@ impl<P: Provider, V: View> Session<P, V> {
     }
 
     fn put_frame(&mut self, frame: Option<tessera_view::Frame>) {
-        if let Some(frame) = frame {
-            self.view.show_frame(frame.clone());
-            self.last_frame = Some(frame);
-        } else {
-            self.last_frame = None;
+        if self.view.orbiting() {
+            // Do not Frame: camera stays, and Marks/Undo keep the last real Frame
+            // (ADR-0007). The next Verb after Orbit ends Frames again.
+            return;
         }
+        if let Some(shown) = frame.as_ref() {
+            self.view.show_frame(shown.clone());
+        }
+        self.last_frame = frame;
     }
 
     fn show_frame(&mut self, frame: tessera_view::Frame) {
@@ -349,6 +355,17 @@ impl<P: Provider, V: View> Session<P, V> {
     /// None means the last Intent was a Guess and work continued (ADR-0017).
     pub fn ask(&self) -> Option<&str> {
         self.pending_ask.as_deref()
+    }
+
+    /// The Person is turning the camera to judge the Scene (ADR-0007). Optional.
+    /// The Agent does not Frame until the next Verb after [`end_orbit`].
+    pub fn orbit(&mut self, delta_azimuth: f32, delta_elevation: f32) {
+        self.view.orbit(delta_azimuth, delta_elevation);
+    }
+
+    /// The Person stopped turning. Does not Frame; the next Verb does.
+    pub fn end_orbit(&mut self) {
+        self.view.end_orbit();
     }
 
     /// The Person clicked an Object to mean "this." Optional; words still work
@@ -388,6 +405,7 @@ impl<P: Provider, V: View> Session<P, V> {
             text: question.clone(),
             pictures: Vec::new(),
         });
+        self.view.say(&question);
         vec![question]
     }
 
@@ -493,9 +511,8 @@ impl<P: Provider, V: View> Session<P, V> {
     fn apply(&mut self, verb: Verb) -> Result<(), SessionError> {
         match verb {
             Verb::place { name, part, at } => {
-                self.scene
-                    .objects
-                    .push(Object::new(name.0.clone(), at, part));
+                let object = Object::among(name.0.clone(), at, part, &self.scene.objects);
+                self.scene.objects.push(object);
                 self.show_frame(tessera_view::Frame {
                     object: Some(name.0),
                 });
@@ -544,7 +561,26 @@ impl<P: Provider, V: View> Session<P, V> {
                 }
             }
         }
+        self.view.show_scene(self.shown_scene());
         Ok(())
+    }
+
+    fn shown_scene(&self) -> tessera_view::ShownScene {
+        tessera_view::ShownScene {
+            objects: self
+                .scene
+                .objects
+                .iter()
+                .map(|o| tessera_view::ShownObject {
+                    name: o.name.clone(),
+                    clay: o.clay.clone(),
+                    at: o.translation(),
+                    family: o.family.as_ref().map(|f| f.0.clone()),
+                })
+                .collect(),
+            sky: self.scene.sky.as_ref().map(|f| f.0.clone()),
+            light: self.scene.light,
+        }
     }
 
     /// Work one named Object's Clay and Frame it so the Person is looking at

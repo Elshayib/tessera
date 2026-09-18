@@ -1,0 +1,17 @@
+[package]
+name = "tessera"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Tessera: an installed Windows app. Type Intent, watch the Viewport."
+
+[[bin]]
+name = "tessera"
+path = "src/main.rs"
+
+[dependencies]
+tessera-provider = { path = "../tessera-provider" }
+tessera-session = { path = "../tessera-session" }
+tessera-view = { path = "../tessera-view" }
+eframe = "0.32"
+egui = "0.32"

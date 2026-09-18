@@ -16,8 +16,11 @@ pub struct Object {
     /// The name used in Narration and later Talk ("the lantern roof").
     pub name: String,
     /// Relative place in the Scene, in the Agent's coarse words ("on the cliff",
-    /// "atop the tower"). The Engine resolves it; the Agent passes no coordinates.
+    /// "atop the tower"). The Engine resolves it; the Agent never passes
+    /// coordinates.
     pub place: String,
+    /// Engine-resolved translation of `place`. Viewport-only; not Agent-facing.
+    translation: [f32; 3],
     /// The Part it was composed from: a Primitive or a named Kit Part.
     pub part: Part,
     /// The named look this Object wears; set on the First take, never a shader.
@@ -28,13 +31,70 @@ pub struct Object {
 
 impl Object {
     pub fn new(name: impl Into<String>, place: impl Into<String>, part: Part) -> Self {
+        let place = place.into();
         Self {
             name: name.into(),
-            place: place.into(),
+            translation: [0.0, 0.0, 0.0],
+            place,
             part,
             family: None,
             clay: Clay::composed(part),
         }
+    }
+
+    /// Place this Object among the ones already in the Scene. The Engine
+    /// resolves the coarse words; the Agent still passed no coordinates.
+    pub fn among(
+        name: impl Into<String>,
+        place: impl Into<String>,
+        part: Part,
+        others: &[Object],
+    ) -> Self {
+        let place = place.into();
+        let translation = resolve_place(&place, others);
+        Self {
+            name: name.into(),
+            translation,
+            place,
+            part,
+            family: None,
+            clay: Clay::composed(part),
+        }
+    }
+
+    /// Where the Engine put this Object. The Viewport raymarches from here.
+    pub fn translation(&self) -> [f32; 3] {
+        self.translation
+    }
+}
+
+/// Turn the Agent's coarse place words into a translation among Objects
+/// already in the Scene.
+fn resolve_place(at: &str, others: &[Object]) -> [f32; 3] {
+    let hay = at.to_ascii_lowercase();
+    for o in others.iter().rev() {
+        let name = o.name.trim_start_matches("the ").to_ascii_lowercase();
+        if !hay.contains(&name) {
+            continue;
+        }
+        let t = o.translation;
+        if hay.contains("atop") || hay.contains("on the") || hay.starts_with("on ") {
+            return [t[0], t[1] + 1.0, t[2]];
+        }
+        if hay.contains("beside") || hay.contains("next to") {
+            return [t[0] + 1.2, t[1], t[2]];
+        }
+        if hay.contains("under") {
+            return [t[0], t[1] - 1.0, t[2]];
+        }
+        if hay.contains("in the") || hay.contains("in ") {
+            return t;
+        }
+    }
+    if others.is_empty() {
+        [0.0, 0.0, 0.0]
+    } else {
+        [others.len() as f32 * 1.4, 0.0, 0.0]
     }
 }
 
@@ -241,7 +301,7 @@ fn length3(p: [f32; 3]) -> f32 {
 
 #[cfg(test)]
 mod tests {
-    use super::Clay;
+    use super::{Clay, Object};
     use crate::verb::{Amount, Axis, Part, Primitive, Region};
 
     /// Weathering wears the silhouette inward (ADR-0008, issue #6).
@@ -279,6 +339,25 @@ mod tests {
         assert!(
             clay.sample([0.0, 0.0, -0.45]) > 0.0,
             "carve windward must cut the -Z side"
+        );
+    }
+
+    #[test]
+    fn atop_sits_above_the_named_object() {
+        let cliff = Object::new(
+            "the cliff",
+            "under the sky",
+            Part::Primitive(Primitive::Box),
+        );
+        let lighthouse = Object::among(
+            "the lighthouse",
+            "atop the cliff",
+            Part::Primitive(Primitive::Cylinder),
+            std::slice::from_ref(&cliff),
+        );
+        assert!(
+            lighthouse.translation()[1] > cliff.translation()[1],
+            "the lighthouse must sit above the cliff, not share its place"
         );
     }
 

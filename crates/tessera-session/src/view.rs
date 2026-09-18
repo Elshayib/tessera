@@ -1,10 +1,10 @@
-//! The View under test: records Frames instead of opening a GPU window.
+//! The View under test: records Frames instead of opening a window.
 
 use std::io;
 use std::path::{Path, PathBuf};
 
 use tessera_engine::Clay;
-use tessera_view::View;
+use tessera_view::{Camera, View};
 
 /// Records what the Viewport was shown, so tests can assert what the Person
 /// would have seen.
@@ -17,6 +17,10 @@ pub struct ViewReport {
     pending_stop: bool,
     stills: Vec<(PathBuf, tessera_view::Frame)>,
     turntables: Vec<(PathBuf, usize)>,
+    /// Object names shown after each Verb, in land order.
+    scene_updates: Vec<Vec<String>>,
+    camera: Camera,
+    orbiting: bool,
 }
 
 impl ViewReport {
@@ -45,14 +49,47 @@ impl ViewReport {
     pub fn last_orbit_views(&self) -> Option<usize> {
         self.turntables.last().map(|(_, n)| *n)
     }
+
+    /// Object names the Viewport showed after each Verb, in land order.
+    pub fn scene_updates(&self) -> &[Vec<String>] {
+        &self.scene_updates
+    }
+
+    /// Where the Person is looking. Frame sets this; Orbit turns it.
+    pub fn camera(&self) -> Camera {
+        self.camera
+    }
 }
 
 impl View for ViewReport {
+    fn show_scene(&mut self, scene: tessera_view::ShownScene) {
+        self.scene_updates
+            .push(scene.objects.into_iter().map(|o| o.name).collect());
+    }
+
     fn show_frame(&mut self, frame: tessera_view::Frame) {
+        if self.orbiting {
+            return;
+        }
         self.frames.push(frame);
+        self.camera = Camera::default();
         if self.stop_after_frames == Some(self.frames.len()) {
             self.pending_stop = true;
         }
+    }
+
+    fn orbit(&mut self, delta_azimuth: f32, delta_elevation: f32) {
+        self.orbiting = true;
+        self.camera.azimuth += delta_azimuth;
+        self.camera.elevation = (self.camera.elevation + delta_elevation).clamp(-1.2, 1.2);
+    }
+
+    fn end_orbit(&mut self) {
+        self.orbiting = false;
+    }
+
+    fn orbiting(&self) -> bool {
+        self.orbiting
     }
 
     fn stop_requested(&mut self) -> bool {

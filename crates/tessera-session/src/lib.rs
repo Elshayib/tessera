@@ -21,5 +21,5 @@ pub use tessera_engine::verb::{
     Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Primitive, Region,
 };
 pub use tessera_engine::{Clay, KitPart, LightCondition, Verb};
-pub use tessera_view::View;
+pub use tessera_view::{LiveView, View};
 pub use view::ViewReport;
