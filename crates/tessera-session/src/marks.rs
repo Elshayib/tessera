@@ -1,17 +1,18 @@
 //! Marks: named states of the Scene the Person asked to keep (ADR-0015). The
 //! First take is always a Mark. Restore is not Undo: it replaces the current
-//! Scene with the Mark's snapshot.
-//!
-//! The fuller Marks story — Person-named Marks, an Undo stack, and restore that
-//! the Person can step back from — is #7. Until then, restore is a plain swap.
+//! Scene with the Mark's snapshot (and is itself a Verb-sized step the Person
+//! can Undo).
 
 use crate::scene::Scene;
+use tessera_view::Frame;
 
-/// A named snapshot of the Scene.
+/// A named snapshot of the Scene, including the Talk and the Frame at that
+/// state.
 #[derive(Debug, Clone)]
 pub struct Mark {
     pub name: String,
     pub scene: Scene,
+    pub frame: Option<Frame>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -28,10 +29,11 @@ pub struct Marks {
 }
 
 impl Marks {
-    pub fn record(&mut self, name: &str, scene: Scene) {
+    pub fn record(&mut self, name: &str, scene: Scene, frame: Option<Frame>) {
         self.marks.push(Mark {
             name: name.to_string(),
             scene,
+            frame,
         });
     }
 
@@ -40,12 +42,12 @@ impl Marks {
     }
 
     /// The snapshot a named Mark holds. The newest Mark under a name wins.
-    pub fn snapshot(&self, name: &str) -> Result<Scene, MarkError> {
+    pub fn snapshot(&self, name: &str) -> Result<Mark, MarkError> {
         self.marks
             .iter()
             .rev()
             .find(|m| m.name == name)
-            .map(|m| m.scene.clone())
+            .cloned()
             .ok_or_else(|| MarkError::Unknown(name.to_string()))
     }
 }

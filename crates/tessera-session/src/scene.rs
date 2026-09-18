@@ -6,8 +6,16 @@ use tessera_engine::MaterialFamily;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::LightCondition;
 
+/// One thing the Agent said in the chat while working.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct NarrationLine {
+    pub text: String,
+}
+
 /// A snapshot of everything that makes a state of the Scene what it is. A Mark
-/// holds one of these; restore swaps the live Scene for it.
+/// holds one of these; restore swaps the live Scene for it. Talk is part of
+/// the state (ADR-0014, ADR-0015): restoring a Mark returns the Talk at that
+/// moment too.
 #[derive(Debug, Clone, Default)]
 pub struct Scene {
     pub objects: Vec<Object>,
@@ -15,6 +23,8 @@ pub struct Scene {
     pub sky: Option<MaterialFamily>,
     /// The named light condition ("dusk"), if set.
     pub light: Option<LightCondition>,
+    /// The conversation in this Scene at this state.
+    pub talk: Vec<NarrationLine>,
 }
 
 impl Scene {

@@ -11,9 +11,9 @@ pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
 pub use provider::{Credentials, Provider, ProviderError, ProviderName};
-pub use scene::Scene;
+pub use scene::{NarrationLine, Scene};
 pub use scripted_provider::ScriptedProvider;
-pub use session::{KeyError, NarrationLine, Session, SessionError};
+pub use session::{KeyError, Session, SessionError, UndoError};
 pub use tessera_engine::verb::{
     Amount, Axis, FrameTarget, MaterialFamily, ObjectRef, Part, Primitive, Region,
 };

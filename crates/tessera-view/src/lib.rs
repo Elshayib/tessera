@@ -15,4 +15,12 @@ pub struct Frame {
 pub trait View {
     /// Show the current state of the Scene, framed on the last Verb's work.
     fn show_frame(&mut self, frame: Frame);
+
+    /// True when the Person hit Stop while this View was showing a take.
+    /// Session consults this after each completed Verb and abandons the rest
+    /// of the plan; a Stopped Verb never lands and is not on the Undo stack.
+    /// Consumed: a Stopped take must not Stop the next Intent.
+    fn stop_requested(&mut self) -> bool {
+        false
+    }
 }

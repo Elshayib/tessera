@@ -10,17 +10,11 @@ use crate::keyring::{KeyStore, Keyring, MemoryKeyStore};
 use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
 use crate::provider::{Provider, ProviderError, ProviderName};
-use crate::scene::Scene;
+use crate::scene::{NarrationLine, Scene};
 use tessera_engine::Clay;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::{FrameTarget, LightCondition, ObjectRef, Verb};
 use tessera_view::View;
-
-/// One thing the Agent said in the chat while working.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NarrationLine {
-    pub text: String,
-}
 
 /// Why a Verb could not land. The Person should be able to act on this, not
 /// stare at a frozen Viewport (spec story 49).
@@ -58,15 +52,32 @@ pub enum KeyError {
 /// The name of the automatic Mark for the first judgeable take.
 const FIRST_TAKE: &str = "First take";
 
+/// Why Undo could not run. The Person should know they are already at the
+/// earliest state of this Scene.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UndoError {
+    /// No completed Verb left to revert.
+    NothingToUndo,
+}
+
+/// Scene, Talk, and Frame as they were before a completed Verb (or restore).
+#[derive(Debug, Clone)]
+struct UndoStep {
+    scene: Scene,
+    frame: Option<tessera_view::Frame>,
+}
+
 /// A Scene in progress. One Person, one Scene on screen (v1).
 pub struct Session<P: Provider, V: View> {
     provider: P,
     view: V,
     keyring: Box<Keyring<dyn KeyStore>>,
     scene: Scene,
-    narration: Vec<NarrationLine>,
     marks: Marks,
     first_take_marked: bool,
+    undo: Vec<UndoStep>,
+    stop_requested: bool,
+    last_frame: Option<tessera_view::Frame>,
 }
 
 impl<P: Provider, V: View> Session<P, V> {
@@ -79,9 +90,11 @@ impl<P: Provider, V: View> Session<P, V> {
             view,
             keyring: Box::new(Keyring::from_store(MemoryKeyStore::default())),
             scene: Scene::default(),
-            narration: Vec::new(),
             marks: Marks::default(),
             first_take_marked: false,
+            undo: Vec::new(),
+            stop_requested: false,
+            last_frame: None,
         }
     }
 
@@ -135,11 +148,21 @@ impl<P: Provider, V: View> Session<P, V> {
             .provider
             .respond(intent, &credentials)
             .map_err(|e| SessionError::Key(Self::key_error(e)))?;
+        // Stop applies to a take in progress, not the next Intent.
+        self.stop_requested = false;
         let mut said = Vec::new();
         for (line, verb) in narration.into_iter().zip(verbs.into_iter()) {
+            let before = UndoStep {
+                scene: self.scene.clone(),
+                frame: self.last_frame.clone(),
+            };
             self.apply(verb)?;
-            self.narration.push(NarrationLine { text: line.clone() });
+            self.undo.push(before);
+            self.scene.talk.push(NarrationLine { text: line.clone() });
             said.push(line);
+            if self.person_stopped() {
+                break;
+            }
         }
         if self.maybe_mark_first_take() {
             said.push(
@@ -152,7 +175,7 @@ impl<P: Provider, V: View> Session<P, V> {
     /// What the Agent has said in this Scene, across all Intent so far. The Talk
     /// lives with the Scene (ADR-0014).
     pub fn talk(&self) -> Vec<NarrationLine> {
-        self.narration.clone()
+        self.scene.talk.clone()
     }
 
     /// The Objects currently in the Scene, as the Person could Point at them.
@@ -176,10 +199,61 @@ impl<P: Provider, V: View> Session<P, V> {
     }
 
     /// Restore the Scene to a named Mark. The Person asked for this state by
-    /// name; there is no Guess here.
+    /// name; there is no Guess here. Restore is a Verb-sized step: Undo
+    /// returns to the Scene as it was before the restore.
     pub fn restore(&mut self, mark: &str) -> Result<(), MarkError> {
-        self.scene = self.marks.snapshot(mark)?;
+        let snapshot = self.marks.snapshot(mark)?;
+        self.undo.push(UndoStep {
+            scene: self.scene.clone(),
+            frame: self.last_frame.clone(),
+        });
+        self.scene = snapshot.scene;
+        self.put_frame(snapshot.frame);
         Ok(())
+    }
+
+    /// Keep this state of the Scene under a name the Person chose. Restore
+    /// later returns both the place and the Talk as they were.
+    pub fn mark(&mut self, name: &str) {
+        self.marks
+            .record(name, self.scene.clone(), self.last_frame.clone());
+    }
+
+    /// Revert the last completed Verb. Stackable: each call walks back one
+    /// more Verb. Stopped work that never completed is not on this stack.
+    pub fn undo(&mut self) -> Result<(), UndoError> {
+        let step = self.undo.pop().ok_or(UndoError::NothingToUndo)?;
+        self.scene = step.scene;
+        self.put_frame(step.frame);
+        Ok(())
+    }
+
+    /// The Person halted the current Verb. The Scene stays as the last
+    /// completed Verb; the abandoned Verb is not on the Undo stack. Then they
+    /// talk. Verbs are atomic, so a take in progress abandons every Verb that
+    /// has not yet landed.
+    pub fn stop(&mut self) {
+        self.stop_requested = true;
+    }
+
+    fn person_stopped(&mut self) -> bool {
+        let from_view = self.view.stop_requested();
+        let requested = self.stop_requested || from_view;
+        self.stop_requested = false;
+        requested
+    }
+
+    fn put_frame(&mut self, frame: Option<tessera_view::Frame>) {
+        if let Some(frame) = frame {
+            self.view.show_frame(frame.clone());
+            self.last_frame = Some(frame);
+        } else {
+            self.last_frame = None;
+        }
+    }
+
+    fn show_frame(&mut self, frame: tessera_view::Frame) {
+        self.put_frame(Some(frame));
     }
 
     /// What the Viewport last showed: the camera's current Frame.
@@ -199,12 +273,8 @@ impl<P: Provider, V: View> Session<P, V> {
             && self.scene.sky.is_some()
             && self.scene.light.is_some();
         if composed {
-            let snapshot = std::mem::take(&mut self.scene);
-            self.marks.record(FIRST_TAKE, snapshot);
-            self.scene = self
-                .marks
-                .snapshot(FIRST_TAKE)
-                .expect("the Mark was just recorded");
+            self.marks
+                .record(FIRST_TAKE, self.scene.clone(), self.last_frame.clone());
             self.first_take_marked = true;
             true
         } else {
@@ -218,7 +288,7 @@ impl<P: Provider, V: View> Session<P, V> {
                 self.scene
                     .objects
                     .push(Object::new(name.0.clone(), at, part));
-                self.view.show_frame(tessera_view::Frame {
+                self.show_frame(tessera_view::Frame {
                     object: Some(name.0),
                 });
             }
@@ -227,7 +297,7 @@ impl<P: Provider, V: View> Session<P, V> {
                     FrameTarget::Object(ObjectRef(name)) => Some(name),
                     FrameTarget::Scene => None,
                 };
-                self.view.show_frame(tessera_view::Frame { object });
+                self.show_frame(tessera_view::Frame { object });
             }
             Verb::light(condition) => self.scene.light = Some(condition),
             Verb::sky(family) => self.scene.sky = Some(family),
@@ -267,7 +337,7 @@ impl<P: Provider, V: View> Session<P, V> {
         match self.scene.objects.iter_mut().find(|o| o.name == object.0) {
             Some(o) => {
                 op(&mut o.clay);
-                self.view.show_frame(tessera_view::Frame {
+                self.show_frame(tessera_view::Frame {
                     object: Some(object.0),
                 });
                 Ok(())
