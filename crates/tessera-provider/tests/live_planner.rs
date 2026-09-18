@@ -107,7 +107,9 @@ fn google_ok(plan: &str) -> String {
 fn envelope(provider: ProviderName, plan: &str) -> (u16, String) {
     match provider {
         ProviderName::Anthropic => (200, anthropic_ok(plan)),
-        ProviderName::OpenAI => (200, openai_ok(plan)),
+        ProviderName::OpenAI | ProviderName::OpenRouter | ProviderName::Nous => {
+            (200, openai_ok(plan))
+        }
         ProviderName::Google => (200, google_ok(plan)),
     }
 }
@@ -154,6 +156,106 @@ fn openai_catalog() -> String {
     .to_string()
 }
 
+/// OpenRouter list: chat Brains with lab/sku ids, plus embeddings, image-gen,
+/// and audio-in. Modalities decide seeing and kind. Prompt prices pick default.
+fn openrouter_catalog() -> String {
+    serde_json::json!({
+        "data": [
+            {
+                "id": "meta-llama/llama-3.1-8b-instruct",
+                "name": "Llama 3.1 8B",
+                "architecture": {
+                    "input_modalities": ["text"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.000001", "completion": "0.000002" }
+            },
+            {
+                "id": "openai/cheap-eye",
+                "name": "Cheap Eye",
+                "architecture": {
+                    "input_modalities": ["text", "image"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.000003", "completion": "0.000006" }
+            },
+            {
+                "id": "anthropic/claude-haiku-4.5",
+                "name": "Claude Haiku 4.5",
+                "architecture": {
+                    "input_modalities": ["text", "image"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.00003", "completion": "0.00015" }
+            },
+            {
+                "id": "openai/text-embedding-3-small",
+                "name": "Embeddings",
+                "architecture": {
+                    "input_modalities": ["text"],
+                    "output_modalities": ["embeddings"]
+                },
+                "pricing": { "prompt": "0.00001", "completion": "0" }
+            },
+            {
+                "id": "black-forest-labs/flux",
+                "name": "Flux",
+                "architecture": {
+                    "input_modalities": ["text"],
+                    "output_modalities": ["image"]
+                },
+                "pricing": { "prompt": "0", "completion": "0" }
+            },
+            {
+                "id": "openai/whisper-1",
+                "name": "Whisper",
+                "architecture": {
+                    "input_modalities": ["audio"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0", "completion": "0" }
+            }
+        ]
+    })
+    .to_string()
+}
+
+/// Nous list: same OpenRouter-style catalog, Nous ids.
+fn nous_catalog() -> String {
+    serde_json::json!({
+        "data": [
+            {
+                "id": "nousresearch/hermes-4-70b",
+                "name": "Hermes 4 70B",
+                "architecture": {
+                    "input_modalities": ["text"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.000001", "completion": "0.000002" }
+            },
+            {
+                "id": "openai/cheap-eye",
+                "name": "Cheap Eye",
+                "architecture": {
+                    "input_modalities": ["text", "image"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.000003", "completion": "0.000006" }
+            },
+            {
+                "id": "nousresearch/hermes-4-405b",
+                "name": "Hermes 4 405B",
+                "architecture": {
+                    "input_modalities": ["text"],
+                    "output_modalities": ["text"]
+                },
+                "pricing": { "prompt": "0.00002", "completion": "0.00004" }
+            }
+        ]
+    })
+    .to_string()
+}
+
 /// Google list: two generateContent Brains plus embeddings and image-gen.
 /// No vision flag, so chat Brains are treated as able to see. Default is first.
 fn google_catalog() -> String {
@@ -189,6 +291,8 @@ fn with_catalog(provider: ProviderName, chat: FakeTransport) -> FakeTransport {
         ProviderName::Anthropic => anthropic_catalog(),
         ProviderName::OpenAI => openai_catalog(),
         ProviderName::Google => google_catalog(),
+        ProviderName::OpenRouter => openrouter_catalog(),
+        ProviderName::Nous => nous_catalog(),
     };
     FakeTransport::default().replies(200, catalog).then(chat)
 }
@@ -914,4 +1018,267 @@ fn google_catalog_rejects_an_invalid_key() {
         .brains()
         .expect_err("400 API_KEY_INVALID on the catalog GET is an invalid Key");
     assert_eq!(err, SessionError::Key(KeyError::Invalid));
+}
+
+/// After an OpenRouter Key, the Person sees chat Brains from the live list.
+/// Embeddings, image-gen, and audio-in are not offered. Ids are lab/sku.
+#[test]
+fn openrouter_lists_brains_from_the_live_catalog() {
+    let mut session = session(ProviderName::OpenRouter, FakeTransport::default());
+    let brains = session.brains().expect("the fake catalog is offered");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(
+        ids,
+        [
+            "meta-llama/llama-3.1-8b-instruct",
+            "openai/cheap-eye",
+            "anthropic/claude-haiku-4.5",
+        ]
+    );
+    let names: Vec<&str> = brains.iter().map(|b| b.name.as_str()).collect();
+    assert_eq!(
+        names,
+        ["Llama 3.1 8B", "Cheap Eye", "Claude Haiku 4.5"],
+        "settings show Person-facing names"
+    );
+    assert!(!brains[0].can_see, "text-only input cannot see pictures");
+    assert!(brains[1].can_see, "image in input_modalities can see");
+    let sent = session.provider().transport_sent();
+    assert_eq!(sent[0].url, "https://openrouter.ai/api/v1/models");
+    assert!(
+        sent[0]
+            .headers
+            .iter()
+            .any(|(k, v)| k == "authorization" && v == "Bearer sk-test"),
+        "listing uses the OpenRouter Key"
+    );
+    assert!(
+        sent[0]
+            .headers
+            .iter()
+            .any(|(k, v)| k == "HTTP-Referer" && v.contains("tessera")),
+        "catalog GET identifies Tessera as the app"
+    );
+}
+
+/// After a Nous Key, the Person sees chat Brains from the live list. Ids are
+/// Nous's, not a first-party SKU.
+#[test]
+fn nous_lists_brains_from_the_live_catalog() {
+    let mut session = session(ProviderName::Nous, FakeTransport::default());
+    let brains = session.brains().expect("the fake catalog is offered");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(
+        ids,
+        [
+            "nousresearch/hermes-4-70b",
+            "openai/cheap-eye",
+            "nousresearch/hermes-4-405b",
+        ]
+    );
+    let sent = session.provider().transport_sent();
+    assert_eq!(
+        sent[0].url,
+        "https://inference-api.nousresearch.com/v1/models"
+    );
+    assert!(
+        !sent[0].url.contains("portal.nousresearch.com"),
+        "Nous is the Provider; Portal is the website"
+    );
+}
+
+/// Default is the cheapest that can see; the chat POST names that OpenRouter id.
+#[test]
+fn openrouter_thinks_with_the_default_brain_id() {
+    let mut session = session(
+        ProviderName::OpenRouter,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the fake gateway returns a plan");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("openai/cheap-eye")
+    );
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/chat/completions"))
+        .expect("a chat POST follows the catalog GET");
+    assert_eq!(chat.url, "https://openrouter.ai/api/v1/chat/completions");
+    assert!(
+        chat.body.contains("openai/cheap-eye"),
+        "the Agent thinks with the OpenRouter Brain id: {}",
+        chat.body
+    );
+    assert!(
+        !chat.url.contains("api.openai.com") && !chat.url.contains("api.anthropic.com"),
+        "a gateway Key is never sent to the lab that trained the weights: {}",
+        chat.url
+    );
+    assert!(
+        chat.body.contains("The Person never names a Verb"),
+        "the system prompt does not change"
+    );
+    assert!(
+        !chat.body.contains("<think>"),
+        "no Hermes think pack on OpenRouter"
+    );
+    assert!(
+        chat.headers
+            .iter()
+            .any(|(k, v)| k == "HTTP-Referer" && v == "https://github.com/Elshayib/tessera")
+    );
+    assert!(
+        chat.headers
+            .iter()
+            .any(|(k, v)| k == "X-OpenRouter-Title" && v == "Tessera")
+    );
+}
+
+/// Default is the cheapest that can see; the chat POST names that Nous id.
+#[test]
+fn nous_thinks_with_the_default_brain_id() {
+    let mut session = session(
+        ProviderName::Nous,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the fake gateway returns a plan");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("openai/cheap-eye")
+    );
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/chat/completions"))
+        .expect("a chat POST follows the catalog GET");
+    assert_eq!(
+        chat.url,
+        "https://inference-api.nousresearch.com/v1/chat/completions"
+    );
+    assert!(
+        chat.body.contains("openai/cheap-eye"),
+        "the Agent thinks with the Nous Brain id: {}",
+        chat.body
+    );
+    assert!(
+        chat.body.contains("The Person never names a Verb"),
+        "the system prompt does not change"
+    );
+    assert!(
+        !chat.body.contains("<think>"),
+        "no Hermes think pack, including on Nous"
+    );
+}
+
+/// The Person's OpenRouter pick is the lab/sku id in the chat POST.
+#[test]
+fn openrouter_thinks_with_the_brain_the_person_picked() {
+    let mut session = session(
+        ProviderName::OpenRouter,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .set_brain("anthropic/claude-haiku-4.5")
+        .expect("the pick is on the list");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("words-only Intent works");
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/chat/completions"))
+        .expect("chat POST");
+    assert!(
+        chat.body.contains("anthropic/claude-haiku-4.5"),
+        "the Agent thinks with the picked OpenRouter id"
+    );
+    assert_eq!(chat.url, "https://openrouter.ai/api/v1/chat/completions");
+}
+
+/// The Person's Nous pick is the Nous id in the chat POST.
+#[test]
+fn nous_thinks_with_the_brain_the_person_picked() {
+    let mut session = session(
+        ProviderName::Nous,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .set_brain("nousresearch/hermes-4-70b")
+        .expect("the pick is on the list");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("words-only Intent works with a text-only Brain");
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/chat/completions"))
+        .expect("chat POST");
+    assert!(
+        chat.body.contains("nousresearch/hermes-4-70b"),
+        "the Agent thinks with the picked Nous id"
+    );
+    assert!(
+        !chat.body.contains("<think>"),
+        "picking Hermes does not add a think pack"
+    );
+}
+
+/// An invalid Key on the OpenRouter catalog GET is an error they can act on.
+#[test]
+fn openrouter_catalog_rejects_an_invalid_key() {
+    let body = serde_json::json!({
+        "error": { "message": "User not found.", "code": 401 }
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(FakeTransport::default().replies(401, body)),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::OpenRouter);
+    session.set_key("sk-bogus");
+    let err = session
+        .brains()
+        .expect_err("401 on the catalog GET is an invalid Key");
+    assert_eq!(err, SessionError::Key(KeyError::Invalid));
+}
+
+/// An invalid Key on the Nous catalog GET is an error they can act on.
+#[test]
+fn nous_catalog_rejects_an_invalid_key() {
+    let body = serde_json::json!({
+        "error": { "message": "Incorrect API key provided", "type": "invalid_request_error" }
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(FakeTransport::default().replies(401, body)),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Nous);
+    session.set_key("sk-bogus");
+    let err = session
+        .brains()
+        .expect_err("401 on the catalog GET is an invalid Key");
+    assert_eq!(err, SessionError::Key(KeyError::Invalid));
+}
+
+/// Out of credit on an OpenAI-compatible gateway is actionable.
+#[test]
+fn openrouter_out_of_credit_is_actionable() {
+    let body = serde_json::json!({
+        "error": { "message": "Insufficient credits", "code": 402 }
+    })
+    .to_string();
+    let mut session = session(
+        ProviderName::OpenRouter,
+        FakeTransport::default().replies(402, body),
+    );
+    let err = session
+        .submit_intent("a lighthouse")
+        .expect_err("402 is out of credit");
+    assert_eq!(err, SessionError::Key(KeyError::OutOfCredit));
 }

@@ -57,7 +57,7 @@ pub enum KeyError {
     #[error("No Key is set. Paste a Key in settings so the Agent can think.")]
     Missing,
     /// No Provider picked yet; a Key belongs to one Provider (ADR-0016).
-    #[error("No Provider is chosen. Pick Anthropic, OpenAI, or Google.")]
+    #[error("No Provider is chosen. Pick Anthropic, OpenAI, Google, OpenRouter, or Nous.")]
     MissingProvider,
     /// The Provider refused the Key.
     #[error("That Key was rejected. Paste a valid Key for this Provider.")]
@@ -225,7 +225,7 @@ impl<P: Provider, V: View> Session<P, V> {
     /// have stops the take with an error; the Scene keeps every Verb that landed.
     ///
     /// The Key and Provider are asked for before the Agent is asked to think,
-    /// and a lab that refuses the Key is said out loud — the Viewport is never
+    /// and a Provider that refuses the Key is said out loud — the Viewport is never
     /// a silent freeze (spec story 49).
     pub fn submit_intent(
         &mut self,

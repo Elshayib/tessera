@@ -25,12 +25,16 @@ Tessera's 3D software: the scene, the operations, and the vocabulary. Designed s
 _Avoid_: backend, kernel, renderer (the renderer is one part of the Engine), Blender
 
 **Key**:
-A model API key the Person pastes into Tessera. v1: the Person brings the Key; Tessera does not host inference. A Key belongs to one Provider from a short list (the main paid APIs). The Verbs do not change when the Provider does.
+A paid API key the Person pastes into Tessera. v1: the Person brings the Key; Tessera does not host inference. A Key belongs to one Provider. The Verbs do not change when the Provider or the Brain does.
 _Avoid_: subscription (v1), Tessera-hosted model, local model (v1)
 
 **Provider**:
-A company whose model the Agent can think with, given a Key. v1 is a short list, not one lab and not every model on earth.
-_Avoid_: backend, LLM vendor (when we mean this), "Claude" as the product
+The paid API the Key belongs to. v1: Anthropic, OpenAI, Google, OpenRouter, and Nous. A lab or a gateway. When the Key is a gateway Key, the lab that trained the weights is not the Provider. The Verbs do not change when the Provider does.
+_Avoid_: backend, LLM vendor (when we mean this), "Claude" as the product, Portal (when we mean Nous)
+
+**Brain**:
+Which offering of the Provider the Agent thinks with. The Person picks it from what that Provider currently offers. Tessera does not pin the list. Tessera picks a default until the Person does.
+_Avoid_: model (the Object is not this; do not use "model" for this pick), LLM, engine
 
 ## What the Person sees
 

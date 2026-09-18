@@ -19,7 +19,30 @@ fn place_lighthouse() -> ScriptedProvider {
     ))
 }
 
-/// The Person can paste a Key and pick any of the three Providers.
+/// The short list, in spec order, is Anthropic, OpenAI, Google, OpenRouter, Nous.
+/// Settings names Nous "Nous", not "Nous Portal".
+#[test]
+fn short_list_is_anthropic_openai_google_openrouter_nous() {
+    assert_eq!(
+        ProviderName::ALL,
+        [
+            ProviderName::Anthropic,
+            ProviderName::OpenAI,
+            ProviderName::Google,
+            ProviderName::OpenRouter,
+            ProviderName::Nous,
+        ]
+    );
+    assert_eq!(ProviderName::OpenRouter.word(), "OpenRouter");
+    assert_eq!(ProviderName::Nous.word(), "Nous");
+    assert_ne!(
+        ProviderName::Nous.word(),
+        "Nous Portal",
+        "settings names the company the Key belongs to, not the website"
+    );
+}
+
+/// The Person can paste a Key and pick any Provider on the short list.
 #[test]
 fn person_sets_a_key_and_chooses_each_provider() {
     for name in ProviderName::ALL {
@@ -74,8 +97,16 @@ fn missing_provider_is_an_actionable_error() {
     assert_eq!(err, SessionError::Key(KeyError::MissingProvider));
     let action = err.to_string();
     assert!(
-        action.contains("Anthropic") && action.contains("OpenAI") && action.contains("Google"),
+        action.contains("Anthropic")
+            && action.contains("OpenAI")
+            && action.contains("Google")
+            && action.contains("OpenRouter")
+            && action.contains("Nous"),
         "the error must name the short list: {action:?}"
+    );
+    assert!(
+        !action.contains("Nous Portal"),
+        "the error names Nous, not the website: {action:?}"
     );
 }
 

@@ -1,5 +1,6 @@
 //! The Verb contract the Agent is asked to speak. Owned by Tessera, not by a
-//! Provider (ADR-0016). The same text is sent to Anthropic, OpenAI, and Google.
+//! Provider (ADR-0016). The same text is sent to every Provider, including
+//! OpenRouter and Nous. No per-Brain prompt pack.
 
 /// The system prompt every live Provider is given. Keep in lockstep with
 /// [`tessera_session::Reply::from_json`].

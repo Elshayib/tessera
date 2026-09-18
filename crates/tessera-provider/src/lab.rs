@@ -1,5 +1,6 @@
-//! Per-lab HTTP dialects. The Verb contract and the system prompt are shared;
-//! only the envelope (URL, headers, JSON wrap) changes.
+//! Per-Provider HTTP dialects. The Verb contract and the system prompt are
+//! shared; only the envelope (URL, headers, JSON wrap) changes. OpenRouter
+//! and Nous are OpenAI-compatible chat plus their catalog GET.
 
 use serde_json::{Value, json};
 use tessera_session::{
@@ -37,25 +38,15 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
             })
             .to_string(),
         },
-        ProviderName::OpenAI => HttpRequest {
-            url: "https://api.openai.com/v1/chat/completions".to_string(),
-            headers: vec![
-                ("content-type".into(), "application/json".into()),
-                (
-                    "authorization".into(),
-                    format!("Bearer {}", credentials.key),
-                ),
-            ],
-            body: json!({
-                "model": brain,
-                "max_completion_tokens": 4096,
-                "messages": [
-                    { "role": "system", "content": SYSTEM },
-                    { "role": "user", "content": openai_content(&text, intent.pictures()) },
-                ],
-            })
-            .to_string(),
-        },
+        ProviderName::OpenAI => openai_compatible(
+            "https://api.openai.com/v1/chat/completions",
+            &credentials.key,
+            brain,
+            Vec::new(),
+            &text,
+            intent.pictures(),
+            false,
+        ),
         ProviderName::Google => HttpRequest {
             url: format!(
                 "https://generativelanguage.googleapis.com/v1beta/models/{brain}:generateContent"
@@ -74,7 +65,74 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
             })
             .to_string(),
         },
+        ProviderName::OpenRouter => openai_compatible(
+            "https://openrouter.ai/api/v1/chat/completions",
+            &credentials.key,
+            brain,
+            openrouter_headers(),
+            &text,
+            intent.pictures(),
+            false,
+        ),
+        ProviderName::Nous => openai_compatible(
+            "https://inference-api.nousresearch.com/v1/chat/completions",
+            &credentials.key,
+            brain,
+            Vec::new(),
+            &text,
+            intent.pictures(),
+            true,
+        ),
     }
+}
+
+/// OpenAI-compatible chat POST: OpenAI, OpenRouter, and Nous share this
+/// envelope. The Verb contract is still Tessera's; no per-Brain prompt pack.
+/// `max_tokens` is Nous's documented cap (default 100 if omitted); OpenAI
+/// and OpenRouter take `max_completion_tokens`.
+fn openai_compatible(
+    url: &str,
+    key: &str,
+    brain: &str,
+    extra_headers: Vec<(String, String)>,
+    text: &str,
+    pictures: &[Picture],
+    max_tokens: bool,
+) -> HttpRequest {
+    let mut headers = vec![
+        ("content-type".into(), "application/json".into()),
+        ("authorization".into(), format!("Bearer {key}")),
+    ];
+    headers.extend(extra_headers);
+    let mut body = json!({
+        "model": brain,
+        "messages": [
+            { "role": "system", "content": SYSTEM },
+            { "role": "user", "content": openai_content(text, pictures) },
+        ],
+    });
+    if max_tokens {
+        body["max_tokens"] = json!(4096);
+    } else {
+        body["max_completion_tokens"] = json!(4096);
+    }
+    HttpRequest {
+        url: url.to_string(),
+        headers,
+        body: body.to_string(),
+    }
+}
+
+/// OpenRouter requires the app to identify itself (HTTP-Referer + title).
+fn openrouter_headers() -> Vec<(String, String)> {
+    vec![
+        (
+            "HTTP-Referer".into(),
+            "https://github.com/Elshayib/tessera".into(),
+        ),
+        ("X-OpenRouter-Title".into(), "Tessera".into()),
+        ("X-Title".into(), "Tessera".into()),
+    ]
 }
 
 fn user_content(intent: &Intent, bindings: Bindings<'_>) -> String {
@@ -195,7 +253,9 @@ fn base64_encode(input: &[u8]) -> String {
 pub fn unpack(provider: ProviderName, response: &HttpResponse) -> Result<String, ProviderError> {
     match provider {
         ProviderName::Anthropic => unpack_anthropic(response),
-        ProviderName::OpenAI => unpack_openai(response),
+        ProviderName::OpenAI | ProviderName::OpenRouter | ProviderName::Nous => {
+            unpack_openai(response)
+        }
         ProviderName::Google => unpack_google(response),
     }
 }
@@ -210,6 +270,8 @@ pub fn list_brains<T: crate::transport::Transport>(
         ProviderName::Anthropic => list_anthropic(transport, &credentials.key),
         ProviderName::OpenAI => list_openai(transport, &credentials.key),
         ProviderName::Google => list_google(transport, &credentials.key),
+        ProviderName::OpenRouter => list_openrouter(transport, &credentials.key),
+        ProviderName::Nous => list_nous(transport, &credentials.key),
     }
 }
 
@@ -329,6 +391,139 @@ fn openai_kind(id: &str) -> BrainKind {
     } else {
         BrainKind::Chat
     }
+}
+
+fn list_openrouter<T: crate::transport::Transport>(
+    transport: &mut T,
+    key: &str,
+) -> Result<Vec<Brain>, ProviderError> {
+    list_gateway(
+        transport,
+        "https://openrouter.ai/api/v1/models",
+        key,
+        openrouter_headers(),
+    )
+}
+
+fn list_nous<T: crate::transport::Transport>(
+    transport: &mut T,
+    key: &str,
+) -> Result<Vec<Brain>, ProviderError> {
+    list_gateway(
+        transport,
+        "https://inference-api.nousresearch.com/v1/models",
+        key,
+        Vec::new(),
+    )
+}
+
+/// OpenRouter and Nous catalogs share the OpenRouter-style list: id, name,
+/// architecture modalities, prompt price. Keep chat with text in and text out.
+fn list_gateway<T: crate::transport::Transport>(
+    transport: &mut T,
+    url: &str,
+    key: &str,
+    extra_headers: Vec<(String, String)>,
+) -> Result<Vec<Brain>, ProviderError> {
+    let mut headers = vec![("authorization".into(), format!("Bearer {key}"))];
+    headers.extend(extra_headers);
+    let request = HttpRequest {
+        url: url.to_string(),
+        headers,
+        body: String::new(),
+    };
+    let response = transport.get(&request).map_err(|_| {
+        ProviderError::Unavailable(
+            "Could not reach the Provider. Check the network and try again.".to_string(),
+        )
+    })?;
+    if let Some(err) = openai_refusal(&response) {
+        return Err(err);
+    }
+    Ok(chat_brains(gateway_catalog(&response.body)?))
+}
+
+fn gateway_catalog(body: &str) -> Result<Vec<Brain>, ProviderError> {
+    let value = parse_json(body).ok_or_else(could_not_list)?;
+    let Some(serde_json::Value::Array(data)) = value.get("data").cloned() else {
+        return Err(could_not_list());
+    };
+    let mut brains = Vec::new();
+    for item in data {
+        let Some(id) = item.get("id").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if id.is_empty() {
+            continue;
+        }
+        if !gateway_text_in_text_out(&item) {
+            continue;
+        }
+        let name = item
+            .get("name")
+            .and_then(serde_json::Value::as_str)
+            .filter(|n| !n.is_empty())
+            .unwrap_or(id);
+        brains.push(Brain {
+            id: id.to_string(),
+            name: name.to_string(),
+            can_see: gateway_can_see(&item),
+            price: gateway_prompt_price(&item),
+            kind: gateway_kind(&item),
+        });
+    }
+    Ok(brains)
+}
+
+fn modalities<'a>(item: &'a Value, field: &str) -> Vec<&'a str> {
+    item.pointer(&format!("/architecture/{field}"))
+        .and_then(Value::as_array)
+        .map(|arr| arr.iter().filter_map(Value::as_str).collect())
+        .unwrap_or_default()
+}
+
+/// Keep offerings that take text and return text. Missing modalities are
+/// treated as chat (the first-party rule); when present, they decide.
+fn gateway_text_in_text_out(item: &Value) -> bool {
+    let inputs = modalities(item, "input_modalities");
+    let outputs = modalities(item, "output_modalities");
+    let text_in = inputs.is_empty() || inputs.contains(&"text");
+    let text_out = outputs.is_empty() || outputs.contains(&"text");
+    text_in && text_out
+}
+
+fn gateway_can_see(item: &Value) -> bool {
+    let inputs = modalities(item, "input_modalities");
+    inputs.is_empty() || inputs.contains(&"image")
+}
+
+fn gateway_kind(item: &Value) -> BrainKind {
+    let outputs = modalities(item, "output_modalities");
+    if outputs.is_empty() || outputs.contains(&"text") {
+        BrainKind::Chat
+    } else if outputs.contains(&"embeddings") {
+        BrainKind::Embeddings
+    } else if outputs.contains(&"image") {
+        BrainKind::ImageGen
+    } else if outputs
+        .iter()
+        .any(|m| matches!(*m, "audio" | "speech" | "transcription"))
+    {
+        BrainKind::Audio
+    } else {
+        BrainKind::Other
+    }
+}
+
+/// Prompt price as nano-USD per token so cheaper is a smaller integer.
+/// `"0.00003"` → 30_000. Missing or unparsable is no price.
+fn gateway_prompt_price(item: &Value) -> Option<u64> {
+    let raw = item.pointer("/pricing/prompt").and_then(Value::as_str)?;
+    let value: f64 = raw.trim().parse().ok()?;
+    if !value.is_finite() || value < 0.0 {
+        return None;
+    }
+    Some((value * 1_000_000_000.0).round() as u64)
 }
 
 fn list_google<T: crate::transport::Transport>(
@@ -529,6 +724,9 @@ fn openai_refusal(response: &HttpResponse) -> Option<ProviderError> {
     let body = parse_json(&response.body);
     if response.status == 401 {
         return Some(ProviderError::InvalidKey);
+    }
+    if response.status == 402 {
+        return Some(ProviderError::OutOfCredit);
     }
     let code = body
         .as_ref()
@@ -756,6 +954,10 @@ mod tests {
                 request.body.contains("Pictures are Intent"),
                 "{provider:?} must teach that pictures are Intent, not a generator"
             );
+            assert!(
+                !request.body.contains("<think>"),
+                "{provider:?} must not send a Hermes think pack"
+            );
         }
     }
 
@@ -828,7 +1030,55 @@ mod tests {
     }
 
     #[test]
-    fn the_three_labs_use_their_own_envelopes() {
+    fn openrouter_names_the_lab_sku_brain_id() {
+        let mut creds = creds(ProviderName::OpenRouter);
+        creds.brain = Some("anthropic/claude-haiku-4.5".into());
+        let request = pack(&creds, &words("hi"), none_pointed());
+        assert!(
+            request.body.contains("anthropic/claude-haiku-4.5"),
+            "OpenRouter Brain ids are OpenRouter's, including lab/sku: {}",
+            request.body
+        );
+        assert_eq!(
+            request.url, "https://openrouter.ai/api/v1/chat/completions",
+            "the gateway Key is billed to OpenRouter, not to Anthropic"
+        );
+        assert!(
+            !request.url.contains("api.anthropic.com"),
+            "a gateway Key is never sent to the lab that trained the weights"
+        );
+    }
+
+    #[test]
+    fn nous_names_the_nous_brain_id() {
+        let mut creds = creds(ProviderName::Nous);
+        creds.brain = Some("nousresearch/hermes-4-70b".into());
+        let request = pack(&creds, &words("hi"), none_pointed());
+        assert!(
+            request.body.contains("nousresearch/hermes-4-70b"),
+            "Nous Brain ids are Nous's: {}",
+            request.body
+        );
+        assert_eq!(
+            request.url,
+            "https://inference-api.nousresearch.com/v1/chat/completions"
+        );
+        assert!(
+            request.body.contains("max_tokens"),
+            "Nous documents max_tokens (default 100); without it a plan truncates"
+        );
+        assert!(
+            !request.body.contains("max_completion_tokens"),
+            "Nous is not sent OpenAI's max_completion_tokens field"
+        );
+        assert!(
+            !request.url.contains("portal.nousresearch.com"),
+            "Nous is the Provider; Portal is the website"
+        );
+    }
+
+    #[test]
+    fn the_five_providers_use_their_own_envelopes() {
         let anthropic = pack(
             &creds(ProviderName::Anthropic),
             &words("hi"),
@@ -872,6 +1122,51 @@ mod tests {
                 .iter()
                 .any(|(k, v)| k == "x-goog-api-key" && v == "sk-test")
         );
+
+        let openrouter = pack(
+            &creds(ProviderName::OpenRouter),
+            &words("hi"),
+            none_pointed(),
+        );
+        assert_eq!(
+            openrouter.url,
+            "https://openrouter.ai/api/v1/chat/completions"
+        );
+        assert!(
+            openrouter
+                .headers
+                .iter()
+                .any(|(k, v)| k == "authorization" && v == "Bearer sk-test")
+        );
+        assert!(
+            openrouter
+                .headers
+                .iter()
+                .any(|(k, v)| k == "HTTP-Referer" && v == "https://github.com/Elshayib/tessera"),
+            "OpenRouter requests identify Tessera as the app"
+        );
+        assert!(
+            openrouter
+                .headers
+                .iter()
+                .any(|(k, v)| k == "X-OpenRouter-Title" && v == "Tessera")
+                || openrouter
+                    .headers
+                    .iter()
+                    .any(|(k, v)| k == "X-Title" && v == "Tessera"),
+            "OpenRouter requests name Tessera"
+        );
+
+        let nous = pack(&creds(ProviderName::Nous), &words("hi"), none_pointed());
+        assert_eq!(
+            nous.url,
+            "https://inference-api.nousresearch.com/v1/chat/completions"
+        );
+        assert!(
+            nous.headers
+                .iter()
+                .any(|(k, v)| k == "authorization" && v == "Bearer sk-test")
+        );
     }
 
     /// Pictures travel with Intent into every lab envelope (issue #9).
@@ -910,6 +1205,16 @@ mod tests {
         assert!(
             google.body.contains("inline_data"),
             "Google must wrap the picture as inline_data"
+        );
+        let openrouter = pack(&creds(ProviderName::OpenRouter), &intent, none_pointed());
+        assert!(
+            openrouter.body.contains("image_url"),
+            "OpenRouter uses the OpenAI-compatible picture wrap"
+        );
+        let nous = pack(&creds(ProviderName::Nous), &intent, none_pointed());
+        assert!(
+            nous.body.contains("image_url"),
+            "Nous uses the OpenAI-compatible picture wrap"
         );
     }
 }

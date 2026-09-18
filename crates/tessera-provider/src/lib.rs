@@ -1,8 +1,9 @@
-//! Production adapters for the short list of Providers (ADR-0016).
+//! Production adapters for the short list of Providers (ADR-0016, ADR-0021).
 //!
 //! The Provider trait lives under Session. This crate wraps Anthropic, OpenAI,
-//! and Google in one [`LivePlanner`]: same Verbs, same system prompt, three
-//! HTTP envelopes. Tests inject [`FakeTransport`] and never hit a live lab.
+//! Google, OpenRouter, and Nous in one [`LivePlanner`]: same Verbs, same
+//! system prompt, five HTTP envelopes. Tests inject [`FakeTransport`] and
+//! never hit a live lab.
 
 mod lab;
 mod prompt;
@@ -15,7 +16,7 @@ pub use transport::{
     FakeTransport, HttpRequest, HttpResponse, Transport, TransportError, UreqTransport,
 };
 
-/// A Provider that thinks by POSTing Intent to the chosen lab.
+/// A Provider that thinks by POSTing Intent to the chosen paid API.
 pub struct LivePlanner<T: Transport> {
     transport: T,
 }

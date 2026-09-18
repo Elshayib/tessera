@@ -14,7 +14,7 @@ for the decisions that pin it down.
 | --- | --- |
 | `tessera` | Installed Windows app: live Viewport, chat and Narration beside it. No account. |
 | `tessera-session` | Session: Tessera as the Person meets it. Intent in, Narration out. The Person never names a Verb. Holds the Provider seam (trait, scripted adapter for tests). |
-| `tessera-provider` | Production adapters for Anthropic, OpenAI, and Google. Same Verbs, fake HTTP in tests. |
+| `tessera-provider` | Production adapters for Anthropic, OpenAI, Google, OpenRouter, and Nous. Same Verbs, fake HTTP in tests. |
 | `tessera-view` | The View seam: the live Viewport in the app; a recorder under test. |
 | `tessera-engine` | The Engine: the Verb set and Clay, how form is held. |
 

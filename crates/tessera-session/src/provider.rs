@@ -117,30 +117,38 @@ pub enum Reply {
     Ask(String),
 }
 
-/// The v1 short list of Providers (spec #1; ADR-0016). Not one lab, not every
-/// model on earth. Adding one must not change the Verbs or the Verb contract.
+/// The v1 short list of Providers (spec #1; ADR-0016, ADR-0021). Not one lab,
+/// not every model on earth. A lab or a gateway. Adding one must not change
+/// the Verbs or the Verb contract.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProviderName {
     Anthropic,
     OpenAI,
     Google,
+    OpenRouter,
+    Nous,
 }
 
 impl ProviderName {
     /// The whole v1 list, in spec order.
-    pub const ALL: [ProviderName; 3] = [
+    pub const ALL: [ProviderName; 5] = [
         ProviderName::Anthropic,
         ProviderName::OpenAI,
         ProviderName::Google,
+        ProviderName::OpenRouter,
+        ProviderName::Nous,
     ];
 
-    /// The Person-facing name, as settings shows it.
+    /// The Person-facing name, as settings shows it. Nous is "Nous", not
+    /// "Nous Portal": settings names the company the Key belongs to.
     pub fn word(self) -> &'static str {
         match self {
             ProviderName::Anthropic => "Anthropic",
             ProviderName::OpenAI => "OpenAI",
             ProviderName::Google => "Google",
+            ProviderName::OpenRouter => "OpenRouter",
+            ProviderName::Nous => "Nous",
         }
     }
 }

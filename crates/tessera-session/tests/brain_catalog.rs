@@ -1,7 +1,7 @@
-//! Brain from a live catalog (issues #16, #17): the Person pastes a Key and
-//! picks a Brain from what that Provider currently offers. Tessera does not
-//! pin a SKU. Anthropic, OpenAI, and Google share the same default and pick
-//! rules. Settings hold one Key and one Brain at a time.
+//! Brain from a live catalog (issues #16, #17, #19): the Person pastes a Key
+//! and picks a Brain from what that Provider currently offers. Tessera does
+//! not pin a SKU. Anthropic, OpenAI, Google, OpenRouter, and Nous share the
+//! same default and pick rules.
 //!
 //! Tests act as the Person: headless, scripted list of Brains, no live lab,
 //! no real window.
@@ -1238,6 +1238,344 @@ fn openai_and_google_default_when_none_can_see_is_the_cheapest_chat() {
         let chosen = session.chosen_brain().expect("a default is picked");
         assert_eq!(chosen.id, "cheap-words", "{provider:?}");
     }
+}
+
+const GATEWAYS: [ProviderName; 2] = [ProviderName::OpenRouter, ProviderName::Nous];
+
+/// After picking OpenRouter or Nous and pasting that Provider's Key, the
+/// Person sees a live list of Brains, with the same default and pick rules.
+#[test]
+fn openrouter_and_nous_list_brains_after_a_key() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("anthropic/claude-haiku-4.5", "Claude Haiku 4.5"),
+                seeing("openai/gpt-4.1-nano", "GPT 4.1 Nano"),
+            ],
+        );
+        let brains = session
+            .brains()
+            .unwrap_or_else(|_| panic!("{provider:?} must offer the scripted list"));
+        let names: Vec<&str> = brains.iter().map(|b| b.name.as_str()).collect();
+        assert_eq!(
+            names,
+            ["Claude Haiku 4.5", "GPT 4.1 Nano"],
+            "{provider:?} settings show Person-facing names, not a pinned SKU"
+        );
+        let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+        assert_eq!(
+            ids,
+            ["anthropic/claude-haiku-4.5", "openai/gpt-4.1-nano"],
+            "{provider:?} Brain ids are that gateway's, including lab/sku ids"
+        );
+    }
+}
+
+/// Image-generation, embeddings, and audio stay hidden on OpenRouter and Nous.
+#[test]
+fn openrouter_and_nous_hide_non_chat_offerings() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("openai/gpt-4.1", "GPT 4.1"),
+                Brain {
+                    id: "openai/text-embedding-3-small".into(),
+                    name: "Embeddings".into(),
+                    can_see: false,
+                    price: None,
+                    kind: BrainKind::Embeddings,
+                },
+                Brain {
+                    id: "black-forest-labs/flux".into(),
+                    name: "Flux".into(),
+                    can_see: true,
+                    price: None,
+                    kind: BrainKind::ImageGen,
+                },
+                Brain {
+                    id: "openai/whisper-1".into(),
+                    name: "Whisper".into(),
+                    can_see: false,
+                    price: None,
+                    kind: BrainKind::Audio,
+                },
+            ],
+        );
+        let brains = session
+            .brains()
+            .unwrap_or_else(|_| panic!("{provider:?} chat offerings remain"));
+        assert_eq!(brains.len(), 1, "{provider:?}");
+        assert_eq!(brains[0].id, "openai/gpt-4.1");
+    }
+}
+
+/// The list is searchable for OpenRouter and Nous the same way.
+#[test]
+fn openrouter_and_nous_brain_list_is_searchable() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("anthropic/claude-haiku-4.5", "Claude Haiku 4.5"),
+                seeing("openai/gpt-4.1-nano", "GPT 4.1 Nano"),
+            ],
+        );
+        let found = session
+            .brains_matching("HAIKU")
+            .unwrap_or_else(|_| panic!("{provider:?} search uses the live list"));
+        assert_eq!(found.len(), 1, "{provider:?}");
+        assert_eq!(found[0].id, "anthropic/claude-haiku-4.5");
+
+        let by_id = session
+            .brains_matching("gpt-4.1")
+            .unwrap_or_else(|_| panic!("{provider:?} id is searchable too"));
+        assert_eq!(by_id.len(), 1, "{provider:?}");
+        assert_eq!(by_id[0].id, "openai/gpt-4.1-nano");
+    }
+}
+
+/// Default on OpenRouter and Nous: cheapest that can see pictures.
+#[test]
+fn openrouter_and_nous_default_is_the_cheapest_that_can_see() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing_priced("openai/dear-eye", "Dear Eye", 30),
+                seeing_priced("openai/cheap-eye", "Cheap Eye", 3),
+                Brain {
+                    id: "meta-llama/cheap-words".into(),
+                    name: "Cheap Words".into(),
+                    can_see: false,
+                    price: Some(1),
+                    kind: BrainKind::Chat,
+                },
+            ],
+        );
+        session.brains().expect("the list is offered");
+        let chosen = session
+            .chosen_brain()
+            .unwrap_or_else(|| panic!("{provider:?} picks a default"));
+        assert_eq!(chosen.id, "openai/cheap-eye", "{provider:?}");
+    }
+}
+
+/// The Person picks a Brain on OpenRouter or Nous; the Agent thinks with that
+/// gateway id, not a first-party SKU.
+#[test]
+fn openrouter_and_nous_think_with_the_brain_the_person_picked() {
+    for provider in GATEWAYS {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![
+                seeing("anthropic/claude-sonnet-4.5", "Claude Sonnet 4.5"),
+                seeing("openai/gpt-4.1-nano", "GPT 4.1 Nano"),
+            ])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-gateway");
+        session
+            .set_brain("openai/gpt-4.1-nano")
+            .unwrap_or_else(|_| panic!("{provider:?} pick is on the list"));
+
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .unwrap_or_else(|_| panic!("{provider:?} scripted plan lands"));
+
+        assert_eq!(
+            session.chosen_brain().map(|b| b.id.as_str()),
+            Some("openai/gpt-4.1-nano"),
+            "{provider:?}"
+        );
+        let creds = session.provider().received_credentials();
+        let last = creds.last().expect("the Agent thought");
+        assert_eq!(last.provider, provider, "{provider:?}");
+        assert_eq!(
+            last.key, "sk-gateway",
+            "{provider:?} Key stays on the gateway"
+        );
+        assert_eq!(
+            last.brain.as_deref(),
+            Some("openai/gpt-4.1-nano"),
+            "{provider:?} the Agent thinks with the gateway's Brain id"
+        );
+    }
+}
+
+/// Words-only Intent works with a text-only Brain on OpenRouter and Nous.
+#[test]
+fn openrouter_and_nous_words_only_work_with_a_text_only_brain() {
+    for provider in GATEWAYS {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![text_only(
+                "meta-llama/llama-3.1-8b-instruct",
+                "Llama 3.1 8B",
+            )])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-gateway");
+        session
+            .set_brain("meta-llama/llama-3.1-8b-instruct")
+            .expect("text-only Brains stay on the list");
+
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .unwrap_or_else(|_| panic!("{provider:?} words-only Intent must think"));
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+    }
+}
+
+/// Pictures plus a Brain that cannot see them: an error on OpenRouter and Nous.
+#[test]
+fn openrouter_and_nous_pictures_to_a_text_only_brain_are_an_error() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(
+            provider,
+            vec![text_only(
+                "meta-llama/llama-3.1-8b-instruct",
+                "Llama 3.1 8B",
+            )],
+        );
+        session
+            .set_brain("meta-llama/llama-3.1-8b-instruct")
+            .expect("text-only stays on the list");
+
+        let err = session
+            .submit_intent(
+                Intent::words("a lighthouse like this sketch")
+                    .with_pictures([Picture::sketch(b"sketch-bytes".to_vec())]),
+            )
+            .expect_err("a Brain that cannot see must not swallow the picture");
+
+        assert_eq!(
+            err,
+            SessionError::Brain(BrainError::CannotSee),
+            "{provider:?}"
+        );
+        assert!(
+            session.objects().is_empty(),
+            "{provider:?} Viewport is not a silent freeze"
+        );
+    }
+}
+
+/// Nothing offered is an actionable error on OpenRouter and Nous.
+#[test]
+fn openrouter_and_nous_empty_catalog_is_an_actionable_error() {
+    for provider in GATEWAYS {
+        let mut session = with_provider(provider, vec![]);
+        let err = session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect_err("nothing offered means the Agent cannot think");
+        assert_eq!(
+            err,
+            SessionError::Brain(BrainError::Missing),
+            "{provider:?}"
+        );
+        assert!(session.objects().is_empty(), "{provider:?}");
+    }
+}
+
+/// Changing Brain on OpenRouter or Nous leaves the open Scene and Talk intact.
+#[test]
+fn openrouter_and_nous_changing_brain_leaves_the_open_scene_intact() {
+    for provider in GATEWAYS {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![
+                seeing("openai/gpt-4.1", "GPT 4.1"),
+                seeing("anthropic/claude-haiku-4.5", "Claude Haiku 4.5"),
+            ])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-gateway");
+        session
+            .set_brain("openai/gpt-4.1")
+            .expect("first is offered");
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect("the scripted plan lands");
+        let talk_len = session.talk().len();
+
+        session
+            .set_brain("anthropic/claude-haiku-4.5")
+            .expect("second is offered");
+
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+        assert_eq!(session.objects()[0].name, "the lighthouse");
+        assert_eq!(session.talk().len(), talk_len, "{provider:?}");
+        for line in session.talk() {
+            assert!(
+                !line.text.contains("anthropic/claude-haiku-4.5")
+                    && !line.text.contains("openai/gpt-4.1"),
+                "{provider:?} Narration must not name the Brain"
+            );
+        }
+    }
+}
+
+/// A gateway Key is never treated as a first-party lab Key: switching to
+/// Anthropic does not send the OpenRouter Key there.
+#[test]
+fn gateway_key_stays_with_its_provider() {
+    let provider = ScriptedProvider::default()
+        .offering(vec![seeing("openai/gpt-4.1-nano", "GPT 4.1 Nano")])
+        .plan(ScriptedProvider::place_and_frame(
+            "the lighthouse",
+            Primitive::Cylinder,
+            "on the cliff",
+        ))
+        .plan(ScriptedProvider::place_and_frame(
+            "the lantern",
+            Primitive::Sphere,
+            "on the lighthouse",
+        ));
+    let mut session = Session::start(provider, ViewReport::new());
+    session.set_provider(ProviderName::OpenRouter);
+    session.set_key("sk-or-secret");
+    session
+        .set_brain("openai/gpt-4.1-nano")
+        .expect("the gateway pick is offered");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("OpenRouter thinks");
+
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-ant");
+    session
+        .brains()
+        .expect("Anthropic offers the scripted list");
+    session
+        .submit_intent("a lantern on the lighthouse")
+        .expect("Anthropic thinks with its own Key");
+
+    let creds = session.provider().received_credentials();
+    assert_eq!(
+        creds.last().map(|c| c.key.as_str()),
+        Some("sk-ant"),
+        "Anthropic is billed with the Anthropic Key"
+    );
+    assert_ne!(
+        creds.last().map(|c| c.key.as_str()),
+        Some("sk-or-secret"),
+        "the OpenRouter Key is never sent to Anthropic"
+    );
+    assert_eq!(session.objects().len(), 2, "the open Scene stayed");
 }
 
 /// A down catalog is an error they can act on, on OpenAI and Google.
