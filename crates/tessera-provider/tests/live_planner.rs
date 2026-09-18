@@ -3,7 +3,7 @@
 //! lab's envelope so the Verbs cannot drift.
 
 use tessera_provider::{FakeTransport, LivePlanner};
-use tessera_session::{KeyError, ProviderName, Session, SessionError, ViewReport};
+use tessera_session::{KeyError, KitPart, Part, ProviderName, Session, SessionError, ViewReport};
 
 const PLAN: &str = r#"{
   "narration": [
@@ -13,6 +13,19 @@ const PLAN: &str = r#"{
   "verbs": [
     {"verb": "place", "name": "the lighthouse", "part": "cylinder", "at": "on the cliff"},
     {"verb": "frame", "target": "the lighthouse"}
+  ]
+}"#;
+
+const KIT_PLAN: &str = r#"{
+  "narration": [
+    "A cliff slab under the sky.",
+    "The lantern room sits on the tower.",
+    "Framing the lantern room so you can judge it."
+  ],
+  "verbs": [
+    {"verb": "place", "name": "the cliff slab", "part": "cliff slab", "at": "under the sky"},
+    {"verb": "place", "name": "the lantern room", "part": "lantern room", "at": "atop the tower"},
+    {"verb": "frame", "target": "the lantern room"}
   ]
 }"#;
 
@@ -74,6 +87,25 @@ fn verbs_do_not_change_across_providers() {
         assert_eq!(objects[0].name, "the lighthouse");
         let last = session.view().last_frame().expect("framed");
         assert_eq!(last.object.as_deref(), Some("the lighthouse"));
+    }
+}
+
+/// Kit Part words in the Verb JSON land as Kit Parts, the same on every lab.
+#[test]
+fn kit_parts_land_the_same_across_providers() {
+    for provider in ProviderName::ALL {
+        let (status, body) = envelope(provider, KIT_PLAN);
+        let mut session = session(provider, FakeTransport::default().replies(status, body));
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect("the fake Provider returns a Kit plan");
+
+        let objects = session.objects();
+        assert_eq!(objects.len(), 2, "{provider:?}");
+        assert_eq!(objects[0].name, "the cliff slab");
+        assert_eq!(objects[0].part, Part::Kit(KitPart::CliffSlab));
+        assert_eq!(objects[1].name, "the lantern room");
+        assert_eq!(objects[1].part, Part::Kit(KitPart::LanternRoom));
     }
 }
 

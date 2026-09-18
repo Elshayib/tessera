@@ -12,8 +12,11 @@ Reply with JSON only, no markdown fences, no prose. Shape:
 narration[i] describes verbs[i], one line per Verb. Name Objects so the Person can say them back.
 
 Verbs (tag field "verb"):
-- {"verb":"place","name":"the lighthouse","part":"cylinder","at":"on the cliff"}
-  part is one of: box, sphere, cylinder, capsule, cone, torus
+- {"verb":"place","name":"the lantern room","part":"lantern room","at":"atop the tower"}
+  part is a Primitive (box, sphere, cylinder, capsule, cone, torus) or a Kit Part
+  architecture: tower, lantern room, doorway, window bay, roof cap
+  nature: cliff slab, rock, ground
+  props: railing, lamp
 - {"verb":"frame","target":"the lighthouse"} or {"verb":"frame","target":"scene"}
 - {"verb":"light","condition":"dusk"}
   condition is one of: dawn, noon, overcast, dusk, night

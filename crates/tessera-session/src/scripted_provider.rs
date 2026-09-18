@@ -3,7 +3,7 @@
 
 use crate::plan::Plan;
 use crate::provider::{Credentials, Provider, ProviderError};
-use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive, Verb};
+use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
 
 /// Hands back the scripted Plans (or troubles), one per Intent, in the order
 /// they were added.
@@ -28,7 +28,8 @@ impl ScriptedProvider {
 
     /// Convenience: a plan that places one named Object and Frames it — the
     /// shape a real Provider's first response to Intent should have.
-    pub fn place_and_frame(name: &str, part: Primitive, at: &str) -> Plan {
+    pub fn place_and_frame(name: &str, part: impl Into<Part>, at: &str) -> Plan {
+        let part = part.into();
         Plan::new(
             vec![
                 format!("Placing {name} {at} out of a {}.", part.word()),

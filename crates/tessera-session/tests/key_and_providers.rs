@@ -189,7 +189,7 @@ fn key_lives_in_settings_on_the_machine_not_in_the_scene() {
         for object in session.objects() {
             assert!(!object.name.contains(secret));
             assert!(!object.place.contains(secret));
-            assert!(!object.part.contains(secret));
+            assert!(!object.part.word().contains(secret));
         }
     }
 

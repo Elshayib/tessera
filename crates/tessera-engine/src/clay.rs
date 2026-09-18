@@ -3,9 +3,9 @@
 //! Game-ready export, which is not part of v1.
 //!
 //! The full Clay store lands with the Sculpt ticket (#6). So far an Object
-//! carries the Primitive it was composed from and the Material family it wears.
+//! carries the Part it was composed from and the Material family it wears.
 
-use crate::verb::MaterialFamily;
+use crate::verb::{MaterialFamily, Part};
 
 /// One thing in the Scene, addressed as a whole: its place, its silhouette's
 /// shape, and the Material family it wears.
@@ -16,18 +16,18 @@ pub struct Object {
     /// Relative place in the Scene, in the Agent's coarse words ("on the cliff",
     /// "atop the tower"). The Engine resolves it; the Agent passes no coordinates.
     pub place: String,
-    /// The Primitive it was composed from, in the Agent's coarse word ("cylinder").
-    pub part: String,
+    /// The Part it was composed from: a Primitive or a named Kit Part.
+    pub part: Part,
     /// The named look this Object wears; set on the First take, never a shader.
     pub family: Option<MaterialFamily>,
 }
 
 impl Object {
-    pub fn new(name: impl Into<String>, place: impl Into<String>, part: impl Into<String>) -> Self {
+    pub fn new(name: impl Into<String>, place: impl Into<String>, part: Part) -> Self {
         Self {
             name: name.into(),
             place: place.into(),
-            part: part.into(),
+            part,
             family: None,
         }
     }

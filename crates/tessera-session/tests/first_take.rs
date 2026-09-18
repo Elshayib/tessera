@@ -2,7 +2,8 @@
 //! at dusk" and gets a readable place — lighthouse-shape on cliff-shape — with
 //! light that matches the Intent, Material families already on the Objects and
 //! sky, names in Narration, and an automatic First-take Mark. Composed from
-//! Primitives only. Weathering and taste are Rehearsal (#6), not required here.
+//! Primitives; Kit Parts join this tracer in issue #5. Weathering and
+//! taste are Rehearsal (#6), not required here.
 //!
 //! As always, the tests act as the Person: headless, scripted Provider, no
 //! Verbs spoken, no Orbit or Point used.
@@ -36,12 +37,12 @@ fn first_take_plan() -> Plan {
         vec![
             Verb::place {
                 name: ObjectRef("the cliff".to_string()),
-                part: Primitive::Box,
+                part: Primitive::Box.into(),
                 at: "under the sky".to_string(),
             },
             Verb::place {
                 name: ObjectRef("the lighthouse".to_string()),
-                part: Primitive::Cylinder,
+                part: Primitive::Cylinder.into(),
                 at: "atop the cliff".to_string(),
             },
             Verb::light(LightCondition::Dusk),
@@ -167,9 +168,7 @@ fn first_take_is_automatically_a_mark_and_restorable() {
     );
 }
 
-/// "Compose uses only Primitives" holds by construction: the Verb's `part` is a
-/// `Primitive`, so no plan can even name a Kit Part. What must still work is a
-/// plan that aims `wear` at an Object the Scene does not have — the take stops
+/// A plan that aims `wear` at an Object the Scene does not have: the take stops
 /// with an error the Person can act on, and the Scene keeps what landed.
 #[test]
 fn a_plan_that_names_a_missing_object_stops_the_take() {
@@ -181,7 +180,7 @@ fn a_plan_that_names_a_missing_object_stops_the_take() {
         vec![
             Verb::place {
                 name: ObjectRef("the tower".to_string()),
-                part: Primitive::Cylinder,
+                part: Primitive::Cylinder.into(),
                 at: "on the cliff".to_string(),
             },
             Verb::wear {

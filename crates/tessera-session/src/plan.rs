@@ -6,7 +6,7 @@
 
 use serde::Deserialize;
 use tessera_engine::LightCondition;
-use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive, Verb};
+use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
 
 /// A planned take on Intent: what the Agent will do, and what it will say while
 /// doing it. One Narration line per Verb, in order — enforced by [`Plan::new`],
@@ -90,8 +90,8 @@ impl VerbWire {
     fn into_verb(self) -> Result<Verb, String> {
         match self {
             VerbWire::Place { name, part, at } => {
-                let part = Primitive::from_word(&part)
-                    .ok_or_else(|| format!("unknown Primitive {part:?}"))?;
+                let part =
+                    Part::from_word(&part).ok_or_else(|| format!("unknown Part {part:?}"))?;
                 Ok(Verb::place {
                     name: ObjectRef(name),
                     part,

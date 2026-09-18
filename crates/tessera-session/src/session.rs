@@ -216,7 +216,7 @@ impl<P: Provider, V: View> Session<P, V> {
             Verb::place { name, part, at } => {
                 self.scene
                     .objects
-                    .push(Object::new(name.0.clone(), at, part.word().to_string()));
+                    .push(Object::new(name.0.clone(), at, part));
                 self.view.show_frame(tessera_view::Frame {
                     object: Some(name.0),
                 });

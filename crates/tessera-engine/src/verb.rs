@@ -3,6 +3,8 @@
 //! Scene-level and object-level only. No coordinates, no vertex lists, no shader
 //! nodes in arguments. The Person never names a Verb.
 
+use crate::kit::KitPart;
+
 /// The Object a Verb acts on, by the name the Agent gave it in Narration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ObjectRef(pub String);
@@ -21,8 +23,7 @@ pub enum FrameTarget {
     Scene,
 }
 
-/// A Part with no identity beyond its shape. v1 Compose uses only these; named
-/// Kit Parts join the Verb surface with #5.
+/// A Part with no identity beyond its shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Primitive {
     Box,
@@ -57,6 +58,43 @@ impl Primitive {
             "torus" => Some(Self::Torus),
             _ => None,
         }
+    }
+}
+
+/// A piece the Agent may `place` while Composing: a Primitive, or a named Part
+/// from the Kit. The Kit does not replace Primitives.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Part {
+    Primitive(Primitive),
+    Kit(KitPart),
+}
+
+impl Part {
+    /// The Agent's coarse word for the piece (`"cylinder"`, `"lantern room"`).
+    pub fn word(self) -> &'static str {
+        match self {
+            Part::Primitive(p) => p.word(),
+            Part::Kit(k) => k.word(),
+        }
+    }
+
+    /// Parse a Primitive word or a Kit Part word.
+    pub fn from_word(word: &str) -> Option<Self> {
+        Primitive::from_word(word)
+            .map(Part::Primitive)
+            .or_else(|| KitPart::from_word(word).map(Part::Kit))
+    }
+}
+
+impl From<Primitive> for Part {
+    fn from(value: Primitive) -> Self {
+        Part::Primitive(value)
+    }
+}
+
+impl From<KitPart> for Part {
+    fn from(value: KitPart) -> Self {
+        Part::Kit(value)
     }
 }
 
@@ -110,11 +148,11 @@ pub enum Verb {
     light(LightCondition),
     /// Scene-level: a Material family for the environment (the sky).
     sky(MaterialFamily),
-    /// Compose: create an Object from a Primitive, with a name, at a relative
-    /// place ("on the cliff"). The Engine resolves place.
+    /// Compose: create an Object from a Primitive or Kit Part, with a name, at
+    /// a relative place ("on the cliff"). The Engine resolves place.
     place {
         name: ObjectRef,
-        part: Primitive,
+        part: Part,
         at: String,
     },
     /// Look: set a Material family on a named Object.

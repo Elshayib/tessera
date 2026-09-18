@@ -300,6 +300,12 @@ mod tests {
                     "{provider:?} must name the Verb {verb} in the shared contract"
                 );
             }
+            for part in ["lantern room", "cliff slab", "railing"] {
+                assert!(
+                    request.body.contains(part),
+                    "{provider:?} must name Kit Part {part} in the shared contract"
+                );
+            }
         }
     }
 
