@@ -56,7 +56,7 @@ pub fn key_path() -> PathBuf {
 }
 
 fn send_catalog<P: Provider, V: View>(session: &mut Session<P, V>, events: &Sender<Event>) {
-    if session.chosen_provider() != Some(ProviderName::Anthropic) || !session.has_key() {
+    if session.chosen_provider().is_none() || !session.has_key() {
         return;
     }
     match session.brains() {

@@ -1,7 +1,7 @@
-//! Brain from a live catalog (issue #16): the Person pastes an Anthropic Key
-//! and picks a Brain from what Anthropic currently offers. Tessera does not
-//! pin a SKU. OpenAI and Google still think; this ticket does not redo their
-//! catalogs.
+//! Brain from a live catalog (issues #16, #17): the Person pastes a Key and
+//! picks a Brain from what that Provider currently offers. Tessera does not
+//! pin a SKU. Anthropic, OpenAI, and Google share the same default and pick
+//! rules. Settings hold one Key and one Brain at a time.
 //!
 //! Tests act as the Person: headless, scripted list of Brains, no live lab,
 //! no real window.
@@ -490,4 +490,500 @@ fn key_and_brain_are_not_in_the_scene_or_talk() {
     );
 
     let _ = std::fs::remove_file(&path);
+}
+
+fn with_provider(
+    provider: ProviderName,
+    brains: Vec<Brain>,
+) -> Session<ScriptedProvider, ViewReport> {
+    let mut session = Session::start(
+        ScriptedProvider::default().offering(brains),
+        ViewReport::new(),
+    );
+    session.set_provider(provider);
+    session.set_key("sk-test");
+    session
+}
+
+const OPENAI_AND_GOOGLE: [ProviderName; 2] = [ProviderName::OpenAI, ProviderName::Google];
+
+/// After picking OpenAI or Google and pasting that Provider's Key, the Person
+/// sees a live list of Brains, with the same default and pick rules as Anthropic.
+#[test]
+fn openai_and_google_list_brains_after_a_key() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("cheap-eye", "Cheap Eye"),
+                seeing("dear-eye", "Dear Eye"),
+            ],
+        );
+        let brains = session
+            .brains()
+            .unwrap_or_else(|_| panic!("{provider:?} must offer the scripted list"));
+        let names: Vec<&str> = brains.iter().map(|b| b.name.as_str()).collect();
+        assert_eq!(
+            names,
+            ["Cheap Eye", "Dear Eye"],
+            "{provider:?} settings show Person-facing names, not a pinned SKU"
+        );
+    }
+}
+
+/// Image-generation, embeddings, and audio stay hidden on OpenAI and Google.
+#[test]
+fn openai_and_google_hide_non_chat_offerings() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("chat", "Chat"),
+                Brain {
+                    id: "embed".into(),
+                    name: "Embed".into(),
+                    can_see: false,
+                    price: None,
+                    kind: BrainKind::Embeddings,
+                },
+                Brain {
+                    id: "paint".into(),
+                    name: "Paint".into(),
+                    can_see: true,
+                    price: None,
+                    kind: BrainKind::ImageGen,
+                },
+                Brain {
+                    id: "voice".into(),
+                    name: "Voice".into(),
+                    can_see: false,
+                    price: None,
+                    kind: BrainKind::Audio,
+                },
+            ],
+        );
+        let brains = session
+            .brains()
+            .unwrap_or_else(|_| panic!("{provider:?} chat offerings remain"));
+        assert_eq!(brains.len(), 1, "{provider:?}");
+        assert_eq!(brains[0].id, "chat");
+    }
+}
+
+/// The list is searchable for OpenAI and Google the same way.
+#[test]
+fn openai_and_google_brain_list_is_searchable() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing("gpt-4.1-nano", "GPT 4.1 Nano"),
+                seeing("gpt-4.1", "GPT 4.1"),
+            ],
+        );
+        let found = session
+            .brains_matching("NANO")
+            .unwrap_or_else(|_| panic!("{provider:?} search uses the live list"));
+        assert_eq!(found.len(), 1, "{provider:?}");
+        assert_eq!(found[0].id, "gpt-4.1-nano");
+    }
+}
+
+/// Default on OpenAI and Google: cheapest that can see pictures.
+#[test]
+fn openai_and_google_default_is_the_cheapest_that_can_see() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                seeing_priced("dear-eye", "Dear Eye", 30),
+                seeing_priced("cheap-eye", "Cheap Eye", 3),
+                Brain {
+                    id: "cheap-words".into(),
+                    name: "Cheap Words".into(),
+                    can_see: false,
+                    price: Some(1),
+                    kind: BrainKind::Chat,
+                },
+            ],
+        );
+        session.brains().expect("the list is offered");
+        let chosen = session
+            .chosen_brain()
+            .unwrap_or_else(|| panic!("{provider:?} picks a default"));
+        assert_eq!(chosen.id, "cheap-eye", "{provider:?}");
+    }
+}
+
+/// The Person picks a Brain on OpenAI or Google; the Agent thinks with that id.
+#[test]
+fn openai_and_google_think_with_the_brain_the_person_picked() {
+    for provider in OPENAI_AND_GOOGLE {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![seeing("first", "First"), seeing("picked", "Picked")])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-test");
+        session
+            .set_brain("picked")
+            .unwrap_or_else(|_| panic!("{provider:?} pick is on the list"));
+
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .unwrap_or_else(|_| panic!("{provider:?} scripted plan lands"));
+
+        assert_eq!(
+            session.chosen_brain().map(|b| b.id.as_str()),
+            Some("picked"),
+            "{provider:?}"
+        );
+        let creds = session.provider().received_credentials();
+        assert_eq!(
+            creds.last().and_then(|c| c.brain.as_deref()),
+            Some("picked"),
+            "{provider:?} the Agent thinks with the Brain the Person picked"
+        );
+    }
+}
+
+/// Words-only Intent works with a text-only Brain on OpenAI and Google.
+#[test]
+fn openai_and_google_words_only_work_with_a_text_only_brain() {
+    for provider in OPENAI_AND_GOOGLE {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![text_only("words", "Words Only")])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-test");
+        session
+            .set_brain("words")
+            .expect("text-only Brains stay on the list");
+
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .unwrap_or_else(|_| panic!("{provider:?} words-only Intent must think"));
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+    }
+}
+
+/// Pictures plus a Brain that cannot see them: an error on OpenAI and Google.
+#[test]
+fn openai_and_google_pictures_to_a_text_only_brain_are_an_error() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(provider, vec![text_only("words", "Words Only")]);
+        session
+            .set_brain("words")
+            .expect("text-only stays on the list");
+
+        let err = session
+            .submit_intent(
+                Intent::words("a lighthouse like this sketch")
+                    .with_pictures([Picture::sketch(b"sketch-bytes".to_vec())]),
+            )
+            .expect_err("a Brain that cannot see must not swallow the picture");
+
+        assert_eq!(
+            err,
+            SessionError::Brain(BrainError::CannotSee),
+            "{provider:?}"
+        );
+        assert!(
+            session.objects().is_empty(),
+            "{provider:?} Viewport is not a silent freeze"
+        );
+    }
+}
+
+/// Nothing offered is an actionable error on OpenAI and Google.
+#[test]
+fn openai_and_google_empty_catalog_is_an_actionable_error() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(provider, vec![]);
+        let err = session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect_err("nothing offered means the Agent cannot think");
+        assert_eq!(
+            err,
+            SessionError::Brain(BrainError::Missing),
+            "{provider:?}"
+        );
+        assert!(session.objects().is_empty(), "{provider:?}");
+    }
+}
+
+/// Changing Brain on OpenAI or Google leaves the open Scene and Talk intact.
+#[test]
+fn openai_and_google_changing_brain_leaves_the_open_scene_intact() {
+    for provider in OPENAI_AND_GOOGLE {
+        let provider_script = ScriptedProvider::default()
+            .offering(vec![seeing("first", "First"), seeing("second", "Second")])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session = Session::start(provider_script, ViewReport::new());
+        session.set_provider(provider);
+        session.set_key("sk-test");
+        session.set_brain("first").expect("first is offered");
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect("the scripted plan lands");
+        let talk_len = session.talk().len();
+
+        session.set_brain("second").expect("second is offered");
+
+        assert_eq!(session.objects().len(), 1, "{provider:?}");
+        assert_eq!(session.objects()[0].name, "the lighthouse");
+        assert_eq!(session.talk().len(), talk_len, "{provider:?}");
+    }
+}
+
+/// Switching Provider still uses one Key and one Brain at a time: the previous
+/// pick is not kept, and the new list gets its own default.
+#[test]
+fn switching_provider_picks_a_new_default_brain() {
+    let provider = ScriptedProvider::default()
+        .offering(vec![
+            seeing("first-default", "First Default"),
+            seeing("person-pick", "Person Pick"),
+        ])
+        .plan(ScriptedProvider::place_and_frame(
+            "the lighthouse",
+            Primitive::Cylinder,
+            "on the cliff",
+        ));
+    let mut session = Session::start(provider, ViewReport::new());
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-one");
+    session
+        .set_brain("person-pick")
+        .expect("the Person's pick is offered");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the lighthouse lands");
+    assert_eq!(session.objects().len(), 1);
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("person-pick")
+    );
+
+    session.set_provider(ProviderName::OpenAI);
+    session.brains().expect("OpenAI offers the scripted list");
+    let chosen = session
+        .chosen_brain()
+        .expect("OpenAI gets a default so they can type without shopping");
+    assert_eq!(
+        chosen.id, "first-default",
+        "one Brain at a time: the Anthropic pick is dropped, OpenAI defaults"
+    );
+    assert_eq!(session.objects()[0].name, "the lighthouse");
+}
+
+/// Key and Brain stay in settings, not the Scene, for OpenAI (Google is the
+/// same store).
+#[test]
+fn openai_key_and_brain_are_not_in_the_scene_or_talk() {
+    let path = std::env::temp_dir().join(format!(
+        "tessera-openai-brain-settings-{}-{}.json",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos()
+    ));
+    let secret = "sk-openai-secret";
+    let brain_id = "gpt-4.1-nano";
+
+    {
+        let provider = ScriptedProvider::default()
+            .offering(vec![seeing(brain_id, "GPT 4.1 Nano")])
+            .plan(ScriptedProvider::place_and_frame(
+                "the lighthouse",
+                Primitive::Cylinder,
+                "on the cliff",
+            ));
+        let mut session =
+            Session::start(provider, ViewReport::new()).with_key_store(FileKeyStore::new(&path));
+        session.set_provider(ProviderName::OpenAI);
+        session.set_key(secret);
+        session.set_brain(brain_id).expect("it is offered");
+        session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect("the scripted plan lands");
+
+        let on_disk = std::fs::read_to_string(&path).expect("settings were written");
+        assert!(on_disk.contains(secret), "the Key lives in settings");
+        assert!(
+            on_disk.contains(brain_id),
+            "the Brain lives in settings next to the Key: {on_disk}"
+        );
+
+        for line in session.talk() {
+            assert!(!line.text.contains(secret), "Talk must not carry the Key");
+            assert!(
+                !line.text.contains(brain_id),
+                "Talk must not name the Brain"
+            );
+        }
+
+        let scene_path = std::env::temp_dir().join(format!(
+            "tessera-openai-brain-scene-{}-{}.json",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        session.save(&scene_path).expect("the Scene is kept");
+        let scene_on_disk = std::fs::read_to_string(&scene_path).expect("Scene was written");
+        assert!(
+            !scene_on_disk.contains(secret),
+            "Scene must not carry the Key"
+        );
+        assert!(
+            !scene_on_disk.contains(brain_id),
+            "Scene must not carry the Brain"
+        );
+        let _ = std::fs::remove_file(&scene_path);
+    }
+
+    let mut session = Session::start(
+        ScriptedProvider::default().offering(vec![seeing(brain_id, "GPT 4.1 Nano")]),
+        ViewReport::new(),
+    )
+    .with_key_store(FileKeyStore::new(&path));
+    assert!(session.has_key(), "a new Session loads the Key from disk");
+    assert_eq!(session.chosen_provider(), Some(ProviderName::OpenAI));
+    session.brains().expect("the list is offered");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some(brain_id),
+        "a restart finds the Brain next to the Key"
+    );
+    assert!(session.objects().is_empty());
+
+    let _ = std::fs::remove_file(&path);
+}
+
+/// Default without prices: first that can see, on OpenAI and Google.
+#[test]
+fn openai_and_google_default_without_price_is_the_first_that_can_see() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                text_only("words", "Words Only"),
+                seeing("first-eye", "First Eye"),
+                seeing("later-eye", "Later Eye"),
+            ],
+        );
+        session.brains().expect("the list is offered");
+        let chosen = session.chosen_brain().expect("a default is picked");
+        assert_eq!(chosen.id, "first-eye", "{provider:?}");
+    }
+}
+
+/// Default when none can see: cheapest chat Brain, on OpenAI and Google.
+#[test]
+fn openai_and_google_default_when_none_can_see_is_the_cheapest_chat() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = with_provider(
+            provider,
+            vec![
+                Brain {
+                    id: "dear-words".into(),
+                    name: "Dear Words".into(),
+                    can_see: false,
+                    price: Some(20),
+                    kind: BrainKind::Chat,
+                },
+                Brain {
+                    id: "cheap-words".into(),
+                    name: "Cheap Words".into(),
+                    can_see: false,
+                    price: Some(2),
+                    kind: BrainKind::Chat,
+                },
+            ],
+        );
+        session.brains().expect("the list is offered");
+        let chosen = session.chosen_brain().expect("a default is picked");
+        assert_eq!(chosen.id, "cheap-words", "{provider:?}");
+    }
+}
+
+/// A down catalog is an error they can act on, on OpenAI and Google.
+#[test]
+fn openai_and_google_failed_catalog_is_an_actionable_error() {
+    for provider in OPENAI_AND_GOOGLE {
+        let mut session = Session::start(
+            ScriptedProvider::default().catalog_fail(ProviderError::Unavailable("down".into())),
+            ViewReport::new(),
+        );
+        session.set_provider(provider);
+        session.set_key("sk-test");
+        let err = session
+            .brains()
+            .expect_err("a down catalog must not look like an empty list");
+        match err {
+            SessionError::Key(KeyError::Unavailable(reason)) => {
+                assert!(reason.contains("down"), "{provider:?} {reason}");
+            }
+            other => panic!("{provider:?} expected Unavailable, got {other:?}"),
+        }
+    }
+}
+
+/// A remembered Brain the Provider no longer offers is an error on OpenAI
+/// and Google; Tessera does not silently swap.
+#[test]
+fn openai_and_google_vanished_brain_is_an_actionable_error() {
+    for provider in OPENAI_AND_GOOGLE {
+        let path = std::env::temp_dir().join(format!(
+            "tessera-vanished-{}-{}-{}.json",
+            provider.word(),
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        {
+            let mut session = Session::start(
+                ScriptedProvider::default().offering(vec![seeing("gone", "Gone")]),
+                ViewReport::new(),
+            )
+            .with_key_store(FileKeyStore::new(&path));
+            session.set_provider(provider);
+            session.set_key("sk-test");
+            session.set_brain("gone").expect("it is offered now");
+        }
+
+        let mut session = Session::start(
+            ScriptedProvider::default().offering(vec![seeing("other", "Other")]),
+            ViewReport::new(),
+        )
+        .with_key_store(FileKeyStore::new(&path));
+        let err = session
+            .submit_intent("a weathered lighthouse on a cliff at dusk")
+            .expect_err("a vanished Brain must not silently become Other");
+        assert_eq!(
+            err,
+            SessionError::Brain(BrainError::Unknown),
+            "{provider:?}"
+        );
+        assert!(session.objects().is_empty(), "{provider:?}");
+        let _ = std::fs::remove_file(&path);
+    }
 }

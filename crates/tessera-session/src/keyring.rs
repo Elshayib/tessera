@@ -92,6 +92,13 @@ impl<S: KeyStore + ?Sized> Keyring<S> {
         self.write_through();
     }
 
+    /// Drop the Brain pick. Switching Provider still holds one Brain at a
+    /// time; the new Provider gets its own default from its list.
+    pub fn clear_brain(&mut self) {
+        self.brain = None;
+        self.write_through();
+    }
+
     /// The Provider the Key belongs to, once the Person has picked one.
     pub fn provider(&self) -> Option<ProviderName> {
         self.provider

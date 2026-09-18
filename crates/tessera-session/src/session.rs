@@ -148,7 +148,12 @@ impl<P: Provider, V: View> Session<P, V> {
     }
 
     /// The Person picked a Provider from the short list (spec story 4).
+    /// Switching Provider still uses one Brain at a time: the previous pick
+    /// is dropped so the new list can default.
     pub fn set_provider(&mut self, provider: ProviderName) {
+        if self.keyring.provider() != Some(provider) {
+            self.keyring.clear_brain();
+        }
         self.keyring.set_provider(provider);
         self.catalog = None;
     }
@@ -234,13 +239,11 @@ impl<P: Provider, V: View> Session<P, V> {
                 return Err(SessionError::Key(err));
             }
         };
-        if credentials.provider == ProviderName::Anthropic {
-            let brain = self.resolve_brain()?;
-            if !intent.pictures().is_empty() && !brain.can_see {
-                return Err(SessionError::Brain(BrainError::CannotSee));
-            }
-            credentials.brain = Some(brain.id);
+        let brain = self.resolve_brain()?;
+        if !intent.pictures().is_empty() && !brain.can_see {
+            return Err(SessionError::Brain(BrainError::CannotSee));
         }
+        credentials.brain = Some(brain.id);
         let names: Vec<String> = self.scene.objects.iter().map(|o| o.name.clone()).collect();
         let answering = self.pending_ask.is_some();
         let bindings = Bindings {

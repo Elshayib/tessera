@@ -10,12 +10,17 @@ use tessera_session::{
 use crate::prompt::SYSTEM;
 use crate::transport::{HttpRequest, HttpResponse};
 
-const OPENAI_MODEL: &str = "gpt-4.1-nano";
-const GOOGLE_MODEL: &str = "gemini-2.5-flash";
+fn thinking_brain(credentials: &Credentials) -> &str {
+    credentials
+        .brain
+        .as_deref()
+        .expect("chat names a Brain; Session resolves one before thinking")
+}
 
 /// Pack Intent + Scene bindings + the shared Verb contract into the chosen lab's POST.
 pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) -> HttpRequest {
     let text = user_content(intent, bindings);
+    let brain = thinking_brain(credentials);
     match credentials.provider {
         ProviderName::Anthropic => HttpRequest {
             url: "https://api.anthropic.com/v1/messages".to_string(),
@@ -25,9 +30,7 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
                 ("anthropic-version".into(), "2023-06-01".into()),
             ],
             body: json!({
-                "model": credentials.brain.as_deref().expect(
-                    "Anthropic chat names a Brain; Session resolves one before thinking",
-                ),
+                "model": brain,
                 "max_tokens": 4096,
                 "system": SYSTEM,
                 "messages": [{ "role": "user", "content": anthropic_content(&text, intent.pictures()) }],
@@ -44,7 +47,7 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
                 ),
             ],
             body: json!({
-                "model": OPENAI_MODEL,
+                "model": brain,
                 "max_completion_tokens": 4096,
                 "messages": [
                     { "role": "system", "content": SYSTEM },
@@ -55,7 +58,7 @@ pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) 
         },
         ProviderName::Google => HttpRequest {
             url: format!(
-                "https://generativelanguage.googleapis.com/v1beta/models/{GOOGLE_MODEL}:generateContent"
+                "https://generativelanguage.googleapis.com/v1beta/models/{brain}:generateContent"
             ),
             headers: vec![
                 ("content-type".into(), "application/json".into()),
@@ -197,15 +200,16 @@ pub fn unpack(provider: ProviderName, response: &HttpResponse) -> Result<String,
     }
 }
 
-/// List what this Provider currently offers. Anthropic is a live GET; OpenAI
-/// and Google stay pinned until their catalog tickets.
+/// List what this Provider currently offers. Each lab is a live GET; Tessera
+/// does not pin a SKU.
 pub fn list_brains<T: crate::transport::Transport>(
     transport: &mut T,
     credentials: &Credentials,
 ) -> Result<Vec<Brain>, ProviderError> {
     match credentials.provider {
         ProviderName::Anthropic => list_anthropic(transport, &credentials.key),
-        ProviderName::OpenAI | ProviderName::Google => Ok(Vec::new()),
+        ProviderName::OpenAI => list_openai(transport, &credentials.key),
+        ProviderName::Google => list_google(transport, &credentials.key),
     }
 }
 
@@ -249,6 +253,180 @@ fn list_anthropic<T: crate::transport::Transport>(
         break;
     }
     Ok(chat_brains(brains))
+}
+
+fn list_openai<T: crate::transport::Transport>(
+    transport: &mut T,
+    key: &str,
+) -> Result<Vec<Brain>, ProviderError> {
+    let request = HttpRequest {
+        url: "https://api.openai.com/v1/models".to_string(),
+        headers: vec![("authorization".into(), format!("Bearer {key}"))],
+        body: String::new(),
+    };
+    let response = transport.get(&request).map_err(|_| {
+        ProviderError::Unavailable(
+            "Could not reach the Provider. Check the network and try again.".to_string(),
+        )
+    })?;
+    if let Some(err) = openai_refusal(&response) {
+        return Err(err);
+    }
+    Ok(chat_brains(openai_catalog(&response.body)?))
+}
+
+fn openai_catalog(body: &str) -> Result<Vec<Brain>, ProviderError> {
+    let value = parse_json(body).ok_or_else(could_not_list)?;
+    let Some(serde_json::Value::Array(data)) = value.get("data").cloned() else {
+        return Err(could_not_list());
+    };
+    let mut brains = Vec::new();
+    for item in data {
+        let Some(id) = item.get("id").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if id.is_empty() {
+            continue;
+        }
+        brains.push(Brain {
+            id: id.to_string(),
+            name: id.to_string(),
+            can_see: true,
+            price: None,
+            kind: openai_kind(id),
+        });
+    }
+    Ok(brains)
+}
+
+/// OpenAI's list does not name modalities. Drop offerings whose id is
+/// embeddings, image-gen, audio, or other non-chat work.
+fn openai_kind(id: &str) -> BrainKind {
+    let id = id.to_ascii_lowercase();
+    let stem = id
+        .strip_prefix("ft:")
+        .and_then(|s| s.split(':').next())
+        .unwrap_or(&id);
+    if stem.contains("embedding") {
+        BrainKind::Embeddings
+    } else if stem.contains("dall-e") || stem.contains("dalle") || stem.contains("gpt-image") {
+        BrainKind::ImageGen
+    } else if stem.contains("whisper")
+        || stem.contains("tts")
+        || stem.contains("transcribe")
+        || stem.contains("realtime")
+        || stem.contains("audio")
+    {
+        BrainKind::Audio
+    } else if stem.contains("moderation")
+        || stem.contains("sora")
+        || stem.contains("computer-use")
+        || stem.contains("instruct")
+        || stem.starts_with("davinci")
+        || stem.starts_with("babbage")
+    {
+        BrainKind::Other
+    } else {
+        BrainKind::Chat
+    }
+}
+
+fn list_google<T: crate::transport::Transport>(
+    transport: &mut T,
+    key: &str,
+) -> Result<Vec<Brain>, ProviderError> {
+    let mut brains = Vec::new();
+    let mut page_token: Option<String> = None;
+    loop {
+        let mut url =
+            "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000".to_string();
+        if let Some(token) = &page_token {
+            url.push_str("&pageToken=");
+            url.push_str(token);
+        }
+        let request = HttpRequest {
+            url,
+            headers: vec![("x-goog-api-key".into(), key.to_string())],
+            body: String::new(),
+        };
+        let response = transport.get(&request).map_err(|_| {
+            ProviderError::Unavailable(
+                "Could not reach the Provider. Check the network and try again.".to_string(),
+            )
+        })?;
+        if let Some(err) = google_refusal(&response) {
+            return Err(err);
+        }
+        let (page, next) = google_catalog_page(&response.body)?;
+        brains.extend(page);
+        match next {
+            Some(token) if !token.is_empty() => page_token = Some(token),
+            _ => break,
+        }
+    }
+    Ok(chat_brains(brains))
+}
+
+fn google_catalog_page(body: &str) -> Result<(Vec<Brain>, Option<String>), ProviderError> {
+    let value = parse_json(body).ok_or_else(could_not_list)?;
+    let Some(serde_json::Value::Array(models)) = value.get("models").cloned() else {
+        return Err(could_not_list());
+    };
+    let mut brains = Vec::new();
+    for item in models {
+        let Some(name) = item.get("name").and_then(serde_json::Value::as_str) else {
+            continue;
+        };
+        if name.is_empty() {
+            continue;
+        }
+        let id = name.strip_prefix("models/").unwrap_or(name);
+        if id.is_empty() {
+            continue;
+        }
+        let display = item
+            .get("displayName")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or(id);
+        let methods = item
+            .get("supportedGenerationMethods")
+            .and_then(Value::as_array);
+        brains.push(Brain {
+            id: id.to_string(),
+            name: display.to_string(),
+            can_see: true,
+            price: None,
+            kind: google_kind(methods),
+        });
+    }
+    let next = value
+        .get("nextPageToken")
+        .and_then(serde_json::Value::as_str)
+        .filter(|t| !t.is_empty())
+        .map(str::to_string);
+    Ok((brains, next))
+}
+
+fn google_kind(methods: Option<&Vec<Value>>) -> BrainKind {
+    let Some(methods) = methods else {
+        return BrainKind::Chat;
+    };
+    let names: Vec<&str> = methods.iter().filter_map(Value::as_str).collect();
+    if names.is_empty() {
+        return BrainKind::Chat;
+    }
+    if names.contains(&"generateContent") {
+        BrainKind::Chat
+    } else if names.contains(&"embedContent") {
+        BrainKind::Embeddings
+    } else if names.contains(&"predict")
+        || names.contains(&"generateImages")
+        || names.iter().any(|m| m.contains("Image"))
+    {
+        BrainKind::ImageGen
+    } else {
+        BrainKind::Other
+    }
 }
 
 fn anthropic_catalog_page(body: &str) -> Result<(Vec<Brain>, bool, Option<String>), ProviderError> {
@@ -347,10 +525,10 @@ fn unpack_anthropic(response: &HttpResponse) -> Result<String, ProviderError> {
     Ok(text)
 }
 
-fn unpack_openai(response: &HttpResponse) -> Result<String, ProviderError> {
+fn openai_refusal(response: &HttpResponse) -> Option<ProviderError> {
     let body = parse_json(&response.body);
     if response.status == 401 {
-        return Err(ProviderError::InvalidKey);
+        return Some(ProviderError::InvalidKey);
     }
     let code = body
         .as_ref()
@@ -362,19 +540,27 @@ fn unpack_openai(response: &HttpResponse) -> Result<String, ProviderError> {
         | Some("organization_spend_limit_exceeded")
         | Some("project_spend_limit_exceeded")
         | Some("organization_usage_limit_exceeded")
-        | Some("insufficient_quota") => return Err(ProviderError::OutOfCredit),
+        | Some("insufficient_quota") => return Some(ProviderError::OutOfCredit),
         _ => {}
     }
     if response.status == 429 {
-        return match code {
-            Some("rate_limit_exceeded") | Some("slow_down") | None => Err(busy()),
-            _ => Err(ProviderError::OutOfCredit),
-        };
+        return Some(match code {
+            Some("rate_limit_exceeded") | Some("slow_down") | None => busy(),
+            _ => ProviderError::OutOfCredit,
+        });
     }
     if response.status != 200 {
-        return Err(unavailable());
+        return Some(unavailable());
     }
-    body.as_ref()
+    None
+}
+
+fn unpack_openai(response: &HttpResponse) -> Result<String, ProviderError> {
+    if let Some(err) = openai_refusal(response) {
+        return Err(err);
+    }
+    parse_json(&response.body)
+        .as_ref()
         .and_then(|v| v.get("choices"))
         .and_then(Value::as_array)
         .and_then(|c| c.first())
@@ -386,7 +572,7 @@ fn unpack_openai(response: &HttpResponse) -> Result<String, ProviderError> {
         .ok_or_else(could_not_plan)
 }
 
-fn unpack_google(response: &HttpResponse) -> Result<String, ProviderError> {
+fn google_refusal(response: &HttpResponse) -> Option<ProviderError> {
     let body = parse_json(&response.body);
     let reason = google_reason(&body);
     let status = body
@@ -398,23 +584,31 @@ fn unpack_google(response: &HttpResponse) -> Result<String, ProviderError> {
         || (response.status == 400 && status == Some("INVALID_ARGUMENT") && reason.is_some())
         || message_says_bad_key(&body)
     {
-        return Err(ProviderError::InvalidKey);
+        return Some(ProviderError::InvalidKey);
     }
     if response.status == 403 || status == Some("PERMISSION_DENIED") {
-        return Err(ProviderError::InvalidKey);
+        return Some(ProviderError::InvalidKey);
     }
     if status == Some("FAILED_PRECONDITION") {
-        return Err(ProviderError::OutOfCredit);
+        return Some(ProviderError::OutOfCredit);
     }
     if response.status == 429 || status == Some("RESOURCE_EXHAUSTED") {
-        return Err(ProviderError::Unavailable(
+        return Some(ProviderError::Unavailable(
             "The Provider is busy, or this Key is out of credit. Try again, add credit, or pick another Provider."
                 .to_string(),
         ));
     }
     if response.status != 200 {
-        return Err(unavailable());
+        return Some(unavailable());
     }
+    None
+}
+
+fn unpack_google(response: &HttpResponse) -> Result<String, ProviderError> {
+    if let Some(err) = google_refusal(response) {
+        return Err(err);
+    }
+    let body = parse_json(&response.body);
     let mut text = String::new();
     if let Some(candidates) = body
         .as_ref()
@@ -598,6 +792,38 @@ mod tests {
         assert!(
             !request.body.contains("test-brain"),
             "a live pick must not be replaced by a stand-in id"
+        );
+    }
+
+    #[test]
+    fn openai_names_the_brain_id_not_a_pinned_sku() {
+        let mut creds = creds(ProviderName::OpenAI);
+        creds.brain = Some("gpt-4.1-mini".into());
+        let request = pack(&creds, &words("hi"), none_pointed());
+        assert!(
+            request.body.contains("gpt-4.1-mini"),
+            "the Agent thinks with the Brain the Person picked"
+        );
+        assert!(
+            !request.body.contains("gpt-4.1-nano"),
+            "a live pick must not be replaced by a pinned SKU"
+        );
+    }
+
+    #[test]
+    fn google_names_the_brain_id_not_a_pinned_sku() {
+        let mut creds = creds(ProviderName::Google);
+        creds.brain = Some("gemini-2.5-pro".into());
+        let request = pack(&creds, &words("hi"), none_pointed());
+        assert!(
+            request.url.contains("gemini-2.5-pro"),
+            "the Agent thinks with the Brain the Person picked: {}",
+            request.url
+        );
+        assert!(
+            !request.url.contains("gemini-2.5-flash"),
+            "a live pick must not be replaced by a pinned SKU: {}",
+            request.url
         );
     }
 

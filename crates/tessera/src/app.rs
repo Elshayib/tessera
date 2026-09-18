@@ -98,6 +98,8 @@ impl eframe::App for TesseraApp {
                         for p in ProviderName::ALL {
                             if ui.selectable_label(self.provider == p, p.word()).clicked() {
                                 self.provider = p;
+                                self.brains.clear();
+                                self.brain_id = None;
                                 let _ = self.cmds.send(Command::SetProvider(p));
                             }
                         }
@@ -113,7 +115,7 @@ impl eframe::App for TesseraApp {
                     let _ = self.cmds.send(Command::SetKey(self.key.clone()));
                     let _ = self.cmds.send(Command::RefreshBrains);
                 }
-                if self.provider == ProviderName::Anthropic && !self.brains.is_empty() {
+                if !self.brains.is_empty() {
                     ui.label("Brain");
                     let selected = self
                         .brains

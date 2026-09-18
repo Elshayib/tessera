@@ -137,21 +137,70 @@ fn anthropic_catalog() -> String {
     .to_string()
 }
 
-fn with_anthropic_catalog(chat: FakeTransport) -> FakeTransport {
-    FakeTransport::default()
-        .replies(200, anthropic_catalog())
-        .then(chat)
+/// OpenAI list: two chat Brains plus embeddings, image-gen, and audio. No
+/// modalities, so every chat Brain is treated as able to see. Default is first.
+fn openai_catalog() -> String {
+    serde_json::json!({
+        "object": "list",
+        "data": [
+            { "id": "gpt-test-default", "object": "model", "owned_by": "openai" },
+            { "id": "gpt-test-pick", "object": "model", "owned_by": "openai" },
+            { "id": "text-embedding-3-small", "object": "model", "owned_by": "openai" },
+            { "id": "dall-e-3", "object": "model", "owned_by": "openai" },
+            { "id": "whisper-1", "object": "model", "owned_by": "openai" },
+            { "id": "gpt-3.5-turbo-instruct", "object": "model", "owned_by": "openai" }
+        ]
+    })
+    .to_string()
+}
+
+/// Google list: two generateContent Brains plus embeddings and image-gen.
+/// No vision flag, so chat Brains are treated as able to see. Default is first.
+fn google_catalog() -> String {
+    serde_json::json!({
+        "models": [
+            {
+                "name": "models/gemini-test-default",
+                "displayName": "Gemini Test Default",
+                "supportedGenerationMethods": ["generateContent", "countTokens"]
+            },
+            {
+                "name": "models/gemini-test-pick",
+                "displayName": "Gemini Test Pick",
+                "supportedGenerationMethods": ["generateContent"]
+            },
+            {
+                "name": "models/text-embedding-004",
+                "displayName": "Text Embedding 004",
+                "supportedGenerationMethods": ["embedContent"]
+            },
+            {
+                "name": "models/imagen-3.0-generate-002",
+                "displayName": "Imagen 3",
+                "supportedGenerationMethods": ["predict"]
+            }
+        ]
+    })
+    .to_string()
+}
+
+fn with_catalog(provider: ProviderName, chat: FakeTransport) -> FakeTransport {
+    let catalog = match provider {
+        ProviderName::Anthropic => anthropic_catalog(),
+        ProviderName::OpenAI => openai_catalog(),
+        ProviderName::Google => google_catalog(),
+    };
+    FakeTransport::default().replies(200, catalog).then(chat)
 }
 
 fn session(
     provider: ProviderName,
     transport: FakeTransport,
 ) -> Session<LivePlanner<FakeTransport>, ViewReport> {
-    let transport = match provider {
-        ProviderName::Anthropic => with_anthropic_catalog(transport),
-        _ => transport,
-    };
-    let mut session = Session::start(LivePlanner::with_transport(transport), ViewReport::new());
+    let mut session = Session::start(
+        LivePlanner::with_transport(with_catalog(provider, transport)),
+        ViewReport::new(),
+    );
     session.set_provider(provider);
     session.set_key("sk-test");
     session
@@ -585,27 +634,220 @@ fn anthropic_thinks_with_the_brain_the_person_picked() {
     );
 }
 
-/// Catalog GET then chat POST: OpenAI and Google still think without a list.
+/// After an OpenAI Key, the Person sees chat Brains from the live list.
+/// Embeddings, image-gen, and audio are not offered.
 #[test]
-fn openai_and_google_still_think_without_a_catalog_get() {
-    for provider in [ProviderName::OpenAI, ProviderName::Google] {
-        let (status, body) = envelope(provider, PLAN);
-        let mut session = session(provider, FakeTransport::default().replies(status, body));
-        session
-            .submit_intent("a weathered lighthouse on a cliff at dusk")
-            .expect("OpenAI and Google still think");
-        assert_eq!(session.objects().len(), 1, "{provider:?}");
-        let sent = session.provider().transport_sent();
-        assert_eq!(
-            sent.len(),
-            1,
-            "{provider:?} must not fetch a catalog in this ticket"
-        );
-        assert!(
-            !sent[0].url.contains("/v1/models"),
-            "{provider:?} chat is not a catalog GET"
-        );
-    }
+fn openai_lists_brains_from_the_live_catalog() {
+    let mut session = session(ProviderName::OpenAI, FakeTransport::default());
+    let brains = session.brains().expect("the fake catalog is offered");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, ["gpt-test-default", "gpt-test-pick"]);
+    assert!(
+        brains.iter().all(|b| b.can_see),
+        "OpenAI's list does not say whether a Brain can see; treat it as able to"
+    );
+    let sent = session.provider().transport_sent();
+    assert!(
+        sent[0].url.starts_with("https://api.openai.com/v1/models"),
+        "{}",
+        sent[0].url
+    );
+}
+
+/// After a Google Key, the Person sees generateContent Brains from the live
+/// list. Embeddings and image-gen are not offered. Ids drop the models/ prefix.
+#[test]
+fn google_lists_brains_from_the_live_catalog() {
+    let mut session = session(ProviderName::Google, FakeTransport::default());
+    let brains = session.brains().expect("the fake catalog is offered");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, ["gemini-test-default", "gemini-test-pick"]);
+    let names: Vec<&str> = brains.iter().map(|b| b.name.as_str()).collect();
+    assert_eq!(names, ["Gemini Test Default", "Gemini Test Pick"]);
+    assert!(
+        brains.iter().all(|b| b.can_see),
+        "Google's list does not say whether a Brain can see; treat it as able to"
+    );
+    let sent = session.provider().transport_sent();
+    assert!(
+        sent[0]
+            .url
+            .starts_with("https://generativelanguage.googleapis.com/v1beta/models"),
+        "{}",
+        sent[0].url
+    );
+    assert!(
+        !sent[0].url.contains(":generateContent"),
+        "listing is GET /models, not a chat POST: {}",
+        sent[0].url
+    );
+}
+
+/// Default with no prices is the first chat Brain (OpenAI has no vision flag).
+#[test]
+fn openai_thinks_with_the_default_brain_id() {
+    let mut session = session(
+        ProviderName::OpenAI,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the fake lab returns a plan");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("gpt-test-default")
+    );
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/v1/chat/completions"))
+        .expect("a chat POST follows the catalog GET");
+    assert!(
+        chat.body.contains("gpt-test-default"),
+        "the Agent thinks with the default Brain's id: {}",
+        chat.body
+    );
+    assert!(
+        !chat.body.contains("gpt-4.1-nano"),
+        "no pinned SKU remains: {}",
+        chat.body
+    );
+    assert!(
+        chat.body.contains("The Person never names a Verb"),
+        "the system prompt does not change across labs"
+    );
+}
+
+/// Default with no prices is the first generateContent Brain.
+#[test]
+fn google_thinks_with_the_default_brain_id() {
+    let mut session = session(
+        ProviderName::Google,
+        FakeTransport::default().replies(200, google_ok(PLAN)),
+    );
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the fake lab returns a plan");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("gemini-test-default")
+    );
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains(":generateContent"))
+        .expect("a chat POST follows the catalog GET");
+    assert!(
+        chat.url.contains("gemini-test-default"),
+        "the Agent thinks with the default Brain's id: {}",
+        chat.url
+    );
+    assert!(
+        !chat.url.contains("gemini-2.5-flash"),
+        "no pinned SKU remains: {}",
+        chat.url
+    );
+    assert!(
+        chat.body.contains("The Person never names a Verb"),
+        "the system prompt does not change across labs"
+    );
+}
+
+/// The Person's OpenAI pick is the id in the chat POST.
+#[test]
+fn openai_thinks_with_the_brain_the_person_picked() {
+    let mut session = session(
+        ProviderName::OpenAI,
+        FakeTransport::default().replies(200, openai_ok(PLAN)),
+    );
+    session
+        .set_brain("gpt-test-pick")
+        .expect("the pick is on the list");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("words-only Intent works");
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains("/v1/chat/completions"))
+        .expect("chat POST");
+    assert!(
+        chat.body.contains("gpt-test-pick"),
+        "the Agent thinks with the picked Brain's id"
+    );
+}
+
+/// The Person's Google pick is the id in the generateContent URL.
+#[test]
+fn google_thinks_with_the_brain_the_person_picked() {
+    let mut session = session(
+        ProviderName::Google,
+        FakeTransport::default().replies(200, google_ok(PLAN)),
+    );
+    session
+        .set_brain("gemini-test-pick")
+        .expect("the pick is on the list");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("words-only Intent works");
+    let sent = session.provider().transport_sent();
+    let chat = sent
+        .iter()
+        .find(|r| r.url.contains(":generateContent"))
+        .expect("chat POST");
+    assert!(
+        chat.url.contains("gemini-test-pick"),
+        "the Agent thinks with the picked Brain's id: {}",
+        chat.url
+    );
+}
+
+/// Paginated Google lists are combined into one Person-facing list.
+#[test]
+fn google_follows_catalog_pages() {
+    let page1 = serde_json::json!({
+        "models": [{
+            "name": "models/first",
+            "displayName": "First",
+            "supportedGenerationMethods": ["generateContent"]
+        }],
+        "nextPageToken": "page-2"
+    })
+    .to_string();
+    let page2 = serde_json::json!({
+        "models": [{
+            "name": "models/second",
+            "displayName": "Second",
+            "supportedGenerationMethods": ["generateContent"]
+        }]
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(
+            FakeTransport::default()
+                .replies(200, page1)
+                .replies(200, page2),
+        ),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Google);
+    session.set_key("sk-test");
+    let brains = session.brains().expect("both pages");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, ["first", "second"]);
+    let sent = session.provider().transport_sent();
+    assert!(
+        sent[0]
+            .url
+            .starts_with("https://generativelanguage.googleapis.com/v1beta/models"),
+        "{}",
+        sent[0].url
+    );
+    assert!(
+        sent[1].url.contains("pageToken=page-2"),
+        "the second page follows nextPageToken: {}",
+        sent[1].url
+    );
 }
 
 /// Changing Provider mid-Scene still lands the next plan on the same Objects.
@@ -626,4 +868,50 @@ fn changing_provider_keeps_the_open_scene() {
         3,
         "Intent plus the two Narration lines of the plan stay with the Scene"
     );
+}
+
+/// An invalid Key on the OpenAI catalog GET is an error they can act on.
+#[test]
+fn openai_catalog_rejects_an_invalid_key() {
+    let body = serde_json::json!({
+        "error": { "message": "Incorrect API key provided", "type": "invalid_request_error" }
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(FakeTransport::default().replies(401, body)),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::OpenAI);
+    session.set_key("sk-bogus");
+    let err = session
+        .brains()
+        .expect_err("401 on the catalog GET is an invalid Key");
+    assert_eq!(err, SessionError::Key(KeyError::Invalid));
+}
+
+/// An invalid Key on the Google catalog GET is an error they can act on.
+#[test]
+fn google_catalog_rejects_an_invalid_key() {
+    let body = serde_json::json!({
+        "error": {
+            "code": 400,
+            "message": "API key not valid. Please pass a valid API key.",
+            "status": "INVALID_ARGUMENT",
+            "details": [{
+                "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                "reason": "API_KEY_INVALID"
+            }]
+        }
+    })
+    .to_string();
+    let mut session = Session::start(
+        LivePlanner::with_transport(FakeTransport::default().replies(400, body)),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Google);
+    session.set_key("sk-bogus");
+    let err = session
+        .brains()
+        .expect_err("400 API_KEY_INVALID on the catalog GET is an invalid Key");
+    assert_eq!(err, SessionError::Key(KeyError::Invalid));
 }
