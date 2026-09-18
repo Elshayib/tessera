@@ -8,9 +8,16 @@
 //! Verbs spoken, no Orbit or Point used.
 
 use tessera_session::{
-    FrameTarget, LightCondition, MaterialFamily, ObjectRef, Plan, Primitive, ScriptedProvider,
-    Session, Verb, ViewReport,
+    FrameTarget, LightCondition, MaterialFamily, ObjectRef, Plan, Primitive, Provider,
+    ProviderName, ScriptedProvider, Session, Verb, View, ViewReport,
 };
+
+/// The Person pastes a Key and picks a Provider before the first Intent:
+/// since #4 the Agent needs both to think at all.
+fn person_pastes_key<P: Provider, V: View>(session: &mut Session<P, V>) {
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("test-key-the-person-pasted");
+}
 
 /// The scripted Provider's answer to the tracer Intent: the plan a real
 /// Provider's first response should have. Compose from Primitives, light the
@@ -57,6 +64,7 @@ fn first_take_plan() -> Plan {
 fn first_take_is_a_readable_place_lit_like_dusk() {
     let provider = ScriptedProvider::default().plan(first_take_plan());
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -105,6 +113,7 @@ fn first_take_is_a_readable_place_lit_like_dusk() {
 fn first_take_narration_names_the_objects() {
     let provider = ScriptedProvider::default().plan(first_take_plan());
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     let said = session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -127,6 +136,7 @@ fn first_take_is_automatically_a_mark_and_restorable() {
         ScriptedProvider::place_and_frame("the shed", Primitive::Box, "beside the lighthouse"),
     );
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -182,6 +192,7 @@ fn a_plan_that_names_a_missing_object_stops_the_take() {
     );
     let provider = ScriptedProvider::default().plan(plan);
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     let err = session
         .submit_intent("build a tower and dress it")
@@ -204,6 +215,7 @@ fn a_plan_that_names_a_missing_object_stops_the_take() {
 fn first_take_survives_without_orbit_or_point() {
     let provider = ScriptedProvider::default().plan(first_take_plan());
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")

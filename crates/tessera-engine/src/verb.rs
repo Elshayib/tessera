@@ -45,6 +45,19 @@ impl Primitive {
             Primitive::Torus => "torus",
         }
     }
+
+    /// Parse the Agent's coarse word back into a Primitive.
+    pub fn from_word(word: &str) -> Option<Self> {
+        match word {
+            "box" => Some(Self::Box),
+            "sphere" => Some(Self::Sphere),
+            "cylinder" => Some(Self::Cylinder),
+            "capsule" => Some(Self::Capsule),
+            "cone" => Some(Self::Cone),
+            "torus" => Some(Self::Torus),
+            _ => None,
+        }
+    }
 }
 
 /// Named lighting for the whole Scene, matching the Intent ("at dusk").
@@ -66,6 +79,18 @@ impl LightCondition {
             LightCondition::Overcast => "overcast",
             LightCondition::Dusk => "dusk",
             LightCondition::Night => "night",
+        }
+    }
+
+    /// Parse the Agent's coarse word back into a light condition.
+    pub fn from_word(word: &str) -> Option<Self> {
+        match word {
+            "dawn" => Some(Self::Dawn),
+            "noon" => Some(Self::Noon),
+            "overcast" => Some(Self::Overcast),
+            "dusk" => Some(Self::Dusk),
+            "night" => Some(Self::Night),
+            _ => None,
         }
     }
 }

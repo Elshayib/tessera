@@ -7,3 +7,6 @@ license.workspace = true
 [dependencies]
 tessera-engine = { path = "../tessera-engine" }
 tessera-view = { path = "../tessera-view" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

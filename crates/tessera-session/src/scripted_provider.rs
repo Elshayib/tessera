@@ -2,20 +2,27 @@
 //! network: it hands back the plan a real Provider would have thought up.
 
 use crate::plan::Plan;
-use crate::provider::Provider;
+use crate::provider::{Credentials, Provider, ProviderError};
 use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive, Verb};
 
-/// Hands back the scripted Plans, one per Intent, in the order they were added.
+/// Hands back the scripted Plans (or troubles), one per Intent, in the order
+/// they were added.
 #[derive(Debug, Default)]
 pub struct ScriptedProvider {
-    plans: Vec<Plan>,
+    outcomes: Vec<Result<Plan, ProviderError>>,
     next: usize,
 }
 
 impl ScriptedProvider {
     /// Script the Provider so the next Intent in line gets this Plan.
     pub fn plan(mut self, plan: Plan) -> Self {
-        self.plans.push(plan);
+        self.outcomes.push(Ok(plan));
+        self
+    }
+
+    /// Script the Provider so the next Intent in line is refused this way.
+    pub fn fail(mut self, error: ProviderError) -> Self {
+        self.outcomes.push(Err(error));
         self
     }
 
@@ -54,15 +61,19 @@ impl ScriptedProvider {
 }
 
 impl Provider for ScriptedProvider {
-    fn respond(&mut self, _intent: &str) -> Plan {
-        let plan = self.plans.get(self.next).cloned().unwrap_or_else(|| {
+    fn respond(
+        &mut self,
+        _intent: &str,
+        _credentials: &Credentials,
+    ) -> Result<Plan, ProviderError> {
+        let outcome = self.outcomes.get(self.next).cloned().unwrap_or_else(|| {
             panic!(
-                "the test scripted {} Plan(s) but the Provider was asked {} time(s)",
-                self.plans.len(),
+                "the test scripted {} outcome(s) but the Provider was asked {} time(s)",
+                self.outcomes.len(),
                 self.next + 1
             )
         });
         self.next += 1;
-        plan
+        outcome
     }
 }

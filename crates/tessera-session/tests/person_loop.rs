@@ -3,7 +3,16 @@
 //! is on. They never issue Verbs, never open a real window, and never call a
 //! live Provider — the Provider here is scripted, the View is a recorder.
 
-use tessera_session::{Primitive, ScriptedProvider, Session, ViewReport};
+use tessera_session::{
+    Primitive, Provider, ProviderName, ScriptedProvider, Session, View, ViewReport,
+};
+
+/// The Person pastes a Key and picks a Provider before the first Intent:
+/// since #4 the Agent needs both to think at all.
+fn person_pastes_key<P: Provider, V: View>(session: &mut Session<P, V>) {
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("test-key-the-person-pasted");
+}
 
 /// The Person starts a Scene with no account: Session::start takes nothing but
 /// a Provider and a View. There is no signup, no login, no key required to open
@@ -35,6 +44,7 @@ fn person_types_intent_and_the_agent_places_a_named_object() {
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -56,6 +66,7 @@ fn narration_says_what_happened_using_the_objects_name() {
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     let said = session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -79,6 +90,7 @@ fn the_agent_frames_the_work_so_the_person_is_looking_at_it() {
         "on the cliff",
     ));
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")
@@ -109,6 +121,7 @@ fn the_talk_accumulates_across_intents() {
             "under the lighthouse",
         ));
     let mut session = Session::start(provider, ViewReport::new());
+    person_pastes_key(&mut session);
 
     session
         .submit_intent("a weathered lighthouse on a cliff at dusk")

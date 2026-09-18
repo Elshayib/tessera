@@ -1,3 +1,4 @@
+pub mod keyring;
 pub mod marks;
 pub mod plan;
 pub mod provider;
@@ -6,12 +7,14 @@ pub mod scripted_provider;
 pub mod session;
 pub mod view;
 
+pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
-pub use provider::Provider;
+pub use provider::{Credentials, Provider, ProviderError, ProviderName};
 pub use scene::Scene;
 pub use scripted_provider::ScriptedProvider;
-pub use session::{NarrationLine, Session, SessionError};
+pub use session::{KeyError, NarrationLine, Session, SessionError};
 pub use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Primitive};
 pub use tessera_engine::{LightCondition, Verb};
+pub use tessera_view::View;
 pub use view::ViewReport;
