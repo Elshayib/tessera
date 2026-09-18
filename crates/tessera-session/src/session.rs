@@ -446,6 +446,9 @@ impl<P: Provider, V: View> Session<P, V> {
             | Verb::taper { object, .. }
             | Verb::weather { object, .. }
             | Verb::remove { object } => object.0 == "this",
+            Verb::join { object, with } | Verb::cut { object, with } => {
+                object.0 == "this" || with.0 == "this"
+            }
             _ => false,
         }
     }
@@ -493,6 +496,14 @@ impl<P: Provider, V: View> Session<P, V> {
             },
             Verb::remove { object } => Verb::remove {
                 object: self.resolve_this(object)?,
+            },
+            Verb::join { object, with } => Verb::join {
+                object: self.resolve_this(object)?,
+                with: self.resolve_this(with)?,
+            },
+            Verb::cut { object, with } => Verb::cut {
+                object: self.resolve_this(object)?,
+                with: self.resolve_this(with)?,
             },
             other => other,
         })
@@ -560,6 +571,12 @@ impl<P: Provider, V: View> Session<P, V> {
                     None => return Err(SessionError::UnknownObject(object.0)),
                 }
             }
+            Verb::join { object, with } => {
+                self.combine(object, with, |keep, other| keep.join(other))?;
+            }
+            Verb::cut { object, with } => {
+                self.combine(object, with, |keep, other| keep.cut(other))?;
+            }
         }
         self.view.show_scene(self.shown_scene());
         Ok(())
@@ -581,6 +598,41 @@ impl<P: Provider, V: View> Session<P, V> {
             sky: self.scene.sky.as_ref().map(|f| f.0.clone()),
             light: self.scene.light,
         }
+    }
+
+    /// Join or cut two named Objects: the first keeps its name, the second is
+    /// consumed, and the camera Frames the work.
+    fn combine(
+        &mut self,
+        object: ObjectRef,
+        with: ObjectRef,
+        op: impl FnOnce(&mut Object, &Object),
+    ) -> Result<(), SessionError> {
+        let keep_idx = self
+            .scene
+            .objects
+            .iter()
+            .position(|o| o.name == object.0)
+            .ok_or_else(|| SessionError::UnknownObject(object.0.clone()))?;
+        let with_idx = self
+            .scene
+            .objects
+            .iter()
+            .position(|o| o.name == with.0)
+            .ok_or_else(|| SessionError::UnknownObject(with.0.clone()))?;
+        if keep_idx == with_idx {
+            return Err(SessionError::UnknownObject(with.0));
+        }
+        let other = self.scene.objects[with_idx].clone();
+        op(&mut self.scene.objects[keep_idx], &other);
+        self.scene.objects.remove(with_idx);
+        if self.pointed.as_deref() == Some(with.0.as_str()) {
+            self.pointed = None;
+        }
+        self.show_frame(tessera_view::Frame {
+            object: Some(object.0),
+        });
+        Ok(())
     }
 
     /// Work one named Object's Clay and Frame it so the Person is looking at

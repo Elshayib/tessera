@@ -42,5 +42,9 @@ Verbs (tag field "verb"):
   weather is Rehearsal, not First take
 - {"verb":"remove","object":"the shed"}
   remove only when that Object is Pointed; otherwise Ask
+- {"verb":"join","object":"the tower","with":"the lantern room"}
+  union two named Objects into one named Object; the first keeps its name
+- {"verb":"cut","object":"the tower","with":"the arch"}
+  subtract the second named Object from the first; the first keeps its name
 
 Do not emit any other Verb. Do not use coordinates, vertices, or shader graphs."#;

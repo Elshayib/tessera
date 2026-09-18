@@ -2,9 +2,10 @@
 //! inflated without talking about vertices. A Mesh is poured from Clay later for
 //! Game-ready export, which is not part of v1.
 //!
-//! Clay is a signed distance field: the Part it was composed from, then the
-//! Sculpts that have worked its silhouette. Product tests compare Clay values
-//! and `composed_only`; they do not sample the field.
+//! Clay is a signed distance field: the Part it was composed from, joins and
+//! cuts of whole pieces, then the Sculpts that have worked its silhouette.
+//! Product tests compare Clay values and `composed_only`; they do not sample
+//! the field.
 
 use crate::kit::KitPart;
 use crate::verb::{Amount, Axis, MaterialFamily, Part, Primitive, Region};
@@ -21,7 +22,7 @@ pub struct Object {
     pub place: String,
     /// Engine-resolved translation of `place`. Viewport-only; not Agent-facing.
     translation: [f32; 3],
-    /// The Part it was composed from: a Primitive or a named Kit Part.
+    /// The Part it was first placed as. Join and cut live on `clay`, not here.
     pub part: Part,
     /// The named look this Object wears; set on the First take, never a shader.
     pub family: Option<MaterialFamily>,
@@ -66,6 +67,27 @@ impl Object {
     pub fn translation(&self) -> [f32; 3] {
         self.translation
     }
+
+    /// Union `other` into this Object. The Engine uses the places it already
+    /// resolved; the Agent still passed no coordinates.
+    pub fn join(&mut self, other: &Object) {
+        self.compose_with(other, Clay::join);
+    }
+
+    /// Subtract `other` from this Object. Same: Engine-resolved places only.
+    pub fn cut(&mut self, other: &Object) {
+        self.compose_with(other, Clay::cut);
+    }
+
+    fn compose_with(&mut self, other: &Object, op: fn(Clay, Clay, [f32; 3]) -> Clay) {
+        let offset = relative_offset(self.translation, other.translation);
+        let a = self.clay.clone();
+        self.clay = op(a, other.clay.clone(), offset);
+    }
+}
+
+fn relative_offset(from: [f32; 3], to: [f32; 3]) -> [f32; 3] {
+    [to[0] - from[0], to[1] - from[1], to[2] - from[2]]
 }
 
 /// Turn the Agent's coarse place words into a translation among Objects
@@ -100,10 +122,27 @@ fn resolve_place(at: &str, others: &[Object]) -> [f32; 3] {
 
 /// The form of an Object. Callers Sculpt through named operations; they never
 /// set a vertex. Negative samples are inside the silhouette.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Clay {
-    part: Part,
+    body: Body,
     sculpts: Vec<Sculpt>,
+}
+
+/// How this Clay was composed: a single Part, or whole pieces joined or cut.
+#[derive(Debug, Clone, PartialEq)]
+enum Body {
+    Part(Part),
+    Join {
+        a: Box<Clay>,
+        b: Box<Clay>,
+        /// `b` in `a`'s space: Engine-resolved, never an Agent argument.
+        offset: [f32; 3],
+    },
+    Cut {
+        a: Box<Clay>,
+        b: Box<Clay>,
+        offset: [f32; 3],
+    },
 }
 
 /// One Object-level Sculpt that has landed on this Clay.
@@ -119,15 +158,57 @@ impl Clay {
     /// The silhouette as placed, before any Sculpt.
     pub fn composed(part: Part) -> Self {
         Self {
-            part,
+            body: Body::Part(part),
             sculpts: Vec::new(),
         }
     }
 
-    /// True when no Sculpt has touched this silhouette. The First take is
-    /// composed this way; weathering is Rehearsal.
+    /// Union this Clay with another piece, `other` sitting at `offset` in this
+    /// Clay's space. Compose, not Sculpt: the pieces stay whole.
+    pub fn join(self, other: Self, offset: [f32; 3]) -> Self {
+        Self {
+            body: Body::Join {
+                a: Box::new(self),
+                b: Box::new(other),
+                offset,
+            },
+            sculpts: Vec::new(),
+        }
+    }
+
+    /// Subtract `other` from this Clay, `other` sitting at `offset` in this
+    /// Clay's space. Compose, not Sculpt.
+    pub fn cut(self, other: Self, offset: [f32; 3]) -> Self {
+        Self {
+            body: Body::Cut {
+                a: Box::new(self),
+                b: Box::new(other),
+                offset,
+            },
+            sculpts: Vec::new(),
+        }
+    }
+
+    /// True when no Sculpt has touched this silhouette. Join and cut are
+    /// Compose: a union of unsculpted pieces is still composed-only.
     pub fn composed_only(&self) -> bool {
         self.sculpts.is_empty()
+            && match &self.body {
+                Body::Part(_) => true,
+                Body::Join { a, b, .. } | Body::Cut { a, b, .. } => {
+                    a.composed_only() && b.composed_only()
+                }
+            }
+    }
+
+    /// True when this Clay is the union of two pieces (`join`).
+    pub fn joined(&self) -> bool {
+        matches!(self.body, Body::Join { .. })
+    }
+
+    /// True when this Clay has had another piece subtracted (`cut`).
+    pub fn cut_from(&self) -> bool {
+        matches!(self.body, Body::Cut { .. })
     }
 
     /// Cut into the silhouette on a whole-object side.
@@ -159,7 +240,11 @@ impl Clay {
                 q = taper_point(q, *amount, *along);
             }
         }
-        let mut d = part_sdf(self.part, q);
+        let mut d = match &self.body {
+            Body::Part(part) => part_sdf(*part, q),
+            Body::Join { a, b, offset } => sdf_union(a.sample(q), b.sample(shift(q, *offset))),
+            Body::Cut { a, b, offset } => sdf_sub(a.sample(q), b.sample(shift(q, *offset))),
+        };
         for sculpt in &self.sculpts {
             match sculpt {
                 Sculpt::Taper { .. } => {}
@@ -256,6 +341,10 @@ fn sdf_sub(a: f32, b: f32) -> f32 {
 
 fn sdf_union(a: f32, b: f32) -> f32 {
     a.min(b)
+}
+
+fn shift(p: [f32; 3], offset: [f32; 3]) -> [f32; 3] {
+    [p[0] - offset[0], p[1] - offset[1], p[2] - offset[2]]
 }
 
 fn sdf_box(p: [f32; 3], b: [f32; 3]) -> f32 {
@@ -369,6 +458,42 @@ mod tests {
         assert!(
             clay.sample([0.0, -0.7, 0.0]) < 0.0,
             "inflate base must grow the silhouette downward"
+        );
+    }
+
+    /// Join is a boolean union of whole pieces (issue #12).
+    #[test]
+    fn join_unions_a_piece_sitting_atop() {
+        let tower = Clay::composed(Part::Primitive(Primitive::Cylinder));
+        let lantern = Clay::composed(Part::Primitive(Primitive::Sphere));
+        let joined = tower.join(lantern, [0.0, 1.0, 0.0]);
+        assert!(
+            joined.sample([0.0, 0.0, 0.0]) < 0.0,
+            "the tower's core stays inside the union"
+        );
+        assert!(
+            joined.sample([0.0, 1.0, 0.0]) < 0.0,
+            "the lantern sitting atop must be inside the union"
+        );
+        assert!(
+            joined.sample([0.0, 0.5, 2.0]) > 0.0,
+            "off to the side is still outside"
+        );
+    }
+
+    /// Cut is a boolean subtract of whole pieces (issue #12).
+    #[test]
+    fn cut_subtracts_a_piece_from_the_middle() {
+        let tower = Clay::composed(Part::Primitive(Primitive::Box));
+        let arch = Clay::composed(Part::Primitive(Primitive::Sphere));
+        let cut = tower.cut(arch, [0.0, 0.0, 0.0]);
+        assert!(
+            cut.sample([0.0, 0.0, 0.0]) > 0.0,
+            "the sphere must eat a hole in the box"
+        );
+        assert!(
+            cut.sample([0.45, 0.45, 0.45]) < 0.0,
+            "the box's corner stays after the subtract"
         );
     }
 }

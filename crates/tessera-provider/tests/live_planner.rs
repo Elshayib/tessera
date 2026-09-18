@@ -40,6 +40,32 @@ const PLACE_ROOF: &str = r#"{
   ]
 }"#;
 
+const JOIN_PLAN: &str = r#"{
+  "narration": [
+    "Placing the tower on the cliff.",
+    "Placing the lantern room atop the tower.",
+    "Joining the lantern room onto the tower."
+  ],
+  "verbs": [
+    {"verb": "place", "name": "the tower", "part": "tower", "at": "on the cliff"},
+    {"verb": "place", "name": "the lantern room", "part": "lantern room", "at": "atop the tower"},
+    {"verb": "join", "object": "the tower", "with": "the lantern room"}
+  ]
+}"#;
+
+const CUT_PLAN: &str = r#"{
+  "narration": [
+    "Placing the tower on the cliff.",
+    "Placing the arch in the tower.",
+    "Cutting an arch through the tower."
+  ],
+  "verbs": [
+    {"verb": "place", "name": "the tower", "part": "tower", "at": "on the cliff"},
+    {"verb": "place", "name": "the arch", "part": "doorway", "at": "in the tower"},
+    {"verb": "cut", "object": "the tower", "with": "the arch"}
+  ]
+}"#;
+
 const SCULPT_PLAN: &str = r#"{
   "narration": [
     "The roof is too steep — tapering it along its up.",
@@ -329,6 +355,51 @@ fn ask_json_waits_and_lands_no_verb() {
         session.objects().is_empty(),
         "no Verb lands while the Viewport waits"
     );
+}
+
+/// `join` in the Verb JSON unions two placed Parts the same on every lab.
+#[test]
+fn join_verbs_land_the_same_across_providers() {
+    for provider in ProviderName::ALL {
+        let (status, body) = envelope(provider, JOIN_PLAN);
+        let mut session = session(provider, FakeTransport::default().replies(status, body));
+        session
+            .submit_intent("a lighthouse from a tower and a lantern room")
+            .expect("the fake Provider returns a join plan");
+
+        let objects = session.objects();
+        assert_eq!(objects.len(), 1, "{provider:?}");
+        assert_eq!(objects[0].name, "the tower");
+        assert!(
+            objects[0].clay.joined(),
+            "{provider:?} must land join as a union"
+        );
+        let last = session.view().last_frame().expect("framed");
+        assert_eq!(last.object.as_deref(), Some("the tower"));
+    }
+}
+
+/// `cut` in the Verb JSON subtracts one named Object from another, the same
+/// on every lab.
+#[test]
+fn cut_verbs_land_the_same_across_providers() {
+    for provider in ProviderName::ALL {
+        let (status, body) = envelope(provider, CUT_PLAN);
+        let mut session = session(provider, FakeTransport::default().replies(status, body));
+        session
+            .submit_intent("a tower with an arch cut through it")
+            .expect("the fake Provider returns a cut plan");
+
+        let objects = session.objects();
+        assert_eq!(objects.len(), 1, "{provider:?}");
+        assert_eq!(objects[0].name, "the tower");
+        assert!(
+            objects[0].clay.cut_from(),
+            "{provider:?} must land cut as a subtract"
+        );
+        let last = session.view().last_frame().expect("framed");
+        assert_eq!(last.object.as_deref(), Some("the tower"));
+    }
 }
 
 /// `remove` in the Verb JSON is understood the same on every lab; without Point

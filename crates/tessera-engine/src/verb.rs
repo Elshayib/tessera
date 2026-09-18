@@ -219,7 +219,7 @@ impl LightCondition {
 
 /// A named, high-leverage operation the Agent is allowed to issue.
 ///
-/// Only the Verbs v1 has specified exist here. Verbs not yet landed (#12)
+/// Only the Verbs v1 has specified exist here. Verbs not yet landed (#13, #14)
 /// will join this enum as their tickets are built; the Agent surface stays small.
 // Variant names are lowercase on purpose: they are the spec's Verb vocabulary
 // ("place", "frame", ...), the words the Agent speaks.
@@ -239,6 +239,12 @@ pub enum Verb {
         part: Part,
         at: String,
     },
+    /// Compose: union two named Objects into one named Object. The first keeps
+    /// its name; the second is consumed. No vertices.
+    join { object: ObjectRef, with: ObjectRef },
+    /// Compose: subtract one named Object from another. The first keeps its
+    /// name; the cutter is consumed. No vertices.
+    cut { object: ObjectRef, with: ObjectRef },
     /// Look: set a Material family on a named Object.
     wear {
         object: ObjectRef,

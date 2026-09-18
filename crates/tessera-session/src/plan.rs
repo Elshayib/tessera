@@ -124,6 +124,10 @@ enum VerbWire {
     Weather { object: String, amount: String },
     #[serde(rename = "remove")]
     Remove { object: String },
+    #[serde(rename = "join")]
+    Join { object: String, with: String },
+    #[serde(rename = "cut")]
+    Cut { object: String, with: String },
 }
 
 impl VerbWire {
@@ -189,6 +193,14 @@ impl VerbWire {
             }),
             VerbWire::Remove { object } => Ok(Verb::remove {
                 object: ObjectRef(object),
+            }),
+            VerbWire::Join { object, with } => Ok(Verb::join {
+                object: ObjectRef(object),
+                with: ObjectRef(with),
+            }),
+            VerbWire::Cut { object, with } => Ok(Verb::cut {
+                object: ObjectRef(object),
+                with: ObjectRef(with),
             }),
         }
     }
