@@ -33,6 +33,11 @@ pub enum Event {
         brains: Vec<Brain>,
         chosen: Option<String>,
     },
+    /// Active Provider and its remembered Key, so settings match the bill.
+    Settings {
+        provider: Option<ProviderName>,
+        key: String,
+    },
     Idle,
 }
 
@@ -55,6 +60,13 @@ pub fn key_path() -> PathBuf {
     dir
 }
 
+fn send_settings<P: Provider, V: View>(session: &Session<P, V>, events: &Sender<Event>) {
+    let _ = events.send(Event::Settings {
+        provider: session.chosen_provider(),
+        key: session.key().unwrap_or("").to_string(),
+    });
+}
+
 fn send_catalog<P: Provider, V: View>(session: &mut Session<P, V>, events: &Sender<Event>) {
     if session.chosen_provider().is_none() || !session.has_key() {
         return;
@@ -75,15 +87,22 @@ fn send_catalog<P: Provider, V: View>(session: &mut Session<P, V>, events: &Send
 
 fn worker(view: LiveView, store: FileKeyStore, cmds: Receiver<Command>, events: Sender<Event>) {
     let mut session = Session::start(LivePlanner::new(), view).with_key_store(store);
+    if session.chosen_provider().is_none() {
+        session.set_provider(ProviderName::Anthropic);
+    }
+    send_settings(&session, &events);
+    send_catalog(&mut session, &events);
     while let Ok(cmd) = cmds.recv() {
         match cmd {
             Command::Shutdown => break,
             Command::SetKey(key) => {
                 session.set_key(&key);
+                send_settings(&session, &events);
                 send_catalog(&mut session, &events);
             }
             Command::SetProvider(provider) => {
                 session.set_provider(provider);
+                send_settings(&session, &events);
                 send_catalog(&mut session, &events);
             }
             Command::SetBrain(id) => {

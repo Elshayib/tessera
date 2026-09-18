@@ -18,6 +18,7 @@ pub struct ScriptedProvider {
     received: Vec<Intent>,
     received_credentials: Vec<Credentials>,
     brains: Vec<Brain>,
+    next_offerings: Vec<Vec<Brain>>,
     list_error: Option<ProviderError>,
 }
 
@@ -35,6 +36,7 @@ impl Default for ScriptedProvider {
                 price: None,
                 kind: BrainKind::Chat,
             }],
+            next_offerings: Vec::new(),
             list_error: None,
         }
     }
@@ -67,8 +69,21 @@ impl ScriptedProvider {
     }
 
     /// Script listing so it fails this way instead of returning Brains.
+    /// Stays down until [`recover_catalog`].
     pub fn catalog_fail(mut self, error: ProviderError) -> Self {
         self.list_error = Some(error);
+        self
+    }
+
+    /// The catalog is reachable again, so a retry from settings can fetch.
+    pub fn recover_catalog(&mut self) {
+        self.list_error = None;
+    }
+
+    /// After the current list has been fetched, the next fetch offers this
+    /// instead — a catalog refresh.
+    pub fn then_offering(mut self, brains: Vec<Brain>) -> Self {
+        self.next_offerings.push(brains);
         self
     }
 
@@ -141,6 +156,10 @@ impl Provider for ScriptedProvider {
         if let Some(error) = self.list_error.clone() {
             return Err(error);
         }
-        Ok(chat_brains(self.brains.clone()))
+        let offered = self.brains.clone();
+        if !self.next_offerings.is_empty() {
+            self.brains = self.next_offerings.remove(0);
+        }
+        Ok(chat_brains(offered))
     }
 }

@@ -148,20 +148,16 @@ impl<P: Provider, V: View> Session<P, V> {
     }
 
     /// The Person picked a Provider from the short list (spec story 4).
-    /// Switching Provider still uses one Brain at a time: the previous pick
-    /// is dropped so the new list can default.
+    /// Switching activates that Provider's remembered Key and Brain.
     pub fn set_provider(&mut self, provider: ProviderName) {
-        if self.keyring.provider() != Some(provider) {
-            self.keyring.clear_brain();
-        }
         self.keyring.set_provider(provider);
-        self.catalog = None;
+        self.catalog = self.keyring.catalog().map(Vec::from);
     }
 
     /// The Person pasted a Key for the chosen Provider (spec story 3).
     pub fn set_key(&mut self, key: &str) {
         self.keyring.set_key(key);
-        self.catalog = None;
+        self.catalog = self.keyring.catalog().map(Vec::from);
     }
 
     /// The Provider the Key belongs to, once the Person has picked one.
@@ -174,15 +170,23 @@ impl<P: Provider, V: View> Session<P, V> {
         self.keyring.has_key()
     }
 
+    /// The Key last pasted for the active Provider, if any. Settings, not Scene.
+    pub fn key(&self) -> Option<&str> {
+        self.keyring.key()
+    }
+
     /// What the current Provider offers, as settings should show it: chat,
-    /// text in and out. Fetches when a Provider and Key are both set. Picks a
-    /// default Brain if the Person has not. A vanished pick is not swapped:
-    /// the list is still returned so they can pick another.
+    /// text in and out. Fetches when a Provider and Key are both set, and
+    /// when the Person retries. Picks a default Brain if the Person has not.
+    /// A vanished pick is not swapped: the list is still returned so they can
+    /// pick another. A refresh updates the list, not a Brain already chosen.
     pub fn brains(&mut self) -> Result<Vec<Brain>, SessionError> {
+        self.refresh_catalog()?;
         match self.resolve_brain() {
-            Ok(_) | Err(SessionError::Brain(BrainError::Missing | BrainError::Unknown)) => {
-                self.ensure_catalog().cloned()
-            }
+            Ok(_) | Err(SessionError::Brain(BrainError::Missing | BrainError::Unknown)) => self
+                .catalog
+                .clone()
+                .ok_or(SessionError::Brain(BrainError::Missing)),
             Err(e) => Err(e),
         }
     }
@@ -473,6 +477,11 @@ impl<P: Provider, V: View> Session<P, V> {
     /// see that pictures travelled with Intent.
     pub fn provider(&self) -> &P {
         &self.provider
+    }
+
+    /// Tests recover a scripted catalog so a retry from settings can fetch.
+    pub fn provider_mut(&mut self) -> &mut P {
+        &mut self.provider
     }
 
     /// The Agent's Ask, if the Viewport is waiting instead of acting.
@@ -791,6 +800,10 @@ impl<P: Provider, V: View> Session<P, V> {
         if self.catalog.is_some() {
             return Ok(self.catalog.as_ref().expect("just checked"));
         }
+        self.refresh_catalog()
+    }
+
+    fn refresh_catalog(&mut self) -> Result<&Vec<Brain>, SessionError> {
         let credentials = match self.keyring.credentials() {
             Some(credentials) => credentials,
             None => {
@@ -802,11 +815,20 @@ impl<P: Provider, V: View> Session<P, V> {
                 return Err(SessionError::Key(err));
             }
         };
-        let brains = self
-            .provider
-            .list_brains(&credentials)
-            .map_err(|e| SessionError::Key(Self::key_error(e)))?;
+        let brains = match self.provider.list_brains(&credentials) {
+            Ok(brains) => brains,
+            Err(e) => {
+                if let Some(cached) = self.keyring.catalog() {
+                    self.catalog = Some(cached.to_vec());
+                    return Ok(self.catalog.as_ref().expect("just stored"));
+                }
+                return Err(SessionError::Key(Self::key_error(e)));
+            }
+        };
         self.catalog = Some(brains);
+        if let Some(catalog) = &self.catalog {
+            self.keyring.set_catalog(catalog);
+        }
         Ok(self.catalog.as_ref().expect("just stored"))
     }
 

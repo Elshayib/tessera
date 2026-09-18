@@ -11,7 +11,7 @@ pub mod session;
 pub mod view;
 
 pub use intent::{Intent, Picture, PictureKind};
-pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
+pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore, ProviderMemory, Settings};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
 pub use provider::{

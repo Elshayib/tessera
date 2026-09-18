@@ -26,7 +26,6 @@ pub struct TesseraApp {
 
 impl TesseraApp {
     pub fn new(live: LiveView, cmds: Sender<Command>, events: Receiver<Event>) -> Self {
-        let _ = cmds.send(Command::SetProvider(ProviderName::Anthropic));
         Self {
             live,
             cmds,
@@ -51,6 +50,16 @@ impl TesseraApp {
                     self.brains = brains;
                     self.brain_id = chosen;
                     self.error = None;
+                }
+                Event::Settings { provider, key } => {
+                    if let Some(provider) = provider {
+                        self.provider = provider;
+                    }
+                    if self.key != key {
+                        self.brains.clear();
+                        self.brain_id = None;
+                    }
+                    self.key = key;
                 }
                 Event::Idle => self.busy = false,
             }
@@ -114,6 +123,11 @@ impl eframe::App for TesseraApp {
                 if key.lost_focus() && !self.key.is_empty() {
                     let _ = self.cmds.send(Command::SetKey(self.key.clone()));
                     let _ = self.cmds.send(Command::RefreshBrains);
+                }
+                if self.error.is_some() && self.brains.is_empty() && !self.key.is_empty() {
+                    if ui.button("Retry").clicked() {
+                        let _ = self.cmds.send(Command::RefreshBrains);
+                    }
                 }
                 if !self.brains.is_empty() {
                     ui.label("Brain");

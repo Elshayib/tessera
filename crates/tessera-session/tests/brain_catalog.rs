@@ -283,6 +283,86 @@ fn pictures_to_a_text_only_brain_are_an_actionable_error() {
     );
 }
 
+/// A failed catalog fetch uses the last cached list so yesterday's offerings
+/// still work offline.
+#[test]
+fn failed_catalog_fetch_uses_the_cached_list() {
+    let path = std::env::temp_dir().join(format!(
+        "tessera-catalog-cache-{}-{}.json",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos()
+    ));
+    {
+        let mut session = Session::start(
+            ScriptedProvider::default().offering(vec![
+                seeing("cheap-eye", "Cheap Eye"),
+                seeing("dear-eye", "Dear Eye"),
+            ]),
+            ViewReport::new(),
+        )
+        .with_key_store(FileKeyStore::new(&path));
+        session.set_provider(ProviderName::Anthropic);
+        session.set_key("sk-ant");
+        let brains = session.brains().expect("the live list is offered");
+        let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+        assert_eq!(ids, ["cheap-eye", "dear-eye"]);
+    }
+
+    let mut session = Session::start(
+        ScriptedProvider::default().catalog_fail(ProviderError::Unavailable("down".into())),
+        ViewReport::new(),
+    )
+    .with_key_store(FileKeyStore::new(&path));
+    let brains = session
+        .brains()
+        .expect("a down catalog still shows yesterday's offerings");
+    let ids: Vec<&str> = brains.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, ["cheap-eye", "dear-eye"]);
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("cheap-eye"),
+        "the remembered default still thinks from the cache"
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// A failed catalog fetch with no cache is an error they can act on; retrying
+/// from settings fetches again.
+#[test]
+fn failed_catalog_fetch_can_be_retried() {
+    let mut session = Session::start(
+        ScriptedProvider::default()
+            .offering(vec![seeing("cheap-eye", "Cheap Eye")])
+            .catalog_fail(ProviderError::Unavailable("down".into())),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-ant");
+    let err = session
+        .brains()
+        .expect_err("a down catalog with no cache is an error");
+    match err {
+        SessionError::Key(KeyError::Unavailable(reason)) => {
+            assert!(reason.contains("down"), "{reason}");
+        }
+        other => panic!("expected Unavailable, got {other:?}"),
+    }
+    assert!(
+        session.objects().is_empty(),
+        "the Viewport is not a silent freeze"
+    );
+
+    session.provider_mut().recover_catalog();
+    let brains = session
+        .brains()
+        .expect("retrying from settings fetches again");
+    assert_eq!(brains.len(), 1);
+    assert_eq!(brains[0].id, "cheap-eye");
+}
+
 /// A failed catalog fetch is an error they can act on, not a freeze.
 #[test]
 fn failed_catalog_fetch_is_an_actionable_error() {
@@ -749,8 +829,8 @@ fn openai_and_google_changing_brain_leaves_the_open_scene_intact() {
     }
 }
 
-/// Switching Provider still uses one Key and one Brain at a time: the previous
-/// pick is not kept, and the new list gets its own default.
+/// A new Provider with a Key but no remembered Brain receives the default
+/// from its live list. The previous Provider's Brain stays remembered.
 #[test]
 fn switching_provider_picks_a_new_default_brain() {
     let provider = ScriptedProvider::default()
@@ -779,15 +859,252 @@ fn switching_provider_picks_a_new_default_brain() {
     );
 
     session.set_provider(ProviderName::OpenAI);
+    session.set_key("sk-openai");
     session.brains().expect("OpenAI offers the scripted list");
     let chosen = session
         .chosen_brain()
         .expect("OpenAI gets a default so they can type without shopping");
     assert_eq!(
         chosen.id, "first-default",
-        "one Brain at a time: the Anthropic pick is dropped, OpenAI defaults"
+        "a new Provider with no remembered Brain gets the default"
     );
     assert_eq!(session.objects()[0].name, "the lighthouse");
+}
+
+/// A catalog refresh updates the list, not a Brain already chosen — whether
+/// Tessera picked the default or the Person did.
+#[test]
+fn catalog_refresh_updates_the_list_not_the_chosen_brain() {
+    let mut session = Session::start(
+        ScriptedProvider::default()
+            .offering(vec![
+                seeing_priced("kept", "Kept", 10),
+                seeing_priced("dear", "Dear", 50),
+            ])
+            .then_offering(vec![
+                seeing_priced("cheap-now", "Cheap Now", 1),
+                seeing_priced("kept", "Kept", 10),
+                seeing_priced("dear", "Dear", 50),
+            ]),
+        ViewReport::new(),
+    );
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-ant");
+    let first = session.brains().expect("the first list is offered");
+    let first_ids: Vec<&str> = first.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(first_ids, ["kept", "dear"]);
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("kept"),
+        "Tessera picks the cheapest that can see"
+    );
+
+    let refreshed = session.brains().expect("a refresh fetches again");
+    let refreshed_ids: Vec<&str> = refreshed.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(
+        refreshed_ids,
+        ["cheap-now", "kept", "dear"],
+        "the list updates"
+    );
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("kept"),
+        "Tessera's default is not swapped for a cheaper new offering"
+    );
+
+    session.set_brain("dear").expect("Dear is still offered");
+    let after_pick = session.brains().expect("a later refresh still fetches");
+    assert!(
+        after_pick.iter().any(|b| b.id == "cheap-now"),
+        "the refreshed list is still what settings show"
+    );
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("dear"),
+        "the Person's pick is not swapped either"
+    );
+}
+
+/// Restarting restores the active Provider, per-Provider Keys and Brains,
+/// and cached catalogs. Offline still thinks from the cache.
+#[test]
+fn restart_restores_active_provider_keys_brains_and_catalogs() {
+    let path = std::env::temp_dir().join(format!(
+        "tessera-restart-settings-{}-{}.json",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos()
+    ));
+    {
+        let mut session = Session::start(
+            ScriptedProvider::default().offering(vec![
+                seeing("first-default", "First Default"),
+                seeing("person-pick", "Person Pick"),
+            ]),
+            ViewReport::new(),
+        )
+        .with_key_store(FileKeyStore::new(&path));
+        session.set_provider(ProviderName::Anthropic);
+        session.set_key("sk-ant");
+        session
+            .set_brain("person-pick")
+            .expect("the Person's pick is offered");
+        session.set_provider(ProviderName::Google);
+        session.set_key("sk-google");
+        session.brains().expect("Google gets a default");
+        assert_eq!(
+            session.chosen_brain().map(|b| b.id.as_str()),
+            Some("first-default")
+        );
+    }
+
+    let mut session = Session::start(
+        ScriptedProvider::default().catalog_fail(ProviderError::Unavailable("down".into())),
+        ViewReport::new(),
+    )
+    .with_key_store(FileKeyStore::new(&path));
+    assert_eq!(session.chosen_provider(), Some(ProviderName::Google));
+    assert!(session.has_key(), "Google's Key is still on the machine");
+    let google = session
+        .brains()
+        .expect("Google's cached catalog still works offline");
+    let google_ids: Vec<&str> = google.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(google_ids, ["first-default", "person-pick"]);
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("first-default")
+    );
+
+    session.set_provider(ProviderName::Anthropic);
+    assert!(
+        session.has_key(),
+        "Anthropic's Key is still on the machine after a restart"
+    );
+    let anthropic = session
+        .brains()
+        .expect("Anthropic's cached catalog still works offline");
+    let anthropic_ids: Vec<&str> = anthropic.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(anthropic_ids, ["first-default", "person-pick"]);
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("person-pick"),
+        "Anthropic's Brain is still the Person's pick"
+    );
+    let _ = std::fs::remove_file(&path);
+}
+
+/// A machine that only had the old single Key + Provider still thinks: that
+/// pair becomes that Provider's remembered settings.
+#[test]
+fn legacy_single_key_and_provider_still_thinks() {
+    let path = std::env::temp_dir().join(format!(
+        "tessera-legacy-settings-{}-{}.json",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos()
+    ));
+    std::fs::write(
+        &path,
+        r#"{
+  "provider": "openai",
+  "key": "sk-legacy",
+  "brain": "scripted"
+}"#,
+    )
+    .expect("legacy settings written");
+
+    let provider = ScriptedProvider::default().plan(ScriptedProvider::place_and_frame(
+        "the lighthouse",
+        Primitive::Cylinder,
+        "on the cliff",
+    ));
+    let mut session =
+        Session::start(provider, ViewReport::new()).with_key_store(FileKeyStore::new(&path));
+    assert_eq!(session.chosen_provider(), Some(ProviderName::OpenAI));
+    assert!(session.has_key());
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the old pair still thinks");
+    let creds = session.provider().received_credentials();
+    assert_eq!(creds.last().map(|c| c.key.as_str()), Some("sk-legacy"));
+    assert_eq!(
+        creds.last().and_then(|c| c.brain.as_deref()),
+        Some("scripted")
+    );
+    assert_eq!(session.objects().len(), 1);
+    let _ = std::fs::remove_file(&path);
+}
+
+/// Switching Provider restores that Provider's remembered Key and Brain.
+/// Anthropic → another lab → Anthropic does not require pasting or re-picking.
+#[test]
+fn switching_provider_restores_that_providers_key_and_brain() {
+    let provider = ScriptedProvider::default()
+        .offering(vec![
+            seeing("first-default", "First Default"),
+            seeing("person-pick", "Person Pick"),
+        ])
+        .plan(ScriptedProvider::place_and_frame(
+            "the lighthouse",
+            Primitive::Cylinder,
+            "on the cliff",
+        ))
+        .plan(ScriptedProvider::place_and_frame(
+            "the lantern",
+            Primitive::Sphere,
+            "on the lighthouse",
+        ));
+    let mut session = Session::start(provider, ViewReport::new());
+    session.set_provider(ProviderName::Anthropic);
+    session.set_key("sk-ant");
+    session
+        .set_brain("person-pick")
+        .expect("the Person's pick is offered");
+    session
+        .submit_intent("a weathered lighthouse on a cliff at dusk")
+        .expect("the lighthouse lands");
+
+    session.set_provider(ProviderName::Google);
+    session.set_key("sk-google");
+    session.brains().expect("Google offers the scripted list");
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("first-default"),
+        "a new Provider with no remembered Brain gets the default"
+    );
+
+    session.set_provider(ProviderName::Anthropic);
+    session.brains().expect("Anthropic's list is still offered");
+    assert_eq!(
+        session.key(),
+        Some("sk-ant"),
+        "returning to Anthropic does not require pasting the Key again"
+    );
+    assert_eq!(
+        session.chosen_brain().map(|b| b.id.as_str()),
+        Some("person-pick"),
+        "returning to Anthropic does not require re-picking its Brain"
+    );
+
+    session
+        .submit_intent("a lantern on the lighthouse")
+        .expect("Anthropic's remembered Key still thinks");
+    let creds = session.provider().received_credentials();
+    assert_eq!(
+        creds.last().map(|c| c.key.as_str()),
+        Some("sk-ant"),
+        "the Agent thinks with Anthropic's remembered Key, not Google's"
+    );
+    assert_eq!(
+        creds.last().and_then(|c| c.brain.as_deref()),
+        Some("person-pick"),
+        "the Agent thinks with Anthropic's remembered Brain"
+    );
+    assert_eq!(session.objects().len(), 2, "the open Scene stayed");
 }
 
 /// Key and Brain stay in settings, not the Scene, for OpenAI (Google is the
