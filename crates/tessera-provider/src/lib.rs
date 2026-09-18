@@ -8,7 +8,7 @@ mod lab;
 mod prompt;
 mod transport;
 
-use tessera_session::{Bindings, Credentials, Provider, ProviderError, Reply};
+use tessera_session::{Bindings, Credentials, Intent, Provider, ProviderError, Reply};
 
 pub use prompt::SYSTEM;
 pub use transport::{
@@ -43,7 +43,7 @@ impl<T: Transport> LivePlanner<T> {
 impl<T: Transport> Provider for LivePlanner<T> {
     fn respond(
         &mut self,
-        intent: &str,
+        intent: &Intent,
         credentials: &Credentials,
         bindings: Bindings<'_>,
     ) -> Result<Reply, ProviderError> {

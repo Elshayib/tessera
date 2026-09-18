@@ -1,3 +1,4 @@
+pub mod intent;
 pub mod keyring;
 pub mod marks;
 pub mod plan;
@@ -7,11 +8,12 @@ pub mod scripted_provider;
 pub mod session;
 pub mod view;
 
+pub use intent::{Intent, Picture, PictureKind};
 pub use keyring::{FileKeyStore, KeyStore, Keyring, MemoryKeyStore};
 pub use marks::{MarkError, Marks};
 pub use plan::Plan;
 pub use provider::{Bindings, Credentials, Provider, ProviderError, ProviderName, Reply};
-pub use scene::{NarrationLine, Scene};
+pub use scene::{Scene, TalkLine};
 pub use scripted_provider::ScriptedProvider;
 pub use session::{KeyError, Session, SessionError, UndoError};
 pub use tessera_engine::verb::{

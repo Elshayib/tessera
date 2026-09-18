@@ -2,14 +2,18 @@
 //! so tomorrow's Rehearsal still knows what "the roof" meant (ADR-0006,
 //! ADR-0014). v1 keeps it in memory; the file on disk arrives with #13.
 
+use crate::intent::Picture;
 use tessera_engine::MaterialFamily;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::LightCondition;
 
-/// One thing the Agent said in the chat while working.
+/// One turn of Talk in this Scene: the Person's Intent (words, and pictures
+/// they dropped) or a line of Narration.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NarrationLine {
+pub struct TalkLine {
     pub text: String,
+    /// Pictures the Person dropped with this turn. Empty on Agent Narration.
+    pub pictures: Vec<Picture>,
 }
 
 /// A snapshot of everything that makes a state of the Scene what it is. A Mark
@@ -24,7 +28,7 @@ pub struct Scene {
     /// The named light condition ("dusk"), if set.
     pub light: Option<LightCondition>,
     /// The conversation in this Scene at this state.
-    pub talk: Vec<NarrationLine>,
+    pub talk: Vec<TalkLine>,
 }
 
 impl Scene {

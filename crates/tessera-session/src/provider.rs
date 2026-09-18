@@ -1,5 +1,6 @@
 //! The Provider seam: where the Agent's thinking comes from.
 
+use crate::intent::Intent;
 use crate::plan::Plan;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +12,7 @@ pub trait Provider {
     /// and move is the default (ADR-0017).
     fn respond(
         &mut self,
-        intent: &str,
+        intent: &Intent,
         credentials: &Credentials,
         bindings: Bindings<'_>,
     ) -> Result<Reply, ProviderError>;

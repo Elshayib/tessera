@@ -2,7 +2,7 @@
 //! only the envelope (URL, headers, JSON wrap) changes.
 
 use serde_json::{Value, json};
-use tessera_session::{Bindings, Credentials, ProviderError, ProviderName};
+use tessera_session::{Bindings, Credentials, Intent, Picture, ProviderError, ProviderName};
 
 use crate::prompt::SYSTEM;
 use crate::transport::{HttpRequest, HttpResponse};
@@ -12,8 +12,8 @@ const OPENAI_MODEL: &str = "gpt-4.1-nano";
 const GOOGLE_MODEL: &str = "gemini-2.5-flash";
 
 /// Pack Intent + Scene bindings + the shared Verb contract into the chosen lab's POST.
-pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> HttpRequest {
-    let content = user_content(intent, bindings);
+pub fn pack(credentials: &Credentials, intent: &Intent, bindings: Bindings<'_>) -> HttpRequest {
+    let text = user_content(intent, bindings);
     match credentials.provider {
         ProviderName::Anthropic => HttpRequest {
             url: "https://api.anthropic.com/v1/messages".to_string(),
@@ -26,7 +26,7 @@ pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> 
                 "model": ANTHROPIC_MODEL,
                 "max_tokens": 4096,
                 "system": SYSTEM,
-                "messages": [{ "role": "user", "content": content }],
+                "messages": [{ "role": "user", "content": anthropic_content(&text, intent.pictures()) }],
             })
             .to_string(),
         },
@@ -44,7 +44,7 @@ pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> 
                 "max_completion_tokens": 4096,
                 "messages": [
                     { "role": "system", "content": SYSTEM },
-                    { "role": "user", "content": content },
+                    { "role": "user", "content": openai_content(&text, intent.pictures()) },
                 ],
             })
             .to_string(),
@@ -61,7 +61,7 @@ pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> 
                 "systemInstruction": { "parts": [{ "text": SYSTEM }] },
                 "contents": [{
                     "role": "user",
-                    "parts": [{ "text": content }],
+                    "parts": google_parts(&text, intent.pictures()),
                 }],
                 "generationConfig": { "maxOutputTokens": 4096 },
             })
@@ -70,19 +70,118 @@ pub fn pack(credentials: &Credentials, intent: &str, bindings: Bindings<'_>) -> 
     }
 }
 
-fn user_content(intent: &str, bindings: Bindings<'_>) -> String {
+fn user_content(intent: &Intent, bindings: Bindings<'_>) -> String {
     let objects = if bindings.objects.is_empty() {
         "(none yet)".to_string()
     } else {
         bindings.objects.join(", ")
     };
     let pointed = bindings.pointed.unwrap_or("(none)");
-    let mut text = format!("{intent}\n\nObjects in the Scene: {objects}\nPointed: {pointed}");
+    let mut text = format!(
+        "{}\n\nObjects in the Scene: {objects}\nPointed: {pointed}",
+        intent.words
+    );
     if let Some(ask) = bindings.pending_ask {
         text.push_str("\nPending Ask: ");
         text.push_str(ask);
     }
+    if !intent.pictures().is_empty() {
+        let kinds: Vec<&str> = intent.pictures().iter().map(|p| p.kind().word()).collect();
+        text.push_str("\nPictures dropped: ");
+        text.push_str(&kinds.join(", "));
+        text.push_str(". Pictures are Intent, not a scan to copy.");
+    }
     text
+}
+
+fn anthropic_content(text: &str, pictures: &[Picture]) -> Value {
+    if pictures.is_empty() {
+        return Value::String(text.to_string());
+    }
+    let mut blocks = vec![json!({ "type": "text", "text": text })];
+    for picture in pictures {
+        let (media_type, data) = encode_picture(picture);
+        blocks.push(json!({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": media_type,
+                "data": data,
+            }
+        }));
+    }
+    Value::Array(blocks)
+}
+
+fn openai_content(text: &str, pictures: &[Picture]) -> Value {
+    if pictures.is_empty() {
+        return Value::String(text.to_string());
+    }
+    let mut parts = vec![json!({ "type": "text", "text": text })];
+    for picture in pictures {
+        let (media_type, data) = encode_picture(picture);
+        parts.push(json!({
+            "type": "image_url",
+            "image_url": { "url": format!("data:{media_type};base64,{data}") }
+        }));
+    }
+    Value::Array(parts)
+}
+
+fn google_parts(text: &str, pictures: &[Picture]) -> Value {
+    let mut parts = vec![json!({ "text": text })];
+    for picture in pictures {
+        let (media_type, data) = encode_picture(picture);
+        parts.push(json!({
+            "inline_data": {
+                "mime_type": media_type,
+                "data": data,
+            }
+        }));
+    }
+    Value::Array(parts)
+}
+
+fn encode_picture(picture: &Picture) -> (&'static str, String) {
+    (media_type(picture.bytes()), base64_encode(picture.bytes()))
+}
+
+fn media_type(bytes: &[u8]) -> &'static str {
+    if bytes.starts_with(&[0x89, b'P', b'N', b'G']) {
+        "image/png"
+    } else if bytes.len() >= 2 && bytes[0] == 0xFF && bytes[1] == 0xD8 {
+        "image/jpeg"
+    } else {
+        "image/png"
+    }
+}
+
+fn base64_encode(input: &[u8]) -> String {
+    const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(input.len().div_ceil(3) * 4);
+    let mut chunks = input.chunks_exact(3);
+    for chunk in chunks.by_ref() {
+        let n = (u32::from(chunk[0]) << 16) | (u32::from(chunk[1]) << 8) | u32::from(chunk[2]);
+        out.push(T[(n >> 18) as usize] as char);
+        out.push(T[((n >> 12) & 63) as usize] as char);
+        out.push(T[((n >> 6) & 63) as usize] as char);
+        out.push(T[(n & 63) as usize] as char);
+    }
+    let rem = chunks.remainder();
+    if rem.len() == 1 {
+        let n = u32::from(rem[0]) << 16;
+        out.push(T[(n >> 18) as usize] as char);
+        out.push(T[((n >> 12) & 63) as usize] as char);
+        out.push('=');
+        out.push('=');
+    } else if rem.len() == 2 {
+        let n = (u32::from(rem[0]) << 16) | (u32::from(rem[1]) << 8);
+        out.push(T[(n >> 18) as usize] as char);
+        out.push(T[((n >> 12) & 63) as usize] as char);
+        out.push(T[((n >> 6) & 63) as usize] as char);
+        out.push('=');
+    }
+    out
 }
 
 /// Turn a lab HTTP response into model text, or a Person-facing Key error.
@@ -310,10 +409,18 @@ mod tests {
         }
     }
 
+    fn words(text: &str) -> Intent {
+        Intent::words(text)
+    }
+
     #[test]
     fn every_lab_carries_the_same_verb_contract() {
         for provider in ProviderName::ALL {
-            let request = pack(&creds(provider), "a lighthouse at dusk", none_pointed());
+            let request = pack(
+                &creds(provider),
+                &words("a lighthouse at dusk"),
+                none_pointed(),
+            );
             assert!(
                 request.body.contains("The Person never names a Verb"),
                 "{provider:?} must carry Tessera's Verb contract, not its own"
@@ -337,6 +444,10 @@ mod tests {
                 request.body.contains("Guess") && request.body.contains("Ask"),
                 "{provider:?} must teach Guess-by-default and Ask as the exception"
             );
+            assert!(
+                request.body.contains("Pictures are Intent"),
+                "{provider:?} must teach that pictures are Intent, not a generator"
+            );
         }
     }
 
@@ -349,7 +460,7 @@ mod tests {
             pending_ask: None,
         };
         for provider in ProviderName::ALL {
-            let request = pack(&creds(provider), "the roof is too steep", bindings);
+            let request = pack(&creds(provider), &words("the roof is too steep"), bindings);
             assert!(
                 request.body.contains("the lantern roof") && request.body.contains("the shed roof"),
                 "{provider:?} must name the Scene's Objects"
@@ -363,7 +474,11 @@ mod tests {
 
     #[test]
     fn the_three_labs_use_their_own_envelopes() {
-        let anthropic = pack(&creds(ProviderName::Anthropic), "hi", none_pointed());
+        let anthropic = pack(
+            &creds(ProviderName::Anthropic),
+            &words("hi"),
+            none_pointed(),
+        );
         assert_eq!(anthropic.url, "https://api.anthropic.com/v1/messages");
         assert!(
             anthropic
@@ -378,7 +493,7 @@ mod tests {
                 .any(|(k, v)| k == "anthropic-version" && v == "2023-06-01")
         );
 
-        let openai = pack(&creds(ProviderName::OpenAI), "hi", none_pointed());
+        let openai = pack(&creds(ProviderName::OpenAI), &words("hi"), none_pointed());
         assert_eq!(openai.url, "https://api.openai.com/v1/chat/completions");
         assert!(
             openai
@@ -387,7 +502,7 @@ mod tests {
                 .any(|(k, v)| k == "authorization" && v == "Bearer sk-test")
         );
 
-        let google = pack(&creds(ProviderName::Google), "hi", none_pointed());
+        let google = pack(&creds(ProviderName::Google), &words("hi"), none_pointed());
         assert!(
             google
                 .url
@@ -401,6 +516,45 @@ mod tests {
                 .headers
                 .iter()
                 .any(|(k, v)| k == "x-goog-api-key" && v == "sk-test")
+        );
+    }
+
+    /// Pictures travel with Intent into every lab envelope (issue #9).
+    /// `c2tldGNoLWJ5dGVz` is the base64 of the literal `sketch-bytes`.
+    #[test]
+    fn every_lab_carries_pictures_with_intent() {
+        let intent = Intent::words("a lighthouse at dusk")
+            .with_pictures([tessera_session::Picture::sketch(b"sketch-bytes".to_vec())]);
+        for provider in ProviderName::ALL {
+            let request = pack(&creds(provider), &intent, none_pointed());
+            assert!(
+                request.body.contains("c2tldGNoLWJ5dGVz"),
+                "{provider:?} must send the picture bytes with Intent"
+            );
+            assert!(
+                request.body.contains("sketch"),
+                "{provider:?} must name the picture as a sketch"
+            );
+            assert!(
+                request.body.contains("not a scan to copy"),
+                "{provider:?} must say pictures are Intent, not a generator"
+            );
+        }
+        let anthropic = pack(&creds(ProviderName::Anthropic), &intent, none_pointed());
+        assert!(
+            anthropic.body.contains("\"type\":\"image\"")
+                || anthropic.body.contains("\"type\": \"image\""),
+            "Anthropic must wrap the picture as an image block"
+        );
+        let openai = pack(&creds(ProviderName::OpenAI), &intent, none_pointed());
+        assert!(
+            openai.body.contains("image_url"),
+            "OpenAI must wrap the picture as image_url"
+        );
+        let google = pack(&creds(ProviderName::Google), &intent, none_pointed());
+        assert!(
+            google.body.contains("inline_data"),
+            "Google must wrap the picture as inline_data"
         );
     }
 }

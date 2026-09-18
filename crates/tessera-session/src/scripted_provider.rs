@@ -1,6 +1,7 @@
 //! The scripted Provider tests use instead of a live lab. It never hits the
 //! network: it hands back the plan a real Provider would have thought up.
 
+use crate::intent::Intent;
 use crate::plan::Plan;
 use crate::provider::{Bindings, Credentials, Provider, ProviderError, Reply};
 use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
@@ -11,6 +12,7 @@ use tessera_engine::verb::{FrameTarget, MaterialFamily, ObjectRef, Part, Verb};
 pub struct ScriptedProvider {
     outcomes: Vec<Result<Reply, ProviderError>>,
     next: usize,
+    received: Vec<Intent>,
 }
 
 impl ScriptedProvider {
@@ -53,6 +55,11 @@ impl ScriptedProvider {
         )
     }
 
+    /// Every Intent this Provider has been asked to think about, in order.
+    pub fn received(&self) -> &[Intent] {
+        &self.received
+    }
+
     /// Convenience: a plan that sets the Scene's light and sky.
     pub fn light_and_sky(light: tessera_engine::LightCondition, sky: &str) -> Plan {
         Plan::new(
@@ -71,10 +78,11 @@ impl ScriptedProvider {
 impl Provider for ScriptedProvider {
     fn respond(
         &mut self,
-        _intent: &str,
+        intent: &Intent,
         _credentials: &Credentials,
         _bindings: Bindings<'_>,
     ) -> Result<Reply, ProviderError> {
+        self.received.push(intent.clone());
         let outcome = self.outcomes.get(self.next).cloned().unwrap_or_else(|| {
             panic!(
                 "the test scripted {} outcome(s) but the Provider was asked {} time(s)",

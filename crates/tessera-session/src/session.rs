@@ -6,11 +6,12 @@
 //! When a take composes the named place, it lands as the automatic First-take
 //! Mark.
 
+use crate::intent::Intent;
 use crate::keyring::{KeyStore, Keyring, MemoryKeyStore};
 use crate::marks::{MarkError, Marks};
 use crate::plan::Plan;
 use crate::provider::{Bindings, Provider, ProviderError, ProviderName, Reply};
-use crate::scene::{NarrationLine, Scene};
+use crate::scene::{Scene, TalkLine};
 use tessera_engine::Clay;
 use tessera_engine::clay::Object;
 use tessera_engine::verb::{FrameTarget, LightCondition, ObjectRef, Verb};
@@ -131,14 +132,18 @@ impl<P: Provider, V: View> Session<P, V> {
         self.keyring.has_key()
     }
 
-    /// The Person's words. The Agent plans, lands each Verb on the Engine, and
+    /// The Person's Intent. The Agent plans, lands each Verb on the Engine, and
     /// says what it did as it goes. A plan that names things the Scene does not
     /// have stops the take with an error; the Scene keeps every Verb that landed.
     ///
     /// The Key and Provider are asked for before the Agent is asked to think,
     /// and a lab that refuses the Key is said out loud — the Viewport is never
     /// a silent freeze (spec story 49).
-    pub fn submit_intent(&mut self, intent: &str) -> Result<Vec<String>, SessionError> {
+    pub fn submit_intent(
+        &mut self,
+        intent: impl Into<Intent>,
+    ) -> Result<Vec<String>, SessionError> {
+        let intent = intent.into();
         let credentials = match self.keyring.credentials() {
             Some(credentials) => credentials,
             None => {
@@ -159,10 +164,14 @@ impl<P: Provider, V: View> Session<P, V> {
         };
         let reply = self
             .provider
-            .respond(intent, &credentials, bindings)
+            .respond(&intent, &credentials, bindings)
             .map_err(|e| SessionError::Key(Self::key_error(e)))?;
         // Stop applies to a take in progress, not the next Intent.
         self.stop_requested = false;
+        self.scene.talk.push(TalkLine {
+            text: intent.words.clone(),
+            pictures: intent.pictures().to_vec(),
+        });
         let Plan { narration, verbs } = match reply {
             Reply::Ask(question) => return Ok(self.hold_ask(question)),
             Reply::Plan(plan) => plan,
@@ -180,7 +189,10 @@ impl<P: Provider, V: View> Session<P, V> {
             let verb = self.bind_this(verb)?;
             self.apply(verb)?;
             self.undo.push(before);
-            self.scene.talk.push(NarrationLine { text: line.clone() });
+            self.scene.talk.push(TalkLine {
+                text: line.clone(),
+                pictures: Vec::new(),
+            });
             said.push(line);
             if self.person_stopped() {
                 break;
@@ -196,7 +208,7 @@ impl<P: Provider, V: View> Session<P, V> {
 
     /// What the Agent has said in this Scene, across all Intent so far. The Talk
     /// lives with the Scene (ADR-0014).
-    pub fn talk(&self) -> Vec<NarrationLine> {
+    pub fn talk(&self) -> Vec<TalkLine> {
         self.scene.talk.clone()
     }
 
@@ -283,6 +295,12 @@ impl<P: Provider, V: View> Session<P, V> {
         &self.view
     }
 
+    /// The Provider the Agent thinks with. Tests inspect the scripted one to
+    /// see that pictures travelled with Intent.
+    pub fn provider(&self) -> &P {
+        &self.provider
+    }
+
     /// The Agent's Ask, if the Viewport is waiting instead of acting.
     /// None means the last Intent was a Guess and work continued (ADR-0017).
     pub fn ask(&self) -> Option<&str> {
@@ -322,8 +340,9 @@ impl<P: Provider, V: View> Session<P, V> {
 
     fn hold_ask(&mut self, question: String) -> Vec<String> {
         self.pending_ask = Some(question.clone());
-        self.scene.talk.push(NarrationLine {
+        self.scene.talk.push(TalkLine {
             text: question.clone(),
+            pictures: Vec::new(),
         });
         vec![question]
     }

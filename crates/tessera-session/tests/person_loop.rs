@@ -133,12 +133,12 @@ fn the_talk_accumulates_across_intents() {
     let talk = session.talk();
     assert_eq!(
         talk.len(),
-        4,
-        "the Talk keeps every Narration line; opening yesterday's Scene continues the Rehearsal"
+        6,
+        "the Talk keeps every Intent and Narration line; opening yesterday's Scene continues the Rehearsal"
     );
-    let first = &talk[0].text;
     assert!(
-        first.contains("the lighthouse"),
+        talk.iter()
+            .any(|line| line.text.contains("Placing the lighthouse")),
         "the first Narration is still in the Talk, not overwritten by later turns"
     );
     assert_eq!(

@@ -382,5 +382,9 @@ fn changing_provider_keeps_the_open_scene() {
     session.set_provider(ProviderName::OpenAI);
     session.set_key("sk-openai");
     assert_eq!(session.objects()[0].name, "the lighthouse");
-    assert_eq!(session.talk().len(), 2);
+    assert_eq!(
+        session.talk().len(),
+        3,
+        "Intent plus the two Narration lines of the plan stay with the Scene"
+    );
 }
